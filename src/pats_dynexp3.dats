@@ -60,74 +60,92 @@ p3at_make_node
 implement
 p3at_any
   (loc, s2f, d2v) =
-  p3at_make_node (loc, s2f, P3Tany (d2v))
+  p3at_make_node(loc, s2f, P3Tany(d2v))
 // end of [p3at_any]
 
 implement
 p3at_var
   (loc, s2f, d2v) =
-  p3at_make_node (loc, s2f, P3Tvar (d2v))
+  p3at_make_node(loc, s2f, P3Tvar(d2v))
 // end of [p3at_var]
 
 implement
 p3at_con
   (loc, s2f, pck, d2c, npf, p3ts) =
-  p3at_make_node (loc, s2f, P3Tcon (pck, d2c, npf, p3ts))
-// end of [p3at_con]
+(
+p3at_make_node
+  (loc, s2f, P3Tcon(pck, d2c, npf, p3ts))
+) // end of [p3at_con]
 
 implement
 p3at_int
-  (loc, s2f, i) = p3at_make_node (loc, s2f, P3Tint (i))
+  (loc, s2f, i) =
+  p3at_make_node(loc, s2f, P3Tint(i))
 // end of [p3at_int]
 implement
 p3at_intrep
-  (loc, s2f, rep) = p3at_make_node (loc, s2f, P3Tintrep (rep))
+  (loc, s2f, rep) =
+  p3at_make_node(loc, s2f, P3Tintrep(rep))
 // end of [p3at_intrep]
 
 implement
 p3at_bool
-  (loc, s2f, b) = p3at_make_node (loc, s2f, P3Tbool (b))
+  (loc, s2f, b) =
+  p3at_make_node(loc, s2f, P3Tbool(b))
 // end of [p3at_bool]
 
 implement
 p3at_char
-  (loc, s2f, c) = p3at_make_node (loc, s2f, P3Tchar (c))
+  (loc, s2f, c) =
+  p3at_make_node(loc, s2f, P3Tchar(c))
 // end of [p3at_char]
 
 implement
 p3at_float
-  (loc, s2f, rep) = p3at_make_node (loc, s2f, P3Tfloat (rep))
+  (loc, s2f, rep) =
+  p3at_make_node(loc, s2f, P3Tfloat (rep))
 // end of [p3at_float]
 
 implement
 p3at_string
-  (loc, s2f, str) = p3at_make_node (loc, s2f, P3Tstring (str))
+  (loc, s2f, str) =
+  p3at_make_node(loc, s2f, P3Tstring (str))
 // end of [p3at_string]
 
 implement
 p3at_i0nt
-  (loc, s2f, x) = p3at_make_node (loc, s2f, P3Ti0nt (x))
+  (loc, s2f, x) =
+  p3at_make_node(loc, s2f, P3Ti0nt(x))
 // end of [p3at_i0nt]
 
 implement
 p3at_f0loat
-  (loc, s2f, x) = p3at_make_node (loc, s2f, P3Tf0loat (x))
+  (loc, s2f, x) =
+  p3at_make_node(loc, s2f, P3Tf0loat(x))
 // end of [p3at_f0loat]
 
 implement
 p3at_empty
-  (loc, s2f) = p3at_make_node (loc, s2f, P3Tempty ())
+  (loc, s2f) =
+  p3at_make_node(loc, s2f, P3Tempty(*void*))
 // end of [p3at_empty]
 
+(* ****** ****** *)
+//
 implement
 p3at_rec (
-  loc, s2f, knd, npf, lp3ts
-) = p3at_make_node (loc, s2f, P3Trec (knd, npf, lp3ts))
-
+  loc, s2f, knd, npf, pck, lp3ts
+) =
+(
+  p3at_make_node(loc, s2f, P3Trec(knd, npf, pck, lp3ts))
+)
+//
 implement
 p3at_lst (
   loc, s2f, lin, s2e_elt, p3ts
-) = p3at_make_node (loc, s2f, P3Tlst (lin, s2e_elt, p3ts))
+) = p3at_make_node(loc, s2f, P3Tlst(lin, s2e_elt, p3ts))
+//
+(* ****** ****** *)
 
 implement
 p3at_refas (
@@ -174,42 +192,109 @@ end // end of [p3at_is_prf]
 
 implement
 p3at_is_lincon (p3t) =
+(
   case+ p3t.p3at_node of
-  | P3Tcon (pck, _, _, _) => pck = PCKlincon
-  | _ => false
-// end of [p3at_is_lincon]
+  | P3Tcon (pck, _, _, _) => pck = PCKlincon | _ => false
+) (* end of [p3at_is_lincon] *)
 
 implement
 p3at_is_unfold (p3t) =
+(
   case+ p3t.p3at_node of
-  | P3Tcon (pck, _, _, _) => pck = PCKunfold
-  | _ => false
-// end of [p3at_is_unfold]
+  | P3Tcon (pck, _, _, _) => pck = PCKunfold | _ => false
+) (* end of [p3at_is_unfold] *)
 
 (* ****** ****** *)
 
-implement
-d3exp_get_type (d3e) = d3e.d3exp_type
-// end of [implement]
+local
+
+fun
+aux_labp3atlst
+(
+  lxs: labp3atlst
+) : bool =
+(
+case+ lxs of
+| list_nil
+    ((*void*)) => true
+| list_cons
+    (lx, lxs) => let
+    val+LABP3AT(l, x) = lx
+  in
+    if p3at_is_full(x)
+      then aux_labp3atlst(lxs) else false
+    // end of [if]
+  end // end of [list_con]
+)
+
+in (* in-of-local *)
 
 implement
-d3explst_get_type (d3es) = let
-  val s2es = list_map_fun (d3es, d3exp_get_type)
+p3at_is_full
+  (p3t0) =
+(
+//
+case+
+p3t0.p3at_node of
+//
+| P3Tany _ => true
+| P3Tvar _ => true
+//
+| P3Tempty _ => true
+//
+| P3Trec
+  (
+    knd, npf, pck, lxs
+  ) => aux_labp3atlst (lxs)
+//
+| P3Trefas
+    (_, p3t) => p3at_is_full (p3t)
+  // end of [P3Trefas]
+| P3Texist
+    (_, p3t) => p3at_is_full (p3t)
+  // end of [P3Texist]
+//
+| P3Tann(p3t, _) => p3at_is_full (p3t)
+//
+| _ (*rest-of-P3T*) => false
+//
+) (* end of [p3at_is_full] *)
+
+end // end of [local]
+
+(* ****** ****** *)
+//
+implement
+d3exp_get_type(d3e) = d3e.d3exp_type
+//
+implement
+d3explst_get_type
+  (d3es) = let
+  val s2es =
+    list_map_fun (d3es, d3exp_get_type)
+  // end of [val]
 in
   list_of_list_vt (s2es)
 end // end of [d3explst_get_type]
-
+//
 (* ****** ****** *)
-
+//
 implement
 d3exp_is_prf (d3e) = let
-  val s2e = d3exp_get_type (d3e) in s2exp_is_prf (s2e)
+  val s2e =
+    d3exp_get_type(d3e) in s2exp_is_prf(s2e)
+  // end of [val]
 end // end of [d3exp_is_prf]
-
+//
+implement
+d3exp_isnot_prf (d3e) =
+  (if d3exp_is_prf(d3e) then false else true)
+//
 (* ****** ****** *)
 
 implement
-d3exp_cst (
+d3exp_cst
+(
   loc, s2f, d2c
 ) = '{
   d3exp_loc= loc
@@ -220,7 +305,8 @@ d3exp_cst (
 (* ****** ****** *)
 
 implement
-d3exp_var (
+d3exp_var
+(
   loc, s2f, d2v
 ) = '{
   d3exp_loc= loc
@@ -328,6 +414,26 @@ d3exp_cstsp
 (* ****** ****** *)
 
 implement
+d3exp_tyrep
+  (loc, s2f, s2e_rep) = '{
+  d3exp_loc= loc
+, d3exp_type= s2f
+, d3exp_node= D3Etyrep (s2e_rep)
+} // end of [d3exp_tyrep]
+
+(* ****** ****** *)
+
+implement
+d3exp_literal
+  (loc, s2f, d3e_lit) = '{
+  d3exp_loc= loc
+, d3exp_type= s2f
+, d3exp_node= D3Eliteral (d3e_lit)
+} // end of [d3exp_literal]
+
+(* ****** ****** *)
+
+implement
 d3exp_extval
   (loc, s2f, name) = '{
   d3exp_loc= loc
@@ -342,6 +448,14 @@ d3exp_extfcall
 , d3exp_type= s2f
 , d3exp_node= D3Eextfcall (_fun, _arg)
 } // end of [d3exp_extfcall]
+
+implement
+d3exp_extmcall
+  (loc, s2f, _obj, _mtd, _arg) = '{
+  d3exp_loc= loc
+, d3exp_type= s2f
+, d3exp_node= D3Eextmcall (_obj, _mtd, _arg)
+} // end of [d3exp_extmcall]
 
 (* ****** ****** *)
 
@@ -573,6 +687,17 @@ d3exp_sif (
 (* ****** ****** *)
 
 implement
+d3exp_ifcase (
+  loc, s2e_if, knd, ifcls
+) = '{
+  d3exp_loc= loc
+, d3exp_type= s2e_if
+, d3exp_node= D3Eifcase (knd, ifcls)
+} // end of [d3exp_ifcase]
+
+(* ****** ****** *)
+
+implement
 d3exp_case (
   loc, s2e_case, casknd, d3es, c3ls
 ) = let
@@ -653,6 +778,8 @@ d3exp_sel_var (
 , d3exp_type= s2f
 , d3exp_node= D3Esel_var (d2v, s2rt, d3ls)
 } // end of [d3exp_sel_var]
+
+(* ****** ****** *)
 
 implement
 d3exp_sel_ptr
@@ -792,7 +919,9 @@ d3exp_effmask
 (
   loc, s2fe, d3e
 ) = let
-  val s2f = d3exp_get_type (d3e)
+//
+val s2f = d3exp_get_type (d3e)
+//
 in '{
   d3exp_loc= loc
 , d3exp_type= s2f
@@ -810,6 +939,28 @@ d3exp_vcopyenv
 , d3exp_type= s2f
 , d3exp_node= D3Evcopyenv (knd, d2v)
 } // end of [d3exp_vcopyenv]
+
+(* ****** ****** *)
+
+implement
+d3exp_tempenver
+(
+  loc, s2f, d2vs
+) = '{
+  d3exp_loc= loc
+, d3exp_type= s2f
+, d3exp_node= D3Etempenver (d2vs)
+} // end of [d3exp_tempenver]
+
+(* ****** ****** *)
+
+implement
+d3exp_ann_type
+  (loc, d3e, s2f) = '{
+  d3exp_loc= loc
+, d3exp_type= s2f
+, d3exp_node= D3Eann_type (d3e, s2f)
+} // end of [d3exp_ann_type]
 
 (* ****** ****** *)
 
@@ -925,18 +1076,19 @@ d3exp_trywith (
 ) = '{
   d3exp_loc= loc
 , d3exp_type= d3e_try.d3exp_type
-, d3exp_node= D3Etrywith (d3e_try, c3ls_wth)
+, d3exp_node= D3Etrywith(d3e_try, c3ls_wth)
 } // end of [d3exp_trywith]
 
 (* ****** ****** *)
 
 implement
-d3exp_ann_type
-  (loc, d3e, s2f) = '{
+d3exp_solverify
+  (loc, s2e_prop) = let
+in '{
   d3exp_loc= loc
-, d3exp_type= s2f
-, d3exp_node= D3Eann_type (d3e, s2f)
-} // end of [d3exp_ann_type]
+, d3exp_type= s2e_prop
+, d3exp_node= D3Esolverify(s2e_prop)
+} end // end of [d3exp_solverify]
 
 (* ****** ****** *)
 
@@ -971,7 +1123,7 @@ d3lab_lab
 , d3lab_node= D3LABlab (lab)
 , d3lab_overld= opt
 , d3lab_overld_app= None(*void*)
-} // end of [d3lab_lab]
+} (* end of [d3lab_lab] *)
 
 implement
 d3lab_ind
@@ -980,7 +1132,18 @@ d3lab_ind
 , d3lab_node= D3LABind (ind)
 , d3lab_overld= None(*void*)
 , d3lab_overld_app= None(*void*)
-} // end of [d3lab_ind]
+} (* end of [d3lab_ind] *)
+
+(* ****** ****** *)
+
+implement
+i3fcl_make
+(
+  loc, test, body
+) = '{
+  i3fcl_loc= loc
+, i3fcl_test= test, i3fcl_body= body
+} (* end of [i3fcl_make] *)
 
 (* ****** ****** *)
 
@@ -1088,20 +1251,26 @@ d3ecl_make_node
 
 implement
 d3ecl_none
-  (loc) = d3ecl_make_node (loc, D3Cnone ())
+  (loc) =
+  d3ecl_make_node(loc, D3Cnone())
 // end of [d3ecl_none]
 implement
 d3ecl_list
-  (loc, xs) = d3ecl_make_node (loc, D3Clist (xs))
+  (loc, xs) =
+  d3ecl_make_node (loc, D3Clist(xs))
 // end of [d3ecl_list]
 
 (* ****** ****** *)
-
+//
 implement
-d3ecl_saspdec (loc, d2c) =
-  d3ecl_make_node (loc, D3Csaspdec (d2c))
+d3ecl_saspdec(loc, d2c) =
+  d3ecl_make_node(loc, D3Csaspdec(d2c))
 // end of [d3ecl_saspdec]
-
+implement
+d3ecl_reassume(loc, s2c) =
+  d3ecl_make_node(loc, D3Creassume(s2c))
+// end of [d3ecl_reassume]
+//
 (* ****** ****** *)
 
 implement
@@ -1111,10 +1280,12 @@ d3ecl_extype
 // end of [d3ecl_extype]
 
 implement
-d3ecl_extval
+d3ecl_extvar
   (loc, name, d3e_def) =
-  d3ecl_make_node (loc, D3Cextval (name, d3e_def))
-// end of [d3ecl_extval]
+  d3ecl_make_node (loc, D3Cextvar (name, d3e_def))
+// end of [d3ecl_extvar]
+
+(* ****** ****** *)
 
 implement
 d3ecl_extcode
@@ -1194,17 +1365,25 @@ d3ecl_prvardecs
 
 implement
 d3ecl_include
-  (loc, d3cs) =
-  d3ecl_make_node (loc, D3Cinclude (d3cs))
+  (loc, knd, d3cs) =
+  d3ecl_make_node (loc, D3Cinclude (knd, d3cs))
 // end of [d3ecl_include]
 
 (* ****** ****** *)
 
 implement
 d3ecl_staload
-  (loc, fil, flag, loaded, opt) =
-  d3ecl_make_node (loc, D3Cstaload (fil, flag, loaded, opt))
+(
+  loc, idopt, cfil, flag, loaded, opt
+) = d3ecl_make_node
+  (loc, D3Cstaload (idopt, cfil, flag, loaded, opt))
 // endof [d3ecl_staload]
+
+implement
+d3ecl_staloadloc
+  (loc, pfil, nspace, fenv) =
+  d3ecl_make_node (loc, D3Cstaloadloc (pfil, nspace, fenv))
+// end of [d3ecl_staloadloc]  
 
 (* ****** ****** *)
 

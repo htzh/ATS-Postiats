@@ -68,20 +68,22 @@ fun s2rt_npf_lin_prf_prgm_boxed_labs2explst (
 ) : s2rt // end of [s2rt_npf_lin_prf_prgm_boxed_labs2explst]
 
 (* ****** ****** *)
-
-fun s2cst_select_locs2explstlst
+//
+fun
+s2cst_select_locs2explstlst
   (s2cs: s2cstlst, arg: List (locs2explst)): s2cstlst
 // end of [s2cst_select_locs2explstlst]
-
+//
 (* ****** ****** *)
-
+//
 fun s2exp_is_nonvar (s2e: s2exp):<> bool
 fun s2exp_is_wthtype (s2e: s2exp):<> bool
 fun s2exp_is_without (s2e: s2exp):<> bool
-
+//
 // HX-2012-05: this one does more elaborate checking
-fun s2exp_is_lin2 (x: s2exp): bool // when compared to [s2exp_is_lin]
-
+//
+fun s2exp_is_lin2 (x: s2exp): bool // compared to [s2exp_is_lin]
+//
 (* ****** ****** *)
 
 fun s2hnf_get_head (s2f: s2hnf): s2hnf // the head in HNF
@@ -101,11 +103,20 @@ absvtype
 stasub_vtype // for static subst
 vtypedef stasub = stasub_vtype
 
-fun stasub_make_nil () : stasub
-fun stasub_copy (sub: !stasub): stasub
+(* ****** ****** *)
+//
+fun
+stasub_make_nil ((*void*)) : stasub
+//
 fun stasub_free (sub: stasub): void
+fun stasub_copy (sub: !stasub): stasub
+//
+(* ****** ****** *)
 
-fun fprint_stasub (out: FILEref, sub: !stasub): void
+fun
+fprint_stasub (out: FILEref, sub: !stasub): void
+
+(* ****** ****** *)
 
 fun stasub_add
   (sub: &stasub, s2v: s2var, s2f: s2exp): void
@@ -113,19 +124,25 @@ fun stasub_addlst
   (sub: &stasub, s2vs: s2varlst, s2fs: s2explst): int(*err*)
 // end of [stasub_addlst]
 
+(* ****** ****** *)
+
 fun stasub_find
   (sub: !stasub, s2v: s2var): Option_vt (s2exp)
 // end of [stasub_find]
 
+(* ****** ****** *)
+//
 (*
 fun stasub_get_domain (sub: !stasub): List_vt (s2var)
 *)
-
-fun stasub_occurcheck (sub: !stasub, s2V: s2Var): bool
-
+//
+fun
+stasub_occurcheck (sub: !stasub, s2V: s2Var): bool
+//
 (* ****** ****** *)
 
-fun stasub_extend_svarlst
+fun
+stasub_extend_svarlst
   (sub: &stasub, s2vs: s2varlst): s2varlst_vt
 // end of [stasub_extend_svarlst]
 
@@ -141,18 +158,21 @@ fun s2explstlst_subst (sub: !stasub, s2ess: s2explstlst): s2explstlst
 fun s2expopt_subst (sub: !stasub, os2e: s2expopt): s2expopt
 //
 (* ****** ****** *)
-
-fun s2exp_subst_flag
+//
+fun
+s2exp_subst_flag
   (sub: !stasub, s2e: s2exp, flag: &int): s2exp
 // end of [s2exp_subst_flag]
-
-fun s2explst_subst_flag
+//
+fun
+s2explst_subst_flag
   (sub: !stasub, s2es: s2explst, flag: &int): s2explst
 // end of [s2explst_subst_flag]
-
+//
 (* ****** ****** *)
 
-fun s2zexp_subst_flag
+fun
+s2zexp_subst_flag
   (sub: !stasub, s2ze: s2zexp, flag: &int): s2zexp
 // end of [s2zexp_subst_flag]
 
@@ -167,15 +187,14 @@ fun s2explst_alpha
 // end of [s2explst_alpha]
 
 (* ****** ****** *)
-
+//
 fun s2ctxt_hrepl
   (ctxt: s2ctxt, repl: s2exp): s2exp
 fun s2ctxtopt_hrepl
   (ctxtopt: s2ctxtopt, repl: s2exp): s2expopt
-// end of [s2ctxtopt_hrepl]
-
+//
 fun s2exp_hrepl (s2e: s2exp, repl: s2exp): s2exp
-
+//
 (* ****** ****** *)
 
 fun s2exp_linkrem (s2e: s2exp): s2exp
@@ -219,6 +238,58 @@ fun s2exp_syneq (s2e1: s2exp, s2e2: s2exp): bool
 fun s2explst_syneq (xs1: s2explst, xs2: s2explst): bool
 
 (* ****** ****** *)
+//
+// HX-2015-03:
+// this version handles bound variables:
+//
+fun
+s2hnf_syneq2 (s2f1: s2hnf, s2f2: s2hnf): bool
+fun
+s2exp_syneq2 (s2e1: s2exp, s2e2: s2exp): bool
+fun
+s2explst_syneq2 (xs1: s2explst, xs2: s2explst): bool
+//
+fun
+s2var_syneq_env
+(
+  env1: !s2varlst_vt
+, env2: !s2varlst_vt
+, s2v1: s2var, s2v2: s2var
+) : bool // end of [s2var_syneq_env]
+//
+fun
+s2hnf_syneq_env
+(
+  env1: !s2varlst_vt
+, env2: !s2varlst_vt
+, s2f1: s2hnf, s2f2: s2hnf
+) : bool // end of [s2hnf_syneq_env]
+//
+fun
+s2exp_syneq_env
+(
+  env1: !s2varlst_vt
+, env2: !s2varlst_vt
+, s2e1: s2exp, s2e2: s2exp
+) : bool // end of [s2exp_syneq_env]
+//
+fun
+s2explst_syneq_env
+(
+  env1: !s2varlst_vt
+, env2: !s2varlst_vt
+, s2es1: s2explst, s2es2: s2explst
+) : bool // end of [s2explst_syneq_env]
+//
+fun
+s2explstlst_syneq_env
+(
+  env1: !s2varlst_vt
+, env2: !s2varlst_vt
+, s2ess1: s2explstlst, s2ess2: s2explstlst
+) : bool // end of [s2explstlst_syneq_env]
+//
+(* ****** ****** *)
 
 fun s2hnf_tszeq
   (s2f1: s2hnf, s2f2: s2hnf): bool // type-size-equality-test
@@ -252,7 +323,8 @@ fun s2exp_freevars (s2e: s2exp): s2varset_vt
 
 (* ****** ****** *)
 
-fun s2Var_occurcheck_s2exp
+fun
+s2Var_occurcheck_s2exp
   (s2V0: s2Var, s2e: s2exp) : (int, s2cstlst, s2varlst, s2Varlst)
 // end of [s2Var_occurcheck_s2exp]
 

@@ -6,6 +6,14 @@
 // the problem of Dining Philosophers
 //
 (* ****** ****** *)
+
+%{^
+//
+#include <pthread.h>
+//
+%} // end of [%{^]
+
+(* ****** ****** *)
 //
 #include
 "share/atspre_define.hats"
@@ -15,21 +23,22 @@
 (* ****** ****** *)
 
 staload
-UN = "prelude/SATS/unsafe.sats"
+UN =
+"prelude/SATS/unsafe.sats"
 
 (* ****** ****** *)
-
-staload "libc/SATS/stdlib.sats"
-staload "libc/SATS/unistd.sats"
-
+//
+staload "libats/libc/SATS/stdlib.sats"
+staload "libats/libc/SATS/unistd.sats"
+//
+(* ****** ****** *)
+//
+#include
+"{$LIBATSHWXI}/threadkit/staloadall.hats"
+//
 (* ****** ****** *)
 
-staload "{$LIBATSHWXI}/teaching/mythread/SATS/channel.sats"
-
-(* ****** ****** *)
-
-staload _ = "libats/DATS/deqarray.dats"
-staload _ = "{$LIBATSHWXI}/teaching/mythread/DATS/channel.dats"
+staload $CHANNEL
 
 (* ****** ****** *)
 
@@ -86,7 +95,7 @@ val ch_rfork = fork_changet (nr)
 val lf = channel_takeout (ch_lfork)
 val () = println! ("phil_loop(", n, ") picks left fork")
 //
-val () = randsleep (2) // HX: try to actively induce deadlock
+val () = randsleep (3) // HX: try to actively induce deadlock
 //
 val rf = channel_takeout (ch_rfork)
 val () = println! ("phil_loop(", n, ") picks right fork")
@@ -138,27 +147,27 @@ in
 end // end of [cleaner_loop]
 
 (* ****** ****** *)
-
+//
+(*
 dynload "DiningPhil2.sats"
+*)
 dynload "DiningPhil2_fork.dats"
-dynload "DiningPhil2_thread.dats"
-
+//
 (* ****** ****** *)
 
 local
 //
-staload
-"{$LIBATSHWXI}/teaching/mythread/SATS/mythread.sats"
+staload "libats/SATS/athread.sats"
 //
 in (* in of [local] *)
 //
-val () = mythread_create_cloptr (llam () => phil_loop (0))
-val () = mythread_create_cloptr (llam () => phil_loop (1))
-val () = mythread_create_cloptr (llam () => phil_loop (2))
-val () = mythread_create_cloptr (llam () => phil_loop (3))
-val () = mythread_create_cloptr (llam () => phil_loop (4))
+val tid0 = athread_create_cloptr_exn (llam () => phil_loop (0))
+val tid1 = athread_create_cloptr_exn (llam () => phil_loop (1))
+val tid2 = athread_create_cloptr_exn (llam () => phil_loop (2))
+val tid3 = athread_create_cloptr_exn (llam () => phil_loop (3))
+val tid4 = athread_create_cloptr_exn (llam () => phil_loop (4))
 //
-val () = mythread_create_cloptr (llam () => cleaner_loop ())
+val tid5 = athread_create_cloptr_exn (llam () => cleaner_loop ())
 //
 end // end of [local]
 

@@ -36,8 +36,6 @@
 #define
 ATS_PACKNAME "ATSLIB.libats.ML"
 #define
-ATS_STALOADFLAG 0 // no need for staloading at run-time
-#define
 ATS_EXTERN_PREFIX "atslib_ML_" // prefix for external names
 
 (* ****** ****** *)
@@ -46,45 +44,48 @@ staload "libats/ML/SATS/basis.sats"
 
 (* ****** ****** *)
 //
-// HX: for maps of elements of type (a)
-//
-abstype
-hashtbl_type (key:t@ype, itm:t0ype) = ptr
 typedef
-hashtbl (key:t0p, itm:t0p) = hashtbl_type (key, itm)
+hashtbl // introduced in [basis.sats]
+(key:t@ype, itm:t@ype) = hashtbl(key, itm)
 //
 (* ****** ****** *)
-
-fun{key:t0p}
-hash_key (x: key):<> ulint
-fun{key:t0p}
-equal_key_key (x1: key, x2: key):<> bool
-
+//
+fun{
+key:t0p
+} hash_key(x: key):<> ulint
+//
+fun{
+key:t0p
+} equal_key_key(x1: key, x2: key):<> bool
+//
 (* ****** ****** *)
-
+//
 fun{
 key,itm:t0p
-} hashtbl_make_nil (cap: sizeGte(1)): hashtbl (key, itm)
-
+} hashtbl_make_nil
+  (cap: sizeGte(1)): hashtbl(key, itm)
+//
 (* ****** ****** *)
 
 fun{}
-hashtbl_get_size{key,itm:t0p} (hashtbl (key, itm)): size_t
+hashtbl_get_size
+  {key,itm:t0p}(hashtbl(key, itm)): size_t
 fun{}
-hashtbl_get_capacity{key,itm:t0p} (hashtbl (key, itm)): sizeGte(1)
+hashtbl_get_capacity
+  {key,itm:t0p}(hashtbl(key, itm)): sizeGte(1)
 
 (* ****** ****** *)
 
 fun{
 key,itm:t0p
 } hashtbl_search
-  (hashtbl (key, itm), key): Option_vt (itm)
+  (hashtbl(key, itm), key): Option_vt(itm)
 // end of [hashtbl_search]
 
 fun{
 key,itm:t0p
 } hashtbl_search_ref
-  (tbl: hashtbl (key, itm), k: key): cPtr0 (itm)
+  (tbl: hashtbl(key, itm), k: key): cPtr0(itm)
 // end of [hashtbl_search_ref]
 
 (* ****** ****** *)
@@ -92,43 +93,94 @@ key,itm:t0p
 fun{
 key,itm:t0p
 } hashtbl_insert
-  (hashtbl (key, itm), key, itm): Option_vt (itm)
+  (hashtbl(key, itm), key, itm): Option_vt(itm)
 // end of [hashtbl_insert]
 
 fun{
 key,itm:t0p
-} hashtbl_insert_any (hashtbl (key, itm), key, itm): void
+} hashtbl_insert_any(hashtbl(key, itm), key, itm): void
 
 (* ****** ****** *)
 
 fun{
 key,itm:t0p
 } hashtbl_takeout
-  (hashtbl (key, itm), key): Option_vt (itm)
+  (kxs: hashtbl(key, itm), k0: key): Option_vt(itm)
 // end of [hashtbl_takeout]
 
 (* ****** ****** *)
 
 fun{
 key,itm:t0p
-} hashtbl_remove (hashtbl (key, itm), key): bool
+} hashtbl_remove
+  (kxs: hashtbl(key, itm), key): bool
 
 (* ****** ****** *)
 
 fun{
 key,itm:t0p
 } hashtbl_takeout_all
-  (tbl: hashtbl (key, itm)): list0 @(key, itm)
+  (kxs: hashtbl(key, itm)): list0 @(key, itm)
 // end of [hashtbl_takeout_all]
 
 (* ****** ****** *)
-
+//
+fun{
+key,itm:t@ype
+} fprint_hashtbl
+  (out: FILEref, tbl: hashtbl(key, itm)): void
+//
+overload fprint with fprint_hashtbl
+//
+fun{}
+fprint_hashtbl$sep (out: FILEref): void // default: fprint("; ")
+fun{}
+fprint_hashtbl$mapto (out: FILEref): void // default: fprint("->")
+//
+(* ****** ****** *)
+//
+fun{
+key,itm:t@ype
+} fprint_hashtbl_sep_mapto
+(
+  out: FILEref, tbl: hashtbl(key, itm), sep: string, mapto: string
+) : void // end of [fprint_hashtbl_sep_mapto]
+//
+(* ****** ****** *)
+//
 fun{
 key,itm:t0p
-} hashtbl_listize1
-  (tbl: hashtbl (key, itm)): list0 @(key, itm)
-// end of [hashtbl_listize1]
-
+} hashtbl_foreach
+  (tbl: hashtbl(key, itm)): void
+fun
+{key:t0p
+;itm:t0p}
+{env:vt0p}
+hashtbl_foreach_env
+  (tbl: hashtbl(key, itm), env: &(env) >> _): void
+//
+fun
+{key:t0p
+;itm:t0p}
+{env:vt0p}
+hashtbl_foreach$fwork
+  (key: key, itm: &itm >> _, env: &(env) >> _): void
+//
+(* ****** ****** *)
+//
+fun{
+key,itm:t0p
+} hashtbl_foreach_cloref
+(
+  tbl: hashtbl(key, itm), fwork: (key, &itm >> _) -<cloref1> void
+) : void // end of [hashtbl_foreach_cloref]
+//
+(* ****** ****** *)
+//
+fun{
+key,itm:t0p
+} hashtbl_listize1(hashtbl(key, itm)): list0 @(key, itm)
+//
 (* ****** ****** *)
 
 (* end of [hashtblref.sats] *)

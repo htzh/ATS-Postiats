@@ -80,9 +80,10 @@ local
 //
 #define MAXLEN 100
 #assert (MAXLEN > 0)
+//
 val the_length = ref<int> (0)
 val the_parerrlst = ref<parerrlst_vt> (list_vt_nil)
-
+//
 in (* in-of-local *)
 
 implement
@@ -94,7 +95,7 @@ the_parerrlst_clear
     val () = list_vt_free (!p)
     val () = !p := list_vt_nil ()
   } // end of [val]
-} // end of [the_parerrlst_clear]
+} (* end of [the_parerrlst_clear] *)
 
 implement
 the_parerrlst_add
@@ -109,7 +110,7 @@ the_parerrlst_add
   in
     !p := list_vt_cons (err, !p)
   end // end of [val]
-} // end of [the_parerrlst_add]
+} (* end of [the_parerrlst_add] *)
 
 implement
 the_parerrlst_get
@@ -120,7 +121,7 @@ the_parerrlst_get
   val xs = !p
   val xs = list_vt_reverse (xs)
   val () = !p := list_vt_nil ()
-} // end of [the_parerrlst_get]
+} (* end of [the_parerrlst_get] *)
 
 end // end of [local]
 
@@ -128,61 +129,85 @@ end // end of [local]
 
 implement
 the_parerrlst_add_ifnbt
-  (bt, loc, node) =
-  if (bt = 0) then
-    the_parerrlst_add (parerr_make (loc, node))
-  else () // end of [if]
-// end of [the_parerrlst_add_if0]
+  (bt, loc, node) = let
+in
+//
+if (bt = 0)
+  then the_parerrlst_add (parerr_make (loc, node)) else ()
+//
+end // end of [the_parerrlst_add_if0]
+
+(* ****** ****** *)
 
 implement
 the_parerrlst_add_ifunclosed
   (loc, name) = let
   val newline = '\n'
 in
-  if string_contains (name, newline) then
-    the_parerrlst_add (parerr_make (loc, PE_filename)) else ()
-  // end of [if]
+//
+if string_contains (name, newline)
+  then the_parerrlst_add (parerr_make (loc, PE_fname_unclosed)) else ()
+//
 end // end of [the_parerrlst_add_ifunclosed]
 
 (* ****** ****** *)
 
-fun keyword_needed
+fun
+synent_needed
 (
-  out: FILEref, x: parerr, name: string
+  out: FILEref
+, x: parerr, name: string
+) : void = () where {
+//
+val () = fprint (out, x.parerr_loc)
+val () =
+  fprintf (out, ": error(parsing): the syntactic entity [%s] is needed.", @(name))
+val () = fprint_newline (out)
+//
+} (* end of [synent_needed] *)
+
+(* ****** ****** *)
+
+fun
+keyword_needed
+(
+  out: FILEref
+, x: parerr, name: string
 ) : void = () where {
   val () = fprint (out, x.parerr_loc)
   val () = fprintf (out, ": error(parsing): the keyword [%s] is needed.", @(name))
   val () = fprint_newline (out)
-} // end of [keyword_needed]
+} (* end of [keyword_needed] *)
 
-fun synent_needed
-(
-  out: FILEref, x: parerr, name: string
-) : void = () where {
-  val () = fprint (out, x.parerr_loc)
-  val () = fprintf (out, ": error(parsing): the syntactic entity [%s] is needed.", @(name))
-  val () = fprint_newline (out)
-} // end of [synent_needed]
+(* ****** ****** *)
 
-fun parenth_needed
+fun
+parenth_needed
 (
-  out: FILEref, x: parerr, name: string
+  out: FILEref
+, x: parerr, name: string
 ) : void = () where {
   val () = fprint (out, x.parerr_loc)
   val () = fprintf (out, ": error(parsing): the keyword '%s' is needed.", @(name))
   val () = fprint_newline (out)
-} // end of [parenth_needed]
+} (* end of [parenth_needed] *)
 
-fun filename_unclosed
+(* ****** ****** *)
+
+fun
+fname_unclosed
 (
   out: FILEref, x: parerr
 ) : void = () where {
   val () = fprint (out, x.parerr_loc)
   val () = fprintf (out, ": error(parsing): the filename is unclosed.", @())
   val () = fprint_newline (out)
-} // end of [filename_unclosed]
+} (* end of [fname_unclosed] *)
 
-fun token_discarded
+(* ****** ****** *)
+
+fun
+token_discarded
 (
   out: FILEref, x: parerr
 ) : void = () where {
@@ -193,38 +218,66 @@ fun token_discarded
 
 (* ****** ****** *)
 
+(*
+fun
+file_unavailable
+(
+  out: FILEref, x: parerr
+) : void = let
+//
+val-PE_FILENONE(fname) = x.parerr_node
+val ((*void*)) = fprint (out, x.parerr_loc)
+val ((*void*)) = fprintf (out, ": error(parsing): the file [%s] is unavailable.", @(fname))
+//
+in
+  // nothing
+end // end of [file_unavailable]
+*)
+
+(* ****** ****** *)
+
 implement
 fprint_parerr
   (out, x) = let
 //
 val loc = x.parerr_loc and node = x.parerr_node
 //
-macdef KN (x, name) = keyword_needed (out, ,(x), ,(name))
 macdef SN (x, name) = synent_needed (out, ,(x), ,(name))
+macdef KN (x, name) = keyword_needed (out, ,(x), ,(name))
 macdef PN (x, name) = parenth_needed (out, ,(x), ,(name))
 //
 in
 //
 case+ node of
 //
-| PE_AND () => KN (x, "and")
-| PE_END () => KN (x, "end")
-| PE_AS () => KN (x, "as")
-| PE_OF () => KN (x, "of")
-| PE_IN () => KN (x, "in")
-| PE_IF () => KN (x, "if")
-| PE_SIF () => KN (x, "sif")
-| PE_CASE () => KN (x, "case")
-| PE_SCASE () => KN (x, "scase")
+| PE_AS() => KN (x, "as")
+//
+| PE_AND() => KN (x, "and")
+//
+| PE_END() => KN (x, "end")
+//
+| PE_OF() => KN (x, "of")
+| PE_IN() => KN (x, "in")
+//
+| PE_IF() => KN (x, "if")
+| PE_SIF() => KN (x, "sif")
+//
+| PE_CASE() => KN (x, "case")
+| PE_SCASE() => KN (x, "scase")
+//
+| PE_IFCASE() => KN (x, "ifcase")
+//
 | PE_THEN () => KN (x, "then")
 | PE_ELSE () => KN (x, "else")
+//
 | PE_REC () => KN (x, "rec")
 | PE_WHEN () => KN (x, "when")
 | PE_WITH () => KN (x, "with")
 //
+| PE_TRY () => KN (x, "try")
+//
 | PE_FOR () => KN (x, "for")
 | PE_WHILE () => KN (x, "while")
-| PE_TRY () => KN (x, "try")
 //
 | PE_BAR () => KN (x, "|")
 | PE_COLON () => KN (x, ":")
@@ -308,9 +361,13 @@ case+ node of
 | PE_atmp0at () => SN (x, "atmp0at")
 | PE_labp0at () => SN (x, "labp0at")
 | PE_p0at_as () => SN (x, "p0at_as")
+//
+| PE_i0fcl () => SN (x, "i0fcl")
+//
 | PE_gm0at () => SN (x, "gm0at")
 | PE_guap0at () => SN (x, "guap0at")
 | PE_c0lau () => SN (x, "c0lau")
+| PE_sc0lau () => SN (x, "sc0lau")
 //
 | PE_di0de () => SN (x, "di0de")
 | PE_d0ynq () => SN (x, "d0ynq")
@@ -331,17 +388,21 @@ case+ node of
 | PE_d0ecl_sta () => SN (x, "d0ecl_sta")
 | PE_d0ecl_dyn () => SN (x, "d0ecl_dyn")
 | PE_guad0ecl () => SN (x, "guad0ecl")
+| PE_staloadarg () => SN (x, "staloadarg")
 //
-| PE_filename () => filename_unclosed (out, x)
+| PE_fname_unclosed () => fname_unclosed (out, x)
 //
 | PE_DISCARD () => token_discarded (out, x)
+(*
+| PE_FILENONE (fname) => file_unavailable (out, x)
+*)
 //
 (*
 | _ => {
     val () = fprint (out, loc)
     val () = fprintf (out, ": error(parsing): unspecified", @())
     val () = fprint_newline (out)
-  }
+  } (* end of [_] *)
 *)
 //
 end // end of [fprint_parerr]

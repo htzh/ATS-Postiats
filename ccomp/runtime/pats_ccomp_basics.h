@@ -46,72 +46,123 @@
 #define atsbool_false 0
 //
 #define atsptr_null ((void*)0)
+#define the_atsptr_null ((void*)0)
 //
-#define ATSextval(name) name
+/* ****** ****** */
+//
+#define ATSstruct struct
+//
+/* ****** ****** */
+/*
+#define ATStypedef typedef
+*/
 //
 /* ****** ****** */
 
+#ifndef \
+ATS_EXTERN_DEF__
+#define ATSextern() extern
+#else
+#define ATSextern() ATS_EXTERN_DEF__
+#endif // #ifndef
+
+/* ****** ****** */
+
+#ifndef \
+ATS_STATIC_DEF__
+#define ATSstatic() static
+#else
+#define ATSstatic() ATS_STATIC_DEF__
+#endif // #ifndef
+
+/* ****** ****** */
+
+#ifndef \
+ATS_INLINE_DEF__
 #define ATSinline() static inline
+#else
+#define ATSinline() ATS_INLINE_DEF__
+#endif // #ifndef
 
 /* ****** ****** */
-
-#define ATSglobaldec() extern
-#define ATSstaticdec() static
-
-/* ****** ****** */
-
-#define ATSdynload0(flag) int flag = 0
-#define ATSdynload1(flag) ATSglobaldec() int flag
+//
+#define ATSdynload()
+//
+#define ATSdynloadflag_sta(flag)
+#define ATSdynloadflag_ext(flag) ATSextern() int flag
+//
+#define ATSdynloadflag_init(flag) int flag = 0
+//
+#define ATSdynloadflag_minit(flag) int flag = 0
+//
 #define ATSdynloadset(flag) flag = 1
 #define ATSdynloadfcall(dynloadfun) dynloadfun()
-
+//
 /* ****** ****** */
 
-#ifndef _ATS_EXCEPTION_NONE
+#ifndef \
+_ATS_CCOMP_EXCEPTION_NONE_
 //
 #define \
-ATSdynexn_dec(d2c) atstype_exncon d2c = { 0, "ats-exncon-name" }
-#define ATSdynexn_initize(d2c, exnmsg) the_atsexncon_initize(&(d2c), exnmsg)
-#define ATSdynexn_extdec(d2c) ATSglobaldec() atstype_exncon d2c
+ATSdynexn_dec(d2c) \
+atstype_exncon d2c = { 0, "__ATSEXNMSG__" }
 //
-#endif // end of [_ATS_EXCEPTION_NONE]
+#define \
+ATSdynexn_extdec(d2c) ATSextern() atstype_exncon d2c
+//
+#define \
+ATSdynexn_initize(d2c, exnmsg) the_atsexncon_initize(&(d2c), exnmsg)
+//
+#endif // end of [_ATS_CCOMP_EXCEPTION_NONE_]
 
 /* ****** ****** */
 
 #define ATSassume(flag) void *flag = (void*)0
 
 /* ****** ****** */
+//
+#define ATSclosurerize_end(flab)
+#define ATSclosurerize_beg(flab, tenvs, targs, tres)
+//
+/* ****** ****** */
 
 #define ATSdyncst_mac(d2c)
 #define ATSdyncst_castfn(d2c)
-#define ATSdyncst_extfun(d2c, targs, tres) ATSglobaldec() tres d2c targs
-#define ATSdyncst_stafun(d2c, targs, tres) ATSstaticdec() tres d2c targs
+#define ATSdyncst_extfun(d2c, targs, tres) ATSextern() tres d2c targs
+#define ATSdyncst_stafun(d2c, targs, tres) ATSstatic() tres d2c targs
 
 /* ****** ****** */
 
 #define ATSdyncst_valimp(d2c, type) type d2c
-#define ATSdyncst_valdec(d2c, type) ATSglobaldec() type d2c
-#define ATSdyncst_valbind(d2c, pmv) d2c = (pmv)
+#define ATSdyncst_valdec(d2c, type) ATSextern() type d2c
 
 /* ****** ****** */
-
-#define ATSmainats_void_0(err) mainats_void_0()
-#define ATSmainats_argc_argv_0(argc, argv, err) mainats_argc_argv_0(argc, argv)
-#define ATSmainats_argc_argv_envp_0(argc, argv, envp, err) mainats_argc_argv_envp_0(argc, argv, envp)
-
-#define ATSmainats_void_int(err) err = mainats_void_int()
-#define ATSmainats_argc_argv_int(argc, argv, err) err = mainats_argc_argv_int(argc, argv)
-#define ATSmainats_argc_argv_envp_int(argc, argv, envp, err) err = mainats_argc_argv_envp_int(argc, argv, envp)
-
+//
+#define \
+ATSmainats_void_0(err) mainats_void_0()
+#define \
+ATSmainats_argc_argv_0(argc, argv, err) mainats_argc_argv_0(argc, argv)
+#define \
+ATSmainats_argc_argv_envp_0(argc, argv, envp, err) mainats_argc_argv_envp_0(argc, argv, envp)
+//
+#define \
+ATSmainats_void_int(err) err = mainats_void_int()
+#define \
+ATSmainats_argc_argv_int(argc, argv, err) err = mainats_argc_argv_int(argc, argv)
+#define \
+ATSmainats_argc_argv_envp_int(argc, argv, envp, err) err = mainats_argc_argv_envp_int(argc, argv, envp)
+//
 /* ****** ****** */
-
+//
 extern
 void atsruntime_raise (void *exn) ;
 extern
 void atsruntime_handle_uncaughtexn (void *exn0) ;
 extern
 void atsruntime_handle_unmatchedval (char *msg0) ;
-
+extern
+void atsruntime_handle_unmatchedarg (char *msg0) ;
+//
 /* ****** ****** */
 
 #endif /* PATS_CCOMP_BASICS_H */

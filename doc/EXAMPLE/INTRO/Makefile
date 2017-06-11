@@ -22,7 +22,8 @@ include $(PATSHOME)/share/atsmake-post.mk
 
 ######
 
-PATSCCOMP=$(CCOMP) -D_XOPEN_SOURCE -I${PATSHOMEQ} -I${PATSHOMEQ}/ccomp/runtime
+PATSCCOMP=\
+$(CCOMP) -D_XOPEN_SOURCE -I${PATSHOMEQ} -I${PATSHOMEQ}/ccomp/runtime
 
 ######
 
@@ -33,6 +34,7 @@ export PATSCCOMP
 all:: acker1
 all:: acker2
 all:: acker3
+all:: acker4
 all:: areverse
 all:: atof
 all:: atoi
@@ -41,6 +43,7 @@ all:: f91
 all:: fact1
 all:: fact2
 all:: fact3
+all:: fact_uninterp
 all:: fcopy
 all:: fcopy2
 all:: fib1
@@ -66,9 +69,48 @@ all:: tally
 
 ######
 
+regress:: acker1 ; ./acker1
+regress:: acker2 ; ./acker2
+regress:: acker3 ; ./acker3
+regress:: acker4 ; ./acker4
+regress:: areverse ; ./areverse
+regress:: atof ; ./atof
+regress:: atoi ; ./atoi
+regress:: bintree ; ./bintree
+regress:: f91 ; ./f91
+regress:: fact1 ; ./fact1 10
+regress:: fact2 ; ./fact2
+regress:: fact3 ; ./fact3
+regress:: fact_uninterp ; ./fact_uninterp
+#regress:: fcopy ; ./fcopy
+#regress:: fcopy2 ; ./fcopy2
+regress:: fib1 ; ./fib1
+regress:: fib2 ; ./fib2
+regress:: fibmem ; ./fibmem
+regress:: fib_lazy ; ./fib_lazy
+regress:: fib_llazy ; ./fib_llazy
+regress:: fprintlst2 ; ./fprintlst2
+regress:: fprtuple ; ./fprtuple
+regress:: gfact ; ./gfact
+regress:: hello ; ./hello
+#regress:: intecho ; ./intecho
+regress:: intrange ; ./intrange
+#regress:: linenmbr ; ./linenmbr
+regress:: listfuns ; ./listfuns
+regress:: listpermute ; ./listpermute
+regress:: ordset ; ./ordset
+regress:: sieve_lazy ; ./sieve_lazy
+regress:: sieve_llazy ; ./sieve_llazy
+regress:: staref ; ./staref
+regress:: strprefix ; ./strprefix
+regress:: tally ; ./tally
+
+######
+
 cleanall:: ; $(RMF) acker1
 cleanall:: ; $(RMF) acker2
 cleanall:: ; $(RMF) acker3
+cleanall:: ; $(RMF) acker4
 cleanall:: ; $(RMF) areverse
 cleanall:: ; $(RMF) atof
 cleanall:: ; $(RMF) atoi
@@ -77,6 +119,7 @@ cleanall:: ; $(RMF) f91
 cleanall:: ; $(RMF) fact1
 cleanall:: ; $(RMF) fact2
 cleanall:: ; $(RMF) fact3
+cleanall:: ; $(RMF) fact_uninterp
 cleanall:: ; $(RMF) fcopy
 cleanall:: ; $(RMF) fcopy2
 cleanall:: ; $(RMF) fib1
@@ -102,9 +145,16 @@ cleanall:: ; $(RMF) tally
 
 ######
 
+testall:: all
+testall:: regress
+testall:: cleanall
+
+######
+
 acker1: acker1.dats ; $(PATSCC) -o $@ $<
 acker2: acker2.dats ; $(PATSCC) -o $@ $<
 acker3: acker3.dats ; $(PATSCC) -DATS_MEMALLOC_LIBC -o $@ $<
+acker4: acker4.dats ; $(PATSCC) -DATS_MEMALLOC_LIBC -o $@ $<
 
 ######
 
@@ -125,11 +175,13 @@ bintree: bintree.dats ; $(PATSCC) -DATS_MEMALLOC_LIBC -o $@ $<
 f91: f91.dats ; $(PATSCC) -o $@ $<
 
 ######
-
+#
 fact1: fact1.dats ; $(PATSCC) -o $@ $<
 fact2: fact2.dats ; $(PATSCC) -o $@ $<
 fact3: fact3.dats ; $(PATSCC) -DATS_MEMALLOC_LIBC -o $@ $<
-
+#
+fact_uninterp: fact_uninterp.dats ; $(PATSCC) -o $@ $<
+#
 ######
 
 fcopy: fcopy.dats ; $(PATSCC) -o $@ $<

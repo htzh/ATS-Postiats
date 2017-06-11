@@ -32,53 +32,164 @@
 // Start Time: March, 2011
 //
 (* ****** ****** *)
-
-staload UN = "prelude/SATS/unsafe.sats"
-staload _(*anon*) = "prelude/DATS/unsafe.dats"
-
+//
+staload
+UN = "prelude/SATS/unsafe.sats"
+staload
+_(*UN*) = "prelude/DATS/unsafe.dats"
+//
 (* ****** ****** *)
-
+//
 staload "./pats_utils.sats"
-
+//
 (* ****** ****** *)
 
 %{^
 //
-// HX-2011-04-18:
-// there is no need for marking these variables as
-// GC roots because the values stored in them cannot be GCed
-//
 static char *patsopt_PATSHOME = (char*)0 ;
-static char *patsopt_PATSHOMERELOC = (char*)0 ;
-extern char *getenv (const char *name) ; // [stdlib.h]
+static char *patsopt_PATSCONTRIB = (char*)0 ;
+static char *patsopt_PATSHOMELOCS = (char*)0 ;
+static char *patsopt_PATSRELOCROOT = (char*)0 ;
+//
+#define \
+patsopt_getenv(name) getenv(name)
+//
+extern
+ats_ptr_type
+patsopt_getenv_gc
+  (ats_ptr_type name);
 //
 ATSextfun()
 ats_ptr_type
-patsopt_PATSHOME_get () {
+patsopt_PATSHOME_get()
+{
   return patsopt_PATSHOME ; // optional string
 } // end of [patsopt_PATSHOME_get]
 ATSextfun()
-ats_ptr_type
-patsopt_PATSHOMERELOC_get () {
-  return patsopt_PATSHOMERELOC ; // optional string
-} // end of [patsopt_PATSHOMERELOC_get]
-//
-ATSextfun()
 ats_void_type
-patsopt_PATSHOME_set () {
-  patsopt_PATSHOME = getenv ("PATSHOME") ;
-  if (!patsopt_PATSHOME) patsopt_PATSHOME = getenv ("ATSHOME") ;
+patsopt_PATSHOME_set()
+{
+//
+  patsopt_PATSHOME = patsopt_getenv_gc("PATSHOME") ;
+//
+  if
+  (
+   !patsopt_PATSHOME
+  )
+  {
+    patsopt_PATSHOME = patsopt_getenv_gc("ATSHOME") ;
+  }
+//
   return ;
+//
 } // end of [patsopt_PATSHOME_set]
+//
+ATSextfun()
+ats_ptr_type
+patsopt_PATSCONTRIB_get()
+{
+  return patsopt_PATSCONTRIB ; // optional string
+} // end of [patsopt_PATSCONTRIB_get]
 ATSextfun()
 ats_void_type
-patsopt_PATSHOMERELOC_set () {
-  patsopt_PATSHOMERELOC = getenv ("PATSHOMERELOC") ;
-  if (!patsopt_PATSHOMERELOC) patsopt_PATSHOMERELOC = getenv ("ATSHOMERELOC") ;
-  return ;
-} // end of [patsopt_PATSHOMERELOC_set]
+patsopt_PATSCONTRIB_set()
+{
 //
-%} // end of [%{^]
+  patsopt_PATSCONTRIB = patsopt_getenv_gc("PATSCONTRIB") ;
+//
+  if
+  (
+   !patsopt_PATSCONTRIB
+  )
+  {
+    patsopt_PATSCONTRIB = patsopt_getenv_gc("ATSCONTRIB") ;
+  }
+//
+  return ;
+//
+} // end of [patsopt_PATSCONTRIB_set]
+//
+ATSextfun()
+ats_ptr_type
+patsopt_PATSHOMELOCS_get()
+{
+  return patsopt_PATSHOMELOCS ; // optional string
+} // end of [patsopt_PATSHOMELOCS_get]
+ATSextfun()
+ats_void_type
+patsopt_PATSHOMELOCS_set()
+{
+//
+  patsopt_PATSHOMELOCS = patsopt_getenv_gc("PATSHOMELOCS") ;
+//
+  if
+  (
+   !patsopt_PATSHOMELOCS
+  )
+  {
+    patsopt_PATSHOMELOCS = patsopt_getenv_gc("ATSHOMELOCS") ;
+  }
+//
+  return ;
+} // end of [patsopt_PATSHOMELOCS_set]
+//
+ATSextfun()
+ats_ptr_type
+patsopt_PATSRELOCROOT_get()
+{
+  return patsopt_PATSRELOCROOT ; // optional string
+} // end of [patsopt_PATSRELOCROOR_get]
+ATSextfun()
+ats_void_type
+patsopt_PATSRELOCROOT_set()
+{
+//
+  patsopt_PATSRELOCROOT = patsopt_getenv_gc("PATSRELOCROOT") ;
+//
+  if
+  (
+   !patsopt_PATSRELOCROOT
+  )
+  {
+    patsopt_PATSRELOCROOT = patsopt_getenv_gc("ATSRELOCROOT") ;
+  }
+//
+  return ;
+//
+} // end of [patsopt_PATSRELOCROOT_set]
+//
+%} (* end of [%{^] *)
+
+(* ****** ****** *)
+
+extern
+fun
+patsopt_getenv_gc
+(
+  name: string
+) : Stropt = "ext#patsopt_getenv_gc"
+//
+implement
+patsopt_getenv_gc
+  (name) = let
+//
+val opt =
+patsopt_getenv (name) where
+{
+extern
+fun
+patsopt_getenv
+  (name: string): stropt = "mac#patsopt_getenv"
+} (* end of [val] *)
+//
+in
+//
+if
+stropt_is_some(opt)
+then stropt_some(string0_copy(stropt_unsome(opt)))
+else stropt_none(*void*)
+//
+end // end of [patsopt_getenv_gc]
 
 (* ****** ****** *)
 
@@ -100,29 +211,57 @@ fun strcasecmp (
   x1: string, x2: string
 ) :<> int
   = "ext#patsopt_strcasecmp"
+//
 implement
-strcasecmp (x1, x2) = let
-  fun loop (p1: Ptr1, p2: Ptr1): int = let
-    val c1 = char_toupper ($UN.ptrget<char> (p1))
-    val c2 = char_toupper ($UN.ptrget<char> (p2))
-  in
-    if c1 < c2 then ~1
-    else if c1 > c2 then 1
-    else if c1 != '\000' then loop (p1+1, p2+1)
-    else 0 // end of [if]
-  end // end of [loop]
+strcasecmp
+  (x1, x2) = let
+//
+#define NUL '\000'
+//
+fun
+loop
+(
+p1: Ptr1, p2: Ptr1
+) : int = let
+//
+val c1 = char_toupper($UN.ptrget<char>(p1))
+val c2 = char_toupper($UN.ptrget<char>(p2))
+//
 in
-  $effmask_all (loop ($UN.cast2Ptr1(x1), $UN.cast2Ptr1(x2)))
+//
+if
+(c1 < c2)
+then (~1)
+else
+(
+if
+(c1 > c2)
+then ( 1 )
+else
+(
+if c1 != NUL then loop(p1+1, p2+1) else (0)
+) (* end of [else] *)
+) (* end of [else] *)
+//
+end // end of [loop]
+//
+in
+//
+$effmask_all
+  (loop($UN.cast2Ptr1(x1), $UN.cast2Ptr1(x2)))
+//
 end // end of [strcasecmp]
-
+//
 (* ****** ****** *)
-
+//
 extern
-fun string_test_prefix
+fun
+string_test_prefix
 (
   str: string, prfx: string
 ) :<> bool
   = "ext#patsopt_string_test_prefix"
+//
 implement
 string_test_prefix
   (str, prfx) = let
@@ -146,15 +285,17 @@ end // end of [loop]
 in
   $effmask_all (loop ($UN.cast2Ptr1(prfx), $UN.cast2Ptr1(str)))
 end // end of [patsopt_string_test_prefix]
-
+//
 (* ****** ****** *)
-
+//
 extern
-fun string_test_sffx
+fun
+string_test_sffx
 (
   str: string, sffx: string
 ) :<> bool
   = "ext#patsopt_string_test_suffix"
+//
 implement
 string_test_sffx
   (str, sffx) = let
@@ -164,20 +305,28 @@ val n2 = string_length (sffx)
 //
 in
 //
-if n1 >= n2 then let
+if
+n1 >= n2
+then let
   val p1 = $UN.cast2Ptr1(str)
   val str2 = $UN.cast{string}(p1 + (n1 - n2))
 in
   str2 = sffx
-end else false // end of [if]
+end // end of [then]
+else false // end of [else]
 //
 end // end of [string_test_sffx]
-
+//
 (* ****** ****** *)
 
 local
 
-staload STDLIB = "libc/SATS/stdlib.sats"
+(* ****** ****** *)
+
+staload
+STDLIB = "libc/SATS/stdlib.sats"
+
+(* ****** ****** *)
 
 fun
 llint_make_string_sgn
@@ -186,24 +335,30 @@ llint_make_string_sgn
   sgn: int, rep: string (n), i: size_t i
 ) : llint = let
 in
-  if string_isnot_atend (rep, i) then let
-    val c0 = rep[i]
-  in
-    case+ c0 of
-    | '0' => (
-        if string_isnot_atend (rep, i+1) then let
-          val i = i+1
-          val c0 = rep[i]
-        in
-          if (c0 != 'x' && c0 != 'X') then
-            llint_make_string_sgn_base (sgn, 8(*base*), rep, i)
-          else
-            llint_make_string_sgn_base (sgn, 16(*base*), rep, i+1)
-          // end of [if]
-        end else 0ll (* end of [if] *)
-      ) // end of ['0']
-    | _ => llint_make_string_sgn_base (sgn, 10(*base*), rep, i)
-  end else 0ll (* end of [if] *)
+//
+if
+string_isnot_atend (rep, i)
+then let
+  val c0 = rep[i]
+in
+  case+ c0 of
+  | '0' => (
+      if string_isnot_atend (rep, i+1) then let
+        val i = i+1
+        val c0 = rep[i]
+      in
+        if (c0 != 'x' && c0 != 'X') then
+          llint_make_string_sgn_base (sgn, 8(*base*), rep, i)
+        else
+          llint_make_string_sgn_base (sgn, 16(*base*), rep, i+1)
+        // end of [if]
+      end else 0ll (* end of [if] *)
+    ) // end of ['0']
+  | _ (*non-0*) =>
+      llint_make_string_sgn_base (sgn, 10(*base*), rep, i)
+end // end of [then]
+else 0ll // end of [else]
+//
 end // end of [llint_make_string_sgn]
 
 and
@@ -240,7 +395,7 @@ case+ c0 of
 | '+' => llint_make_string_sgn ( 1(*sgn*), rep, 1)
 | '-' => llint_make_string_sgn (~1(*sgn*), rep, 1)
 | '~' => llint_make_string_sgn (~1(*sgn*), rep, 1) // HX: should it be supported?
-| _ => llint_make_string_sgn (1(*sgn*), rep, 0)
+| _ (*rest*) => llint_make_string_sgn (1(*sgn*), rep, 0)
 //
 end else 0ll // end of [if]
 //
@@ -288,8 +443,8 @@ end // end of [intrep_get_base]
 implement
 intrep_get_nsfx (rep) = let
 //
-macdef test (c) =
-  string_contains ("ulUL", ,(c))
+macdef
+test (c) = string_contains ("ulUL", ,(c))
 //
 val [n:int] rep = string1_of_string (rep)
 //
@@ -317,13 +472,14 @@ end // end of [intrep_get_nsfx]
 implement
 float_get_nsfx (rep) = let
 //
-macdef test (c) =
-  string_contains ("fFlL", ,(c))
+macdef
+test (c) = string_contains ("fFlL", ,(c))
 //
 val [n:int] rep = string1_of_string (rep)
 //
 fun loop
-  {i:nat | i <= n} .<i>. (
+  {i:nat | i <= n} .<i>.
+(
   rep: string n, i: size_t i, k: uint
 ) : uint = let
 in
@@ -344,9 +500,10 @@ end // end of [float_get_nsfx]
 (* ****** ****** *)
 
 local
-
-assume lstord (a:type) = List (a)
-
+//
+assume
+lstord (a:type) = List (a)
+//
 in (* in of [local] *)
 
 implement
@@ -374,22 +531,27 @@ end // end of [lstord_insert]
 implement
 lstord_union{a}
   (xs1, xs2, cmp) = let
-  fun aux {n1,n2:nat} .<n1+n2>. (
-    xs1: list (a, n1), xs2: list (a, n2)
-  ) :<cloref> list (a, n1+n2) =
-    case+ xs1 of
-    | list_cons (x1, xs11) => (
-      case+ xs2 of
-      | list_cons (x2, xs21) =>
-          if cmp (x1, x2) <= 0 then
-            list_cons (x1, aux (xs11, xs2))
-          else
-            list_cons (x2, aux (xs1, xs21))
-          // end of [if]
-      | list_nil () => xs1
-      ) // end of [list_cons]
-    | list_nil () => xs2
-  // end of [aux]
+//
+fun
+aux{n1,n2:nat} .<n1+n2>.
+(
+  xs1: list (a, n1), xs2: list (a, n2)
+) :<cloref> list (a, n1+n2) =
+(
+  case+ xs1 of
+  | list_nil () => xs2
+  | list_cons (x1, xs11) => (
+    case+ xs2 of
+    | list_nil () => xs1
+    | list_cons (x2, xs21) =>
+        if cmp (x1, x2) <= 0 then
+          list_cons (x1, aux (xs11, xs2))
+        else
+          list_cons (x2, aux (xs1, xs21))
+        // end of [if]
+    ) // end of [list_cons]
+) (* end of [aux] *)
+//
 in
   aux (xs1, xs2)
 end // end of [lstord_union]
@@ -418,9 +580,8 @@ fun aux {n:nat} .<n>. (
 in
 //
 case+ xs of
-| list_cons
-    (x, xs) => aux (x, xs, 0)
 | list_nil () => list_nil ()
+| list_cons (x, xs) => aux (x, xs, 0)
 //
 end // end of [lstord_get_dups]
 
@@ -445,57 +606,146 @@ in
 end // end of [dirpath_append]
 
 (* ****** ****** *)
-
+//
+implement
+print_stropt
+ (opt) =
+ fprint_stropt(stdout_ref, opt)
+implement
+prerr_stropt
+ (opt) =
+ fprint_stropt(stderr_ref, opt)
+//
 implement
 fprint_stropt
  (out, opt) = let
 in
 //
-if stropt_is_some (opt) then
-  fprint_string (out, stropt_unsome (opt))
+if
+stropt_is_some(opt)
+then
+  fprint_string(out, stropt_unsome(opt))
 else
-  fprint_string (out, "(none)")
+  fprint_string(out, "(none)")
 // end of [if]
 //
 end (* end of [fprint_stropt] *)
-
+//
 (* ****** ****** *)
 
-implement{a}
+implement
+{a}(*tmp*)
 fprintlst (
   out, xs, sep, fprint
 ) = let
-  fun aux (
-    xs: List a, i: int
-  ) :<cloref1> void =
-    case+ xs of
-    | list_cons (x, xs) => let
-        val () = if i > 0 then fprint_string (out, sep)
-        val () = fprint (out, x)
-      in
-         aux (xs, i+1)
-      end // end of [list_cons]
-    | list_nil () => () // end of [list_nil]
-  // end of [aux]
+//
+fun
+aux (
+  xs: List a, i: int
+) :<cloref1> void =
+(
+  case+ xs of
+  | list_nil () => ()
+  | list_cons (x, xs) => let
+      val () =
+      if i > 0 then
+        fprint_string (out, sep)
+      // end of [val]
+    in
+       fprint (out, x); aux (xs, i+1)
+    end // end of [list_cons]
+) (* end of [aux] *)
+//
 in
   aux (xs, 0)
 end // end of [fprintlst]
 
 (* ****** ****** *)
 
-implement{a}
-fprintopt (
+implement
+{a}(*tmp*)
+fprintopt
+(
   out, opt, fprint
-) = case+ opt of
-  | Some x => let
-      val () = fprint_string (out, "Some(")
+) = (
+  case+ opt of
+  | None () =>
+      fprint_string (out, "None()")
+  | Some (x) => let
+      val () =
+        fprint_string (out, "Some(")
       val () = fprint (out, x)
       val () = fprint_string (out, ")")
     in
       // nothing
     end // end of [Some]
-  | None () => fprint_string (out, "None()")
-// end of [fprintopt]
+) (* end of [fprintopt] *)
+
+(* ****** ****** *)
+
+local
+//
+staload
+"libats/SATS/funset_listord.sats"
+staload _(*anon*) =
+"libats/DATS/funset_listord.dats"
+//
+fn cmp (
+  x1: char, x2: char
+) :<cloref> int =
+  compare_char_char (x1, x2)
+//
+assume charset_type = set (char)
+//
+in (*in-of-local*)
+
+implement
+charset_sing (x) = funset_make_sing (x)
+
+implement
+charset_is_member
+  (xs, x) = funset_is_member (xs, x, cmp)
+// end of [val]
+
+implement
+charset_add
+  (xs, x) = xs where
+{
+  var xs = xs
+  val _(*exist*) = funset_insert (xs, x, cmp)
+} (* end of [val] *)
+
+implement
+charset_listize (xs) = funset_listize (xs)
+
+end // end of [local]
+
+implement
+fprint_charset
+  (out, xs) = let
+//
+val xs = charset_listize (xs)
+//
+fun loop
+(
+  out: FILEref, xs: charlst_vt, i: int
+) : void = (
+//
+case+ xs of
+| ~list_vt_nil () => ()
+| ~list_vt_cons (x, xs) => let
+    val () =
+      if i > 0 then fprint (out, ", ")
+    // end of [val]
+  in
+    fprint_char (out, x); loop (out, xs, i+1)
+  end // end of [list_vt_cons]
+//
+) (* end of [loop] *)
+//
+in
+  loop (out, xs, 0)
+end // end of [fprint_charset]
 
 (* ****** ****** *)
 
@@ -536,13 +786,19 @@ end // end of [local]
 %{$
 //
 extern
-ats_int_type
+ats_ssize_type
 atslib_fildes_read_all_err
-  (ats_int_type fd, ats_ref_type buf, ats_size_type ntot) ;
+(
+  ats_int_type fd
+, ats_ref_type buf
+, ats_size_type ntot
+) ; // end of [atslib_fildes_read_all_err]
 //
 ats_ptr_type
 patsopt_file2strptr
-  (ats_int_type fd) {
+(
+  ats_int_type fd
+) {
   int err = 0 ;
   int nerr = 0 ;
   char* sbp = (char*)0 ;
@@ -565,70 +821,117 @@ patsopt_file2strptr
   }
   if (err < 0) { nerr += 1 ; }
 //
-  if (nerr == 0) {
+  if (nerr==0) {
     sbp[ofs_end] = '\0'; return sbp ;
   }
 //
-  if (sbp) free (sbp) ; return NULL ;
+  if (sbp) free(sbp) ; return (NULL) ;
 } // end of [patsopt_file2strptr]
+//
 %} // end of [%{$]
 
 (* ****** ****** *)
 
 local
-
+//
+// HX-2015-10-07:
+// It can be interesting to implement
+// tostrong_fprint based on open_memstream
+//
 staload
 FCNTL = "libc/SATS/fcntl.sats"
 staload
 STDIO = "libc/SATS/stdio.sats"
-macdef SEEK_SET = $STDIO.SEEK_SET
 staload
 STDLIB = "libc/SATS/stdlib.sats"
 staload
 UNISTD = "libc/SATS/unistd.sats"
-
+//
+macdef SEEK_SET = $STDIO.SEEK_SET
+//
 in (* in of [local] *)
 
 implement{a}
 tostring_fprint
   (prfx, fpr, x) = let
-  val tmp = sprintf ("%sXXXXXX", @(prfx))
-  val [m,n:int] tmp = strbuf_of_strptr (tmp)
-  prval () = __assert () where {
-    extern prfun __assert (): [n >= 6] void
-  }
-  prval pfstr = tmp.1
-  val (pfopt | fd) = $STDLIB.mkstemp !(tmp.2) // create it!
-  prval () = tmp.1 := pfstr
-  val tmp = strptr_of_strbuf (tmp)
+//
+val
+tmp0 =
+sprintf ("%sXXXXXX", @(prfx))
+val
+[m,n:int]
+tmpbuf = strbuf_of_strptr(tmp0)
+//
+prval () =
+__assert () where
+{
+  extern prfun __assert(): [n >= 6] void
+} (* end of [prval] *)
+//
+prval
+pfstr = tmpbuf.1
+val
+(pfopt|fd) =
+$STDLIB.mkstemp !(tmpbuf.2)
+prval ((*ret*)) = tmpbuf.1 := pfstr
+//
+val tmpstr = strptr_of_strbuf(tmpbuf)
+//
 in
 //
-if fd >= 0 then let
-  prval $FCNTL.open_v_succ (pffil) = pfopt
-  val (fpf | out) = fdopen (pffil | fd, file_mode_w) where {
-    extern fun fdopen {fd:nat} (
-      pffil: !fildes_v fd | fd: int fd, mode: file_mode
+if
+fd >= 0
+then let
+//
+prval
+  $FCNTL.open_v_succ(pffil) = pfopt
+//
+  val
+  (fpf|out) =
+  fdopen (pffil | fd, file_mode_w) where
+  {
+    extern
+    fun
+    fdopen{fd:nat}
+    (
+      pffil: !fildes_v fd
+    | fd: int fd, mode: file_mode
     ) : (fildes_v fd -<lin,prf> void | FILEref) = "mac#fdopen"
-  } // end of [out]
-  val () = fpr (out, x)
-  val _err = $STDIO.fflush_err (out)
-  val _err = $STDIO.fseek_err (out, 0L, SEEK_SET)
-  val res = file2strptr (pffil | fd)
-  prval () = fpf (pffil)
-  val _err = $STDIO.fclose_err (out)
-  val _err = $UNISTD.unlink ($UN.castvwtp1 (tmp))
-  val () = strptr_free (tmp)
+  } (* end of [out] *)
+  val () = fpr(out, x)
+//
+  val err = $STDIO.fflush_err(out)
+  val err = $STDIO.fseek_err(out, 0L, SEEK_SET)
+//
+  val res = file2strptr(pffil | fd)
+  prval ((*returned*)) = fpf (pffil)
+//
+  val err = $STDIO.fclose_err(out)
+  val err = $UNISTD.unlink($UN.castvwtp1{string}(tmpstr))
+  val ((*freed*)) = strptr_free(tmpstr)
 in
   res (*strptr*)
-end else let
-  prval $FCNTL.open_v_fail () = pfopt
-  val () = strptr_free (tmp) in strptr_null ()
-end // end of [if]
+end // end of [then]
+else let
+//
+prval
+  $FCNTL.open_v_fail((*void*)) = pfopt
+//
+  val ((*freed*)) = strptr_free(tmpstr) in strptr_null((*void*))
+//
+end // end of [else]
 //
 end // end of [tostring_fprint]
 
 end // end of [local]
 
+(* ****** ****** *)
+//
+// HX-2015-01-27:
+// for stopping optimization
+//
+implement ptr_as_volatile(ptr) = ((*dummy*))
+//
 (* ****** ****** *)
 
 (* end of [pats_utils.dats] *)

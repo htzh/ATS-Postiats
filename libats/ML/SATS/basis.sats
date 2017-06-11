@@ -37,48 +37,47 @@
 (* ****** ****** *)
 
 #define ATS_PACKNAME "ATSLIB.libats"
-#define ATS_STALOADFLAG 0 // no static loading at run-time
 
 (* ****** ****** *)
-
-typedef cfun0
-  (b:vt0p) = ((*void*)) -<cloref1> b
-typedef cfun1
-  (a:vt0p, b:vt0p) = (a) -<cloref1> b
-typedef cfun2
-  (a1:vt0p, a2:vt0p, b:vt0p) = (a1, a2) -<cloref1> b
-
+//
+typedef
+cfun0(b:vt0p) = ((*void*)) -<cloref1> b
+typedef
+cfun1(a:vt0p, b:vt0p) = (a) -<cloref1> b
+typedef
+cfun2(a1:vt0p, a2:vt0p, b:vt0p) = (a1, a2) -<cloref1> b
+//
 (* ****** ****** *)
-
-typedef cfun3
-(
+//
+typedef
+cfun3 (
   a1:vt0p, a2:vt0p, a3:vt0p, b:vt0p
 ) = (a1, a2, a3) -<cloref1> b
-typedef cfun4
-(
+typedef
+cfun4 (
   a1:vt0p, a2:vt0p, a3:vt0p, a4:vt0p, b:vt0p
 ) = (a1, a2, a3, a4) -<cloref1> b
-typedef cfun5
-(
+typedef
+cfun5 (
   a1:vt0p, a2:vt0p, a3:vt0p, a4:vt0p, a5:vt0p, b:vt0p
 ) = (a1, a2, a3, a4, a5) -<cloref1> b
-typedef cfun6
-(
+typedef
+cfun6 (
   a1:vt0p, a2:vt0p, a3:vt0p, a4:vt0p, a5:vt0p, a6:vt0p, b:vt0p
 ) = (a1, a2, a3, a4, a5, a6) -<cloref1> b
-typedef cfun7
-(
+typedef
+cfun7 (
   a1:vt0p, a2:vt0p, a3:vt0p, a4:vt0p, a5:vt0p, a6:vt0p, a7:vt0p, b:vt0p
 ) = (a1, a2, a3, a4, a5, a6, a7) -<cloref1> b
-typedef cfun8
-(
+typedef
+cfun8 (
   a1:vt0p, a2:vt0p, a3:vt0p, a4:vt0p, a5:vt0p, a6:vt0p, a7:vt0p, a8:vt0p, b:vt0p
 ) = (a1, a2, a3, a4, a5, a6, a7, a8) -<cloref1> b
-typedef cfun9
-(
+typedef
+cfun9 (
   a1:vt0p, a2:vt0p, a3:vt0p, a4:vt0p, a5:vt0p, a6:vt0p, a7:vt0p, a8:vt0p, a9:vt0p, b:vt0p
 ) = (a1, a2, a3, a4, a5, a6, a7, a8, a9) -<cloref1> b
-
+//
 (* ****** ****** *)
 
 stadef cfun = cfun0
@@ -137,6 +136,71 @@ typedef strarr = strarr_type
 abstype substrarr_type = ptr
 typedef substrarr = substrarr_type
 *)
+//
+(* ****** ****** *)
+//
+abstype
+dynarray_type(a:vt@ype) = ptr
+//
+typedef
+dynarray(a:vt@ype) = dynarray_type(a)
+//
+(* ****** ****** *)
+//
+// HX: for maps of elements of type (a)
+//
+abstype
+hashtbl_type
+  (key:t@ype, itm:t@ype) = ptr
+//
+typedef
+hashtbl(key:t@ype, itm:t@ype) = hashtbl_type(key, itm)
+//
+(* ****** ****** *)
+//
+// HX-2015-12-01:
+// G-values for generic programming
+//
+(* ****** ****** *)
+//
+datatype gvalue =
+//
+  | GVnil of ()
+//
+  | GVint of (int)
+//
+  | GVptr of (ptr)
+//
+  | GVbool of (bool)
+  | GVchar of (char)
+//
+  | GVfloat of (double)
+//
+  | GVstring of (string)
+//
+  | GVref of (gvref)
+//
+  | GVlist of (gvlist)
+//
+  | GVarray of (gvarray)
+//
+  | GVdynarr of (gvdynarr)
+//
+  | GVhashtbl of (gvhashtbl)
+//
+  | GVfunclo_fun of ((gvalue) -<fun1> gvalue)
+  | GVfunclo_clo of ((gvalue) -<cloref1> gvalue)
+//
+where
+gvref = ref(gvalue)
+and
+gvlist = list0(gvalue)
+and
+gvarray = array0(gvalue)
+and
+gvdynarr = dynarray(gvalue)
+and
+gvhashtbl = hashtbl(string, gvalue)
 //
 (* ****** ****** *)
 

@@ -57,8 +57,8 @@ staload "./pats_ccomp.sats"
 local
 
 typedef
-funent =
-'{
+funent = '{
+//
   funent_loc= location
 //
 , funent_lab= funlab // attached function label
@@ -80,10 +80,10 @@ funent =
 // 2. sibling functions called transitively
 //
 , funent_flablst= funlablst // flabs in function body
-, funent_flablst_fin= Option (funlablst) // final value
+, funent_flablst_fin= Option(funlablst) // final value
 //
 , funent_d2envlst= d2envlst // d2vars in function body
-, funent_d2envlst_fin= Option (d2envlst) // final value
+, funent_d2envlst_fin= Option(d2envlst) // final value
 //
 , funent_vbindmap= vbindmap // local varbind map
 //
@@ -93,7 +93,7 @@ funent =
 //
 , funent_fnxlablst= funlablst // mutually tail-recursive funs
 //
-} // end of [funent]
+} (* end of [funent] *)
 
 assume funent_type = funent
 extern typedef "funent_t" = funent

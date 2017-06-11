@@ -28,14 +28,15 @@
 (* ****** ****** *)
 
 (* Author: Hongwei Xi *)
-(* Authoremail: hwxi AT cs DOT bu DOT edu *)
+(* Authoremail: gmhwxiATgmailDOTcom *)
 (* Start time: May, 2012 *)
 
 (* ****** ****** *)
-
-#define ATS_PACKNAME "ATSLIB.libats.funralist_nested"
-#define ATS_STALOADFLAG 0 // no static loading at run-time
-
+//
+#define
+ATS_PACKNAME
+"ATSLIB.libats.funralist_nested"
+//
 (* ****** ****** *)
 
 #include "./SHARE/funralist.hats"

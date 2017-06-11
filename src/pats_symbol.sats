@@ -105,6 +105,9 @@ val symbol_CHAR : symbol
 //
 val symbol_REAL : symbol
 //
+val symbol_FLOAT : symbol
+val symbol_STRING : symbol
+//
 val symbol_CLS : symbol // for nominal classes
 //
 val symbol_EFF : symbol // for sets of effects
@@ -147,39 +150,64 @@ val symbol_ISCONS : symbol // iscons
 val symbol_ISNIL : symbol  // islist
 
 (* ****** ****** *)
-
+//
+val symbol__STDIN__ : symbol
+val symbol__STRING__ : symbol
+//
+(* ****** ****** *)
+//
 val symbol_PATSHOME : symbol
-val symbol_PATSHOMERELOC : symbol
-
+//
+val symbol_PATSCONTRIB : symbol
+//
+val symbol_PATSHOMELOCS : symbol
+//
+val symbol_PATSRELOCROOT : symbol
+//
 (* ****** ****** *)
 //
 val symbol_ATS_PACKNAME : symbol
 //
+(*
+//
+// HX-2014-06-06:
+// this one is no longer in use
+//
 val symbol_ATS_STALOADFLAG : symbol
+*)
 val symbol_ATS_DYNLOADFLAG : symbol
 //
-val symbol_ATS_EXTERN_PREFIX : symbol
+val symbol_ATS_DYNLOADNAME : symbol
 //
 val symbol_ATS_MAINATSFLAG : symbol
 //
+val symbol_ATS_EXTERN_PREFIX : symbol
+val symbol_ATS_STATIC_PREFIX : symbol
+//
 (* ****** ****** *)
-
-fun eq_symbol_symbol (x1: symbol, x2: symbol):<> bool
+//
+fun
+eq_symbol_symbol (x1: symbol, x2: symbol):<> bool
+fun
+neq_symbol_symbol (x1: symbol, x2: symbol):<> bool
+fun
+compare_symbol_symbol (x1: symbol, x2: symbol):<> Sgn
+//
 overload = with eq_symbol_symbol
-fun neq_symbol_symbol (x1: symbol, x2: symbol):<> bool
 overload != with eq_symbol_symbol
-
-fun compare_symbol_symbol (x1: symbol, x2: symbol):<> Sgn
 overload compare with compare_symbol_symbol
-
+//
 (* ****** ****** *)
-
+//
 fun print_symbol (x: symbol): void
-overload print with print_symbol
 fun prerr_symbol (x: symbol): void
+//
+overload print with print_symbol
 overload prerr with prerr_symbol
+//
 fun fprint_symbol (out: FILEref, x: symbol): void
-
+fun fprint_symbolopt (out: FILEref, opt: symbolopt): void
+//
 (* ****** ****** *)
 
 fun symbol_get_name (x: symbol):<> string

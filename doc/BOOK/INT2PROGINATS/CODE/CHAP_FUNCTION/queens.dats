@@ -112,7 +112,9 @@ end // end of [board_set]
 
 (* ****** ****** *)
 
-fun safety_test1 (
+fun
+safety_test1
+(
   i0: int, j0: int, i1: int, j1: int
 ) : bool =
 (*
@@ -121,7 +123,9 @@ fun safety_test1 (
   j0 <> j1 andalso abs (i0 - i1) <> abs (j0 - j1)
 // end of [safety_test1]
 
-fun safety_test2 (
+fun
+safety_test2
+(
   i0: int, j0: int, bd: int8, i: int
 ) : bool =
   if i >= 0 then
@@ -136,39 +140,53 @@ fun safety_test2 (
 fun search
 (
   bd: int8, i: int, j: int, nsol: int
-) : int =
-  if j < N then let
-    val test = safety_test2 (i, j, bd, i-1)
-  in
-    if test then let
+) : int = (
+//
+if
+j < N
+then let
+  val test = safety_test2 (i, j, bd, i-1)
+in
+  if test
+    then let
       val bd1 = board_set (bd, i, j)
     in
-      if i+1 = N then let
-        val () = print! ("Solution #", nsol+1, ":\n")
-        val () = print_board (bd1)
-      in
-        search (bd, i, j+1, nsol+1)
-      end else
-        search (bd1, i+1, 0(*j*), nsol) // positioning next piece
+      if i+1 = N
+        then let
+          val () = print! ("Solution #", nsol+1, ":\n\n")
+          val () = print_board (bd1)
+        in
+          search (bd, i, j+1, nsol+1)
+        end // end of [then]
+        else (
+          search (bd1, i+1, 0(*j*), nsol) // positioning next piece
+        ) (* end of [else] *)
       // end of [if]
-    end else
-      search (bd, i, j+1, nsol)
-  end else
-  (
-    if i > 0 then
-      search (bd, i-1, board_get (bd, i-1) + 1, nsol)
-    else nsol // end of [if]
-  )
-// end of [search]
+    end // end of [then]
+    else search (bd, i, j+1, nsol)
+  // end of [if]
+end // end of [then]
+else (
+  if i > 0
+    then search (bd, i-1, board_get (bd, i-1) + 1, nsol) else nsol
+  // end of [if]
+) (* end of [else] *)
+//
+) (* end of [search] *)
 
 (* ****** ****** *)
 
 implement
 main0 () = {
-  val () = print_board @(0, 1, 2, 3, 4, 5, 6, 7)
-  val nsol = search ((0, 0, 0, 0, 0, 0, 0, 0), 0, 0, 0)
-  val () = assertloc (nsol = 92)
-} // end of [main0]
+//
+val () =
+print_board @(0, 1, 2, 3, 4, 5, 6, 7)
+//
+val nsol = search ((0, 0, 0, 0, 0, 0, 0, 0), 0, 0, 0)
+//
+val ((*void*)) = assertloc (nsol = 92)
+//
+} (* end of [main0] *)
 
 (* ****** ****** *)
 

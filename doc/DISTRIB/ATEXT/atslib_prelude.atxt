@@ -43,8 +43,8 @@ val () = fprint_string (out, "\
 # This script is automatically generated.\n\
 #\n\
 \n\
-SOURCE=../../prelude/\n\
-TARGET=ATS-Postiats/prelude/\n\
+SOURCE=../../prelude\n\
+TARGET=ATS-Postiats/prelude\n\
 \n\
 srcget ()\n\
 {\n\
@@ -108,7 +108,7 @@ The ATSLIB/prelude library\
 #packfilename("basics_dyn.sats")
 #packfilename("basics_gen.sats")
 #packfilename("macrodef.sats")
-#packfilename("lmacrodef.sats")
+#packfilename("lmacrodef.hats")
 
 (* ****** ****** *)
 
@@ -121,13 +121,19 @@ The ATSLIB/prelude library\
 
 (* ****** ****** *)
 
+#packfilename("CATS/integer_long.cats")
+#packfilename("CATS/integer_size.cats")
+#packfilename("CATS/integer_short.cats")
+
+(* ****** ****** *)
+
 #packfilename("CATS/bool.cats")
 #packfilename("CATS/char.cats")
-
+#packfilename("CATS/float.cats")
+#packfilename("CATS/string.cats")
+#packfilename("CATS/strptr.cats")
 #packfilename("CATS/integer_ptr.cats")
 #packfilename("CATS/integer_fixed.cats")
-
-#packfilename("CATS/float.cats")
 
 (* ****** ****** *)
 
@@ -135,8 +141,7 @@ The ATSLIB/prelude library\
 
 (* ****** ****** *)
 
-#packfilename("CATS/string.cats")
-#packfilename("CATS/strptr.cats")
+#packfilename("CATS/fprintf.cats")
 
 (* ****** ****** *)
 
@@ -154,33 +159,36 @@ The ATSLIB/prelude library\
 
 (* ****** ****** *)
 
-#packfilename("SATS/arith_prf.sats")
-
-(* ****** ****** *)
-
 #packfilename("SATS/integer.sats")
 #packfilename("SATS/pointer.sats")
 
 (* ****** ****** *)
 
+#packfilename("SATS/arith_prf.sats")
+#packfilename("SATS/integer_long.sats")
+#packfilename("SATS/integer_size.sats")
+#packfilename("SATS/integer_short.sats")
+
+(* ****** ****** *)
+
 #packfilename("SATS/bool.sats")
 #packfilename("SATS/char.sats")
-
+#packfilename("SATS/float.sats")
+#packfilename("SATS/string.sats")
+#packfilename("SATS/strptr.sats")
 #packfilename("SATS/integer_ptr.sats")
 #packfilename("SATS/integer_fixed.sats")
 
-#packfilename("SATS/float.sats")
-
-#packfilename("SATS/memory.sats")
-
-#packfilename("SATS/string.sats")
-#packfilename("SATS/strptr.sats")
+(* ****** ****** *)
 
 #packfilename("SATS/tuple.sats")
+
+#packfilename("SATS/memory.sats")
 
 #packfilename("SATS/reference.sats")
 
 #packfilename("SATS/filebas.sats")
+
 #packfilename("SATS/intrange.sats")
 
 (* ****** ****** *)
@@ -190,6 +198,7 @@ The ATSLIB/prelude library\
 (* ****** ****** *)
 
 #packfilename("SATS/gnumber.sats")
+#packfilename("SATS/grandom.sats")
 
 (* ****** ****** *)
 
@@ -213,6 +222,7 @@ The ATSLIB/prelude library\
 #packfilename("SATS/stream_vt.sats")
 
 #packfilename("SATS/gprint.sats")
+#packfilename("SATS/tostring.sats")
 
 #packfilename("SATS/parray.sats")
 
@@ -225,43 +235,63 @@ The ATSLIB/prelude library\
 
 #packfilename("DATS/basics.dats")
 
-#packfilename("DATS/bool.dats")
-#packfilename("DATS/char.dats")
+(* ****** ****** *)
 
 #packfilename("DATS/integer.dats")
-#packfilename("DATS/integer_fixed.dats")
+#packfilename("DATS/pointer.dats")
+
+(* ****** ****** *)
 
 #packfilename("DATS/arith_prf.dats")
+#packfilename("DATS/integer_long.dats")
+#packfilename("DATS/integer_size.dats")
+#packfilename("DATS/integer_short.dats")
 
+(* ****** ****** *)
+
+#packfilename("DATS/bool.dats")
+#packfilename("DATS/char.dats")
 #packfilename("DATS/float.dats")
 #packfilename("DATS/string.dats")
 #packfilename("DATS/strptr.dats")
+#packfilename("DATS/integer_ptr.dats")
+#packfilename("DATS/integer_fixed.dats")
+
+(* ****** ****** *)
 
 #packfilename("DATS/tuple.dats")
 
 #packfilename("DATS/memory.dats")
-#packfilename("DATS/pointer.dats")
+
 #packfilename("DATS/reference.dats")
 
+(* ****** ****** *)
+
 #packfilename("DATS/filebas.dats")
+#packfilename("DATS/filebas_prf.dats")
+
 #packfilename("DATS/intrange.dats")
 
 (* ****** ****** *)
 
 #packfilename("DATS/gorder.dats")
-#packfilename("DATS/gorder_int.dats")
-#packfilename("DATS/gorder_uint.dats")
-#packfilename("DATS/gorder_bool.dats")
-#packfilename("DATS/gorder_char.dats")
-#packfilename("DATS/gorder_float.dats")
-#packfilename("DATS/gorder_string.dats")
+#packfilename("DATS/SHARE/gorder_int.dats")
+#packfilename("DATS/SHARE/gorder_uint.dats")
+#packfilename("DATS/SHARE/gorder_bool.dats")
+#packfilename("DATS/SHARE/gorder_char.dats")
+#packfilename("DATS/SHARE/gorder_float.dats")
+#packfilename("DATS/SHARE/gorder_string.dats")
 
 (* ****** ****** *)
 
 #packfilename("DATS/gnumber.dats")
-#packfilename("DATS/gnumber_int.dats")
-#packfilename("DATS/gnumber_uint.dats")
-#packfilename("DATS/gnumber_float.dats")
+#packfilename("DATS/SHARE/gnumber_int.dats")
+#packfilename("DATS/SHARE/gnumber_uint.dats")
+#packfilename("DATS/SHARE/gnumber_float.dats")
+
+(* ****** ****** *)
+
+#packfilename("DATS/grandom.dats")
 
 (* ****** ****** *)
 
@@ -273,16 +303,19 @@ The ATSLIB/prelude library\
 #packfilename("DATS/list.dats")
 
 #packfilename("DATS/list_vt.dats")
-#packfilename("DATS/list_vt_mergesort.dats")
-#packfilename("DATS/list_vt_quicksort.dats")
+#packfilename("DATS/SHARE/list_vt_mergesort.dats")
+#packfilename("DATS/SHARE/list_vt_quicksort.dats")
 
 #packfilename("DATS/option.dats")
 #packfilename("DATS/option_vt.dats")
 
+#packfilename("DATS/stream.dats")
+#packfilename("DATS/stream_vt.dats")
+
 #packfilename("DATS/array.dats")
 #packfilename("DATS/array_prf.dats")
-#packfilename("DATS/array_bsearch.dats")
-#packfilename("DATS/array_quicksort.dats")
+#packfilename("DATS/SHARE/array_bsearch.dats")
+#packfilename("DATS/SHARE/array_quicksort.dats")
 
 #packfilename("DATS/arrayptr.dats")
 #packfilename("DATS/arrayref.dats")
@@ -295,6 +328,7 @@ The ATSLIB/prelude library\
 #packfilename("DATS/stream_vt.dats")
 
 #packfilename("DATS/gprint.dats")
+#packfilename("DATS/tostring.dats")
 
 #packfilename("DATS/parray.dats")
 
@@ -317,9 +351,7 @@ The ATSLIB/prelude library\
 (* ****** ****** *)
 
 %{
-
-implement main () = ()
-
+implement main (argc, argv) = ()
 %}
 
 (* ****** ****** *)

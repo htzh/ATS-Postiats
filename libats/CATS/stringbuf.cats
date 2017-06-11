@@ -35,8 +35,8 @@
 
 /* ****** ****** */
 
-#ifndef ATSHOME_LIBATS_STRINGBUF_CATS
-#define ATSHOME_LIBATS_STRINGBUF_CATS
+#ifndef ATSLIB_LIBATS_CATS_STRINGBUF
+#define ATSLIB_LIBATS_CATS_STRINGBUF
 
 /* ****** ****** */
 
@@ -46,6 +46,29 @@
 /* ****** ****** */
 
 #define atslib_stringbuf_memcpy memcpy
+#define atslib_stringbuf_memmove memmove
+
+/* ****** ****** */
+
+/*
+extern
+fun _stringbuf_pow2min
+  (sizeGte(1), size_t): sizeGte(1) = "mac#%"
+implement
+_stringbuf_pow2min (s1, s2) =
+  if s1 >= s2
+    then s1 else _stringbuf_pow2min (s1+s1, s2)
+  // end of [if]
+*/
+ATSinline()
+atstype_size
+atslib__stringbuf_pow2min
+(
+  atstype_size s1, atstype_size s2
+)
+{
+  while (s1 < s2) { s1 = s1 + s1 ; } ; return s1 ; 
+} // end of [atslib__stringbuf_pow2min]
 
 /* ****** ****** */
 
@@ -62,7 +85,7 @@ atslib_stringbuf_insert_vsnprintf
 
 /* ****** ****** */
 
-#endif // ifndef ATSHOME_LIBATS_STRINGBUF_CATS
+#endif // ifndef ATSLIB_LIBATS_CATS_STRINGBUF
 
 /* ****** ****** */
 

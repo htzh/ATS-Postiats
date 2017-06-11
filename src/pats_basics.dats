@@ -143,7 +143,7 @@ case+ fk of
 | FK_prfn () => true
 | FK_prfun () => true
 | FK_praxi () => true
-| _ => false
+| _ (*non-proof*) => false
 //
 end // end of [funkind_is_proof]
 
@@ -153,18 +153,30 @@ funkind_is_recursive
 in
 //
 case+ fk of
-| FK_fnx () => true
+//
 | FK_fun () => true
+| FK_fnx () => true
+//
 | FK_prfun () => true
+| FK_praxi () => true // HX: praxi=prfun
+//
 | FK_castfn () => true
-| _ => false
+//
+| _ (*non-recursive*) => false
 //
 end // end of [funkind_is_recursive]
 
+(* ****** ****** *)
+
 implement
 funkind_is_mutailrec
-  (fk) = case+ fk of FK_fnx () => true | _ => false
-// end of [funkind_is_mutailrec]
+  (fk) = (
+//
+case+ fk of FK_fnx () => true | _ => false
+//
+) (* end of [funkind_is_mutailrec] *)
+
+(* ****** ****** *)
 
 implement
 fprint_funkind
@@ -188,29 +200,47 @@ end // end of [fprint_funkind]
 
 (* ****** ****** *)
 
+(*
+implement
+valkind_is_model (vk) =
+  case+ vk of VK_mcval () => true | _ => false
+// end of [valkind_is_model]
+*)
+
 implement
 valkind_is_proof (vk) =
   case+ vk of VK_prval () => true | _ => false
 // end of [valkind_is_proof]
 
+(* ****** ****** *)
+
 implement
-fprint_valkind (out, vk) = case+ vk of
-  | VK_val () => fprint_string (out, "val")
-  | VK_val_pos () => fprint_string (out, "val+")
-  | VK_val_neg () => fprint_string (out, "val-")
-  | VK_prval () => fprint_string (out, "prval")
-// end of [fprint_valkind]
+fprint_valkind
+  (out, vk) = let
+in
+//
+case+ vk of
+| VK_val () => fprint_string (out, "val")
+| VK_val_pos () => fprint_string (out, "val+")
+| VK_val_neg () => fprint_string (out, "val-")
+| VK_prval () => fprint_string (out, "prval")
+//
+end (* end of [fprint_valkind] *)
 
 (* ****** ****** *)
 
 implement
 valkind2caskind
-  (knd) = (case+ knd of
-  | VK_val () => CK_case ()
-  | VK_prval () => CK_case_pos () // HX: prval = val+
-  | VK_val_pos () => CK_case_pos ()
-  | VK_val_neg () => CK_case_neg ()
-) // end of [valkind2caskind]
+  (vk) = let
+in
+//
+case+ vk of
+| VK_val () => CK_case ()
+| VK_prval () => CK_case_pos () // = val+
+| VK_val_pos () => CK_case_pos () // val+
+| VK_val_neg () => CK_case_neg () // val-
+//
+end // end of [valkind2caskind]
 
 (* ****** ****** *)
 
@@ -234,30 +264,42 @@ dcstkind_is_prval (x) =
   case+ x of DCKprval () => true | _ => false
 // end of [dcstkind_is_prval]
 
-implement
-dcstkind_is_proof (dk) =
-  case+ dk of
-  | DCKpraxi () => true | DCKprfun () => true | DCKprval () => true
-  | _ => false
-// end of [dcstkind_is_proof]
+(* ****** ****** *)
 
 implement
-dcstkind_is_castfn (x) =
-  case+ x of DCKcastfn () => true | _ => false
+dcstkind_is_proof
+  (dk) = let
+in
+//
+case+ dk of
+| DCKpraxi () => true
+| DCKprfun () => true
+| DCKprval () => true
+| _ (*non-proof*) => false
+//
+end // end of [dcstkind_is_proof]
+
+implement
+dcstkind_is_castfn (dk) =
+  case+ dk of DCKcastfn () => true | _ => false
 // end of [dcstkind_is_castfn]
 
 (* ****** ****** *)
 
 implement
 fprint_dcstkind
-  (out, x) = case+ x of
-  | DCKfun () => fprint_string (out, "DCKfun()")
-  | DCKval () => fprint_string (out, "DCKval()")
-  | DCKpraxi () => fprint_string (out, "DCKpraxi()")
-  | DCKprfun () => fprint_string (out, "DCKprfun()")
-  | DCKprval () => fprint_string (out, "DCKprval()")
-  | DCKcastfn () => fprint_string (out, "DCKcastfn()")
-// end of [fprint_dcstkind]
+  (out, dk) = let
+in
+//
+case+ dk of
+| DCKfun () => fprint_string (out, "DCKfun()")
+| DCKval () => fprint_string (out, "DCKval()")
+| DCKpraxi () => fprint_string (out, "DCKpraxi()")
+| DCKprfun () => fprint_string (out, "DCKprfun()")
+| DCKprval () => fprint_string (out, "DCKprval()")
+| DCKcastfn () => fprint_string (out, "DCKcastfn()")
+//
+end // end of [fprint_dcstkind]
 
 (* ****** ****** *)
 
@@ -298,11 +340,13 @@ neq_funclo_funclo (fc1, fc2) = ~eq_funclo_funclo (fc1, fc2)
 
 implement
 fprint_funclo
-  (out, fc) = case+ fc of
+  (out, fc) =
+(
+  case+ fc of
   | FUNCLOclo (knd) =>
       fprintf (out, "CLO(%i)", @(knd))
   | FUNCLOfun () => fprintf (out, "FUN", @())
-// end of [fprint_funclo]
+) (* end of [fprint_funclo] *)
 
 implement print_funclo (fc) = fprint_funclo (stdout_ref, fc)
 implement prerr_funclo (fc) = fprint_funclo (stderr_ref, fc)
@@ -310,14 +354,15 @@ implement prerr_funclo (fc) = fprint_funclo (stderr_ref, fc)
 (* ****** ****** *)
 
 local
-
-var the_flag: int = 1 // 0
+//
+var the_flag: int = 0 // 1
 val p_the_flag = &the_flag
-val (pf_the_flag | ()) =
-  vbox_make_view_ptr {int} (view@ the_flag | p_the_flag)
-// end of [val]
-
-in // in of [local]
+//
+val (
+  pf_the_flag | ((*void*))
+) = vbox_make_view_ptr{int}(view@ the_flag | p_the_flag)
+//
+in (* in-of-local *)
 
 implement
 debug_flag_get () = let

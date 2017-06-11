@@ -1,0 +1,71 @@
+(* ****** ****** *)
+
+%{
+implement srcfilename_get () = "../stat.sats"
+%}
+
+(* ****** ****** *)
+
+%{
+val () = patscode_count_reset()
+val () = patscode_prefix_set("TRYIT/libc_stat")
+%}
+
+(* ****** ****** *)
+
+#decltitle("\
+ATSLIB/libc/sys/stat\
+")
+
+(* ****** ****** *)
+
+#declpreamble("\
+
+The functions declared in this package are mostly the API for the
+corresponding libc-functions declared in [sys/stat.h],  and many more
+details on these functions can often be found in the Linux Programmer's
+manual.  See #myatscodelink("libc/sys/SATS/stat.sats", "sys/stat.sats") for
+the SATS file in ATSLIB where these functions are declared.
+
+")
+
+(* ****** ****** *)
+
+#declnamesynop("chmod")
+#declnamesynop("fchmod")
+
+(* ****** ****** *)
+
+#declnamesynop("mkdir")
+#declnamesynop("mkdir_exn")
+
+(* ****** ****** *)
+
+#declnamesynop("mkdirat")
+
+(* ****** ****** *)
+
+#declnamesynop("mkfifo")
+
+(* ****** ****** *)
+
+#declnamesynop("stat")
+#declnamesynop("stat_exn")
+
+(* ****** ****** *)
+
+#declnamesynop("fstat")
+#declnamesynop("fstat_exn")
+
+(* ****** ****** *)
+
+#declnamesynop("lstat")
+#declnamesynop("lstat_exn")
+
+(* ****** ****** *)
+
+#declnamesynop("umask")
+
+(* ****** ****** *)
+
+(* end of [stat.atxt] *)

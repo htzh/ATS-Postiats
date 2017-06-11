@@ -78,6 +78,8 @@ datatype trans3err =
   | T3E_p2at_trdn of (p2at, s2exp)
   | T3E_p2at_trdn_vbox_ref of (p2at) // resulting in disallowed ref-effect
 //
+  | T3E_p2at_trdn_lst of (int(*lin*), p2at)
+//
   | T3E_p2at_trup_con of p2at // pfarity // ill-typed
   | T3E_p2at_trdn_con_arity of (p2at, int(*serr*))
   | T3E_p2at_free_update of (p3at) // linear constructor freeing
@@ -112,23 +114,32 @@ datatype trans3err =
   | T3E_d2exp_trdn_exist of (d2exp, s2exp)
   | T3E_d2exp_trdn_lam_dyn of (d2exp, s2exp)
 //
+  | T3E_d2exp_trup_arg_body_linpat of (p2at)
+//
   | T3E_d3exp_delay of (loc_t, d3exp)
 //
   | T3E_d3exp_foldat of (loc_t, d3exp)
   | T3E_d3exp_freeat of (loc_t, d3exp)
 //
   | T3E_d3exp_extfcall_arg of (loc_t, d3exp)
+  | T3E_d3exp_extmcall_arg of (loc_t, d3exp)
 //
   | T3E_s2exp_selab_tyrec of (loc_t, s2exp)
   | T3E_s2exp_selab_labnot of (loc_t, s2exp, label) // label is not found
   | T3E_s2exp_selab_tyarr of (loc_t, s2exp)
   | T3E_d3exp_arrind of (d3exp) // arrind is not a generic integer
-  | T3E_d3exp_arrdim of
-      (loc_t, s2explst, d3explst) // array dimen/index mismatch
-    // end of [T3E_d3exp_arrdim]
+  | T3E_d3exp_arrdim of (loc_t, s2explst, d3explst) // array dimen/index mismatch
   | T3E_d3exp_selab_linrest of (loc_t, d3exp, d3lablst)
 //
   | T3E_d2var_nonmut of (loc_t, d2var) // no address for d2var
+//
+(*
+  | T3E_d2var_lin_overld of (loc_t, d2var, d3lablst)
+  | T3E_d2var_mul_overld of (loc_t, d2var, d3lablst)
+  | T3E_d2exp_deref_overld of (loc_t, d2exp, d3lablst)
+*)
+//
+  | T3E_d3lab_overld_app of (loc_t, d3lab) // dot-symbol not applied
 //
   | T3E_d2exp_nonlval of (d2exp) // non-lval expression
   | T3E_d2exp_addrless of (d2exp) // addressless lval
@@ -162,7 +173,8 @@ datatype trans3err =
   | T3E_s2exp_set_viewat_addreq of (loc_t, s2exp(*root*), d3lablst, s2exp(*new*))
 *)
 //
-  | T3E_d3lval_funarg of (d3exp) // non-left-val provided for call-by-ref
+  | T3E_d3lval_fun of (d3exp) // non-left-val fun for call-by-ref
+  | T3E_d3lval_funarg of (d3exp) // non-left-val funarg for call-by-ref
   | T3E_d3lval_refval of (loc_t, d2var) // non-mutable dvar used for call-by-ref
   | T3E_d3lval_linpatcon of (d3exp, s2exp) // non-left-val is matched against linpatcon
 //
@@ -181,6 +193,8 @@ datatype trans3err =
   | T3E_c2laulst0_trdn_noclause of (loc_t)
   | T3E_c2laulst2_trdn_redundant of (loc_t, c2lau)
 //
+  | T3E_cp2atcstlst_arity of (loc_t, int(*serr*))
+//
   | T3E_loopexn of (loc_t, int(*knd*)) // HX: 0/1: break/continue
 //
   | T3E_d2var_some of (loc_t, d2var, s2exp) // should be retained but consumed
@@ -194,6 +208,8 @@ datatype trans3err =
   | T3E_dmacro_eval0_app_mac_arity of (loc_t, d2mac, d2exparglst)
   | T3E_dmacro_evalctx_extend of (loc_t, d2mac)
   | T3E_dmacro_eval1_d2exp of (loc_t, d2exp)
+//
+  | T3E_reassume_tr_isnotasp of (loc_t, s2cst)
 //
   | T3E_f2undeclst_tr_termetsrtck of (f2undec, s2rtlstopt)
   | T3E_v2aldeclst_rec_tr_linearity of (v2aldec, s2exp(*linear*))
@@ -212,6 +228,7 @@ fun p2atlst_syn_type (p2ts: p2atlst): s2explst
 fun p2at_trup_arg (p2t: p2at): p3at
 fun p2atlst_trup_arg
   (npf: int, p2ts: p2atlst): p3atlst
+//
 fun p2at_trdn_arg (p2t: p2at, s2e: s2exp): p3at
 fun p2atlst_trdn_arg {n:nat} (
   loc: loc_t, npf: int
@@ -229,9 +246,19 @@ fun guard_trdn
   (loc: loc_t, gval: bool, gtyp: s2exp): void
 // end of [guard_trdn]
 
+(* ****** ****** *)
+
 (*
 fun p3at_mutablize (p3t0: p3at): void // HX: var [pat] = ...
 *)
+
+(* ****** ****** *)
+
+fun
+funarg_patck_exhaust
+(
+  loc0: location, p2ts_arg: p2atlst, s2es_arg: s2explst
+) : void // end of [funarg_patck_exhaust]
 
 (* ****** ****** *)
 
@@ -251,11 +278,16 @@ fun labd2explst_syn_type (ld2es: labd2explst): labs2explst
 
 (* ****** ****** *)
 
-fun fshowtype_d3exp (d3e: d3exp): void
+fun fshowtype_d3exp_up (d3e: d3exp): void
+fun fshowtype_d3exp_dn (d3e: d3exp): void
 
 (* ****** ****** *)
 
-dataviewtype d23exp =
+fun d3lablst_is_overld (d3ls: d3lablst): bool
+
+(* ****** ****** *)
+
+datavtype d23exp =
   | D23Ed2exp of d2exp | D23Ed3exp of d3exp
 viewtypedef d23explst = List_vt (d23exp)
 
@@ -302,6 +334,16 @@ fun d2exp_trup_cstsp
 // end of [d2exp_trup_cstsp]
 
 (* ****** ****** *)
+//
+fun d2exp_trup_tyrep
+  (d2e0: d2exp, s2e_rep: s2exp): d3exp
+//
+(* ****** ****** *)
+//
+fun d2exp_trup_literal
+  (d2e0: d2exp, d2e_lit: d2exp): d3exp
+//
+(* ****** ****** *)
 
 fun d2var_get_type_some
   (loc: loc_t, d2v: d2var): s2exp
@@ -328,21 +370,32 @@ fun d2exp_trup_applst
   (d2e0: d2exp, _fun: d2exp, _arg: d2exparglst): d3exp
 // end of [d2exp_trup_applst]
 
-fun d2exp_trup_applst_sym
-  (d2e0: d2exp, _fun: d2sym, _arg: d2exparglst): d3exp
-// end of [d2exp_trup_applst_sym]
-
-fun d2exp_trup_applst_tmpsym (
-  d2e0: d2exp, _fun: d2sym, t2mas: t2mpmarglst, _arg: d2exparglst
-) : d3exp // end of [d2exp_trup_applst_tmpsym]
-
 fun d23exp_trup_applst
   (d2e0: d2exp, _fun: d3exp, _arg: d2exparglst): d3exp
 // end of [d23exp_trup_applst]
 
 (* ****** ****** *)
+//
+fun
+d2exp_trup_applst_sym
+  (d2e0: d2exp, d2s: d2sym, _arg: d2exparglst): d3exp
+//
+fun
+d2exp_trup_applst_tmpsym
+(
+  d2e0: d2exp, d2s: d2sym, t2mas: t2mpmarglst, _arg: d2exparglst
+) : d3exp // end of [d2exp_trup_applst_tmpsym]
+//
+fun
+d2exp_trup_applst_seloverld
+  (d2e0: d2exp, _fun: d2exp, d2s: d2sym, _arg: d2exparglst): d3exp
+//
+(* ****** ****** *)
 
+fun d2lab_trup (d2l: d2lab) : d3lab
 fun d2lablst_trup (d2ls: d2lablst) : d3lablst
+
+(* ****** ****** *)
 
 fun d3explst_get_ind (d3es: d3explst): s2explst
 
@@ -352,7 +405,7 @@ fun s2exp_get_dlablst_linrest_sharing
 ) : (s2exp, s2explst_vt) // end of [fun]
 
 fun d2exp_trup_selab
-  (d2e0: d2exp, tup: d2exp, labs: d2lablst): d3exp
+  (loc0: loc_t, tup: d2exp, labs: d2lablst): d3exp
 // end of [d2exp_trup_selab]
 
 (* ****** ****** *)
@@ -380,9 +433,11 @@ s2exp_get_dlablst_context_check
 
 (* ****** ****** *)
 
-fun d2exp_trup_deref
-  (loc0: loc_t, d2e: d2exp, d2ls: d2lablst): d3exp
-// end of [d2exp_trup_deref]
+fun
+d2exp_trup_deref
+(
+  loc0: loc_t, d2s: d2sym, d2e: d2exp, d2ls: d2lablst
+) : d3exp // end of [d2exp_trup_deref]
 
 fun s2addr_deref
 (
@@ -449,16 +504,25 @@ fun d2explst_trup (d2es: d2explst): d3explst
 
 (* ****** ****** *)
 
-fun d2exp_trdn (d2e: d2exp, s2e: s2exp): d3exp
-fun d2explst_trdn_elt (d2es: d2explst, s2e: s2exp): d3explst
-fun d2expopt_trdn_elt (od2e: d2expopt, s2e: s2exp): d3expopt
+fun
+d2exp_trdn (d2e: d2exp, s2e: s2exp): d3exp
+fun
+d2explst_trdn_elt (d2es: d2explst, s2e: s2exp): d3explst
+fun
+d2expopt_trdn_elt (od2e: d2expopt, s2e: s2exp): d3expopt
 
 (* ****** ****** *)
 //
-fun d2exp_trdn_rest (d2e: d2exp, s2f: s2hnf): d3exp
+fun
+d2exp_trdn_rest (d2e: d2exp, s2f: s2hnf): d3exp
 //
-fun d2exp_trdn_ifhead (d2e: d2exp, s2f: s2hnf): d3exp
-fun d2exp_trdn_sifhead (d2e: d2exp, s2f: s2hnf): d3exp
+fun
+d2exp_trdn_ifhead (d2e: d2exp, s2f: s2hnf): d3exp
+fun
+d2exp_trdn_sifhead (d2e: d2exp, s2f: s2hnf): d3exp
+//
+fun
+d2exp_trdn_ifcasehd (d2e: d2exp, s2f: s2hnf): d3exp
 //
 fun
 c2laulst_trdn{n:nat}

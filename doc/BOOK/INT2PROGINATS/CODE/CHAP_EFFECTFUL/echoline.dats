@@ -1,6 +1,6 @@
 (*
-** Some code
-** used in the book INT2PROGINATS
+** Some code used
+** in the book INT2PROGINATS
 *)
 
 (* ****** ****** *)
@@ -19,7 +19,6 @@
 
 (* ****** ****** *)
 //
-#include "share/atspre_define.hats"
 #include "share/atspre_staload.hats"
 //
 (* ****** ****** *)

@@ -15,14 +15,22 @@
 //
 (* ****** ****** *)
 //
-// HX-2012-06-21: compiled to run with ATS/Postiats
+// HX-2013-06-21: compiled to run with ATS/Postiats
 //
 (* ****** ****** *)
 //
-// HX-2012-06-21:
+// HX-2013-06-21:
 // By the current standard, the following code looks
 // a bit ugly. However, it does shed some light on coding
 // in ATS during its early development.
+//
+(* ****** ****** *)
+//
+(*
+##myatsccdef=\
+patsopt --constraint-ignore --dynamic $1 | \
+tcc -run -DATS_MEMALLOC_LIBC -I${PATSHOME} -I${PATSHOME}/ccomp/runtime -
+*)
 //
 (* ****** ****** *)
 //
@@ -31,7 +39,8 @@
 //
 (* ****** ****** *)
 
-staload M = "libc/SATS/math.sats"
+staload M =
+"libats/libc/SATS/math.sats"
 
 (* ****** ****** *)
 
@@ -659,7 +668,7 @@ in
   multivariate_argmin (f, $lst{dualnum}(w0))
 end // end of [val]
 
-val list_sing (w_star) = ws_star
+val+list_sing(w_star) = ws_star
 
 in (* in of [let] *)
 //

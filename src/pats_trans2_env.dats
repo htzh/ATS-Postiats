@@ -79,7 +79,7 @@ staload "./pats_trans2_env.sats"
 
 local
 
-viewtypedef
+vtypedef
 filenv_struct =
 @{
   name= filename
@@ -100,7 +100,8 @@ assume filenv_type = ref (filenv_struct)
 in (* in of [local] *)
 
 implement
-filenv_make (
+filenv_make
+(
   fil, s2tm, s2im, d2im, d2cs
 ) = let
 //
@@ -135,7 +136,7 @@ implement
 filenv_get_s2temap (fenv) = let
   val (vbox pf | p) = ref_get_view_ptr (fenv)
   prval (pf1, fpf1) = __assert (view@ (p->sort)) where {
-    extern prfun __assert {a:viewt@ype} {l:addr} (pf: !a @ l): (a @ l, minus (filenv, a @ l))
+    extern prfun __assert {a:vt@ype} {l:addr} (pf: !a @ l): (a @ l, minus (filenv, a @ l))
   } // end of [prval]
 in
   (pf1, fpf1 | &p->sort)
@@ -145,7 +146,7 @@ implement
 filenv_get_s2itmmap (fenv) = let
   val (vbox pf | p) = ref_get_view_ptr (fenv)
   prval (pf1, fpf1) = __assert (view@ (p->sexp)) where {
-    extern prfun __assert {a:viewt@ype} {l:addr} (pf: !a @ l): (a @ l, minus (filenv, a @ l))
+    extern prfun __assert {a:vt@ype} {l:addr} (pf: !a @ l): (a @ l, minus (filenv, a @ l))
   } // end of [prval]
 in
   (pf1, fpf1 | &p->sexp)
@@ -155,7 +156,7 @@ implement
 filenv_get_d2itmmap (fenv) = let
   val (vbox pf | p) = ref_get_view_ptr (fenv)
   prval (pf1, fpf1) = __assert (view@ (p->dexp)) where {
-    extern prfun __assert {a:viewt@ype} {l:addr} (pf: !a @ l): (a @ l, minus (filenv, a @ l))
+    extern prfun __assert {a:vt@ype} {l:addr} (pf: !a @ l): (a @ l, minus (filenv, a @ l))
   } // end of [prval]
 in
   (pf1, fpf1 | &p->dexp)
@@ -193,15 +194,14 @@ end // end of [local]
 (* ****** ****** *)
 
 local
-
-viewtypedef s2rtenv = symenv (s2rtext)
+//
+assume s2rtenv_push_v = unit_v
+//
+vtypedef s2rtenv = symenv (s2rtext)
+//
 val [l0:addr] (pf | p0) = symenv_make_nil ()
 val (pf0 | ()) = vbox_make_view_ptr {s2rtenv} (pf | p0)
-
-(* ****** ****** *)
-
-assume s2rtenv_push_v = unit_v
-
+//
 (* ****** ****** *)
 
 fun
@@ -257,6 +257,15 @@ end // end of [the_s2rtenv_find]
 (* ****** ****** *)
 
 implement
+the_s2rtenv_top_clear
+  () = () where {
+  prval vbox pf = pf0
+  val () = symenv_top_clear (!p0)
+} // end of [the_s2rtenv_top_clear]
+
+(* ****** ****** *)
+
+implement
 the_s2rtenv_pop (
   pfenv | (*none*)
 ) = let
@@ -281,6 +290,8 @@ the_s2rtenv_push_nil
   val () = symenv_push_nil (!p0)
   prval pfenv = unit_v ()
 } // end of [the_s2rtenv_push_nil]
+
+(* ****** ****** *)
 
 fun
 the_s2rtenv_localjoin
@@ -334,12 +345,13 @@ end // end of [local]
 (* ****** ****** *)
 
 implement
-the_s2rtenv_find_qua (q, id) = let
+the_s2rtenv_find_qua
+  (q, id) = let
 (*
-  val () = print "the_s2rtenv_find_qua: qid = "
-  val () = $SYN.print_s0rtq (q)
-  val () = $SYM.print_symbol (id)
-  val () = print_newline ()
+val () =
+print "the_s2rtenv_find_qua: qid = "
+val () = ($SYN.print_s0rtq (q); $SYM.print_symbol (id))
+val () = print_newline ((*void*))
 *)
 in
 //
@@ -390,12 +402,15 @@ end // end of [the_s2rtenv_find_qua]
 (* ****** ****** *)
 
 local
-
-viewtypedef s2expenv = symenv (s2itm)
+//
+assume s2expenv_push_v = unit_v
+//
+vtypedef s2expenv = symenv (s2itm)
+//
 val [l0:addr] (pf | p0) = symenv_make_nil ()
 val (pf0 | ()) = vbox_make_view_ptr {s2expenv} (pf | p0)
-
-assume s2expenv_push_v = unit_v
+//
+(* ****** ****** *)
 
 fun
 the_s2expenv_find_namespace .<>.
@@ -457,6 +472,15 @@ end // end of [the_s2expenv_pervasive_find]
 (* ****** ****** *)
 
 implement
+the_s2expenv_top_clear
+  () = () where {
+  prval vbox pf = pf0
+  val () = symenv_top_clear (!p0)
+} // end of [the_s2expenv_top_clear]
+
+(* ****** ****** *)
+
+implement
 the_s2expenv_pop (
   pfenv | (*none*)
 ) = let
@@ -481,6 +505,8 @@ the_s2expenv_push_nil
   val () = symenv_push_nil (!p0)
   prval pfenv = unit_v ()
 } // end of [the_s2expenv_push_nil]
+
+(* ****** ****** *)
 
 fun
 the_s2expenv_localjoin
@@ -532,17 +558,23 @@ end // end of [local]
 (* ****** ****** *)
 
 implement
-the_s2expenv_find_qua (q, id) = let
+the_s2expenv_find_qua
+  (q, id) = let
 (*
-  val () = print "the_s2expenv_find_qua: qid = "
-  val () = ($SYN.print_s0taq (q); $SYM.print_symbol (id))
-  val () = print_newline ()
+//
+val () =
+print "the_s2expenv_find_qua: qid = "
+val () = ($SYN.print_s0taq (q); $SYM.print_symbol (id))
+val () = print_newline ((*void*))
+//
 *)
 in
 //
 case+ q.s0taq_node of
+//
 | $SYN.S0TAQnone _ =>
     the_s2expenv_find (id)
+//
 | $SYN.S0TAQsymdot (sym) => let
     val ans = the_s2expenv_find (sym)
   in
@@ -564,7 +596,7 @@ case+ q.s0taq_node of
           val () = prerr ": the qualifier ["
           val () = $SYM.prerr_symbol (sym)
           val () = prerr "] should refer to a filename but it does not."
-          val () = prerr_newline ()
+          val () = prerr_newline ((*void*))
         in
           None_vt ()
         end
@@ -575,41 +607,56 @@ case+ q.s0taq_node of
         val () = prerr ": the qualifier ["
         val () = $SYM.prerr_symbol (sym)
         val () = prerr "] is unrecognized."
-        val () = prerr_newline ()
+        val () = prerr_newline ((*void*))
       in
         None_vt ()
       end
   end // end of [S2RTsymdot]
-| $SYN.S0TAQsymcolon _ => None_vt ()
+//
+(*
+//
+// HX-2017-01-24:
+// removed as it is never in use
+//
+| $SYN.S0TAQsymcolon _ => None_vt((*void*))
+*)
 //
 end // end of [the_s2expenv_find_qua]
 
 (* ****** ****** *)
 
 implement
-the_s2expenv_add_scst (s2c) = let
+the_s2expenv_add_scst
+  (s2c) = let
 (*
-  val () = begin
-    print "s2expenv_add_scst: s2c = "; print (s2c); print_newline ()
-    print "s2expenv_add_scst: s2t = "; print (s2cst_get_srt s2c); print_newline ()
-  end // end of [val]
+val () =
+(
+  println! ("s2expenv_add_scst: s2c = ", s2c);
+  println! ("s2expenv_add_scst: s2t = ", s2cst_get_srt(s2c));
+) (* end of [val] *)
 *)
-  val id = s2cst_get_sym s2c
-  val s2cs = (
-    case+ the_s2expenv_find (id) of
-    | ~Some_vt s2i => begin case+ s2i of
-      | S2ITMcst s2cs => s2cs | _ => list_nil ()
-      end // end of [Some_vt]
-    | ~None_vt () => list_nil ()
-  ) : s2cstlst // end of [val]
-  val s2i = S2ITMcst (list_cons (s2c, s2cs))
+val id = s2cst_get_sym s2c
+//
+val s2cs = (
+  case+ the_s2expenv_find (id) of
+  | ~Some_vt s2i => begin case+ s2i of
+    | S2ITMcst s2cs => s2cs | _ => list_nil ()
+    end // end of [Some_vt]
+  | ~None_vt () => list_nil ()
+) : s2cstlst // end of [val]
+//
+val s2i = S2ITMcst (list_cons (s2c, s2cs))
+//
 in
   the_s2expenv_add (id, s2i)
 end // end of [the_s2expenv_add_scst]
 
 implement
-the_s2expenv_add_svar (s2v) = let
-  val id = s2var_get_sym (s2v) in the_s2expenv_add (id, S2ITMvar s2v)
+the_s2expenv_add_svar
+  (s2v) = let
+  val id = s2var_get_sym (s2v)
+in
+  the_s2expenv_add (id, S2ITMvar s2v)
 end // end of [the_s2expenv_add_svar]
 
 implement
@@ -787,10 +834,12 @@ s2qualstlst_set_tmplev
 (* ****** ****** *)
 
 local
-
-val the_d2varlev = ref<int> (0)
+//
+val
+the_d2varlev = ref<int> (0)
+//
 assume the_d2varlev_inc_v = unit_v
-
+//
 in (* in of [local] *)
 
 implement
@@ -829,12 +878,15 @@ end // end of [local]
 (* ****** ****** *)
 
 local
-
-viewtypedef d2expenv = symenv (d2itm)
+//
+assume d2expenv_push_v = unit_v
+//
+vtypedef d2expenv = symenv (d2itm)
+//
 val [l0:addr] (pf | p0) = symenv_make_nil ()
 val (pf0 | ()) = vbox_make_view_ptr {d2expenv} (pf | p0)
-
-assume d2expenv_push_v = unit_v
+//
+(* ****** ****** *)
 
 fn the_d2expenv_find_namespace
   (id: symbol): d2itmopt_vt = let
@@ -896,6 +948,15 @@ end // end of [the_d2expenv_pervasive_find]
 (* ****** ****** *)
 
 implement
+the_d2expenv_top_clear
+  () = () where {
+  prval vbox pf = pf0
+  val () = symenv_top_clear (!p0)
+} // end of [the_d2expenv_top_clear]
+
+(* ****** ****** *)
+
+implement
 the_d2expenv_pop (
   pfenv | (*none*)
 ) = let
@@ -920,6 +981,8 @@ the_d2expenv_push_nil
   val () = symenv_push_nil (!p0)
   prval pfenv = unit_v ()
 } // end of [the_d2expenv_push_nil]
+
+(* ****** ****** *)
 
 fun
 the_d2expenv_localjoin
@@ -971,56 +1034,77 @@ end // end of [local]
 (* ****** ****** *)
 
 implement
-the_d2expenv_find_qua (q, id) = let
+the_d2expenv_find_qua
+  (q, id) = let
 (*
-  val () = print "the_d2expenv_find_qua: qid = "
-  val () = ($SYN.print_s0taq (q); $SYM.print_symbol (id))
-  val () = print_newline ()
+val () =
+print (
+  "the_d2expenv_find_qua: qid = "
+) (* val *)
+val () =
+($SYN.print_s0taq(q); $SYM.print_symbol(id))
+val () = print_newline ((*void*))
 *)
 in
 //
-case+ q.d0ynq_node of
+case+
+q.d0ynq_node
+of // case+
 | $SYN.D0YNQnone _ =>
-    the_d2expenv_find (id)
-| $SYN.D0YNQsymdot (sym) => let
-    val ans = the_s2expenv_find (sym)
+    the_d2expenv_find(id)
+  // end of [D0YNQnone]
+| $SYN.D0YNQsymdot(sym) => let
+    val ans =
+      the_s2expenv_find(sym)
+    // end of [val]
   in
     case+ ans of
-    | ~Some_vt (s2i) => (
+    | ~Some_vt(s2i) =>
+      (
       case+ s2i of
-      | S2ITMfilenv (fenv) => let
+      | S2ITMfilenv
+        (
+          fenv
+        ) => ans where
+        {
           val (
             pf, fpf | p_map
-          ) = filenv_get_d2itmmap (fenv)
-          val ans = symmap_search (!p_map, id)
-          prval () = minus_addback (fpf, pf | fenv)
-        in
-          ans
-        end // en dof [S2ITMfil]
-      | _ => let
-          val loc = q.d0ynq_loc
-          val () = prerr_error2_loc (loc)
+          ) = filenv_get_d2itmmap(fenv)
+          val ans = symmap_search(!p_map, id)
+          prval () = minus_addback(fpf, pf | fenv)
+        } (* end of [S2ITMfil] *)
+      | _ (*rest-of-s2itm*) => let
+          val () =
+            prerr_error2_loc(q.d0ynq_loc)
+          // end of [val]
           val () = prerr ": the qualifier ["
-          val () = $SYM.prerr_symbol (sym)
+          val () = $SYM.prerr_symbol(sym)
           val () = prerr "] should refer to a filename but it does not."
-          val () = prerr_newline ()
+          val () = prerr_newline((*void*))
         in
-          None_vt ()
+          None_vt ((*void*))
         end
       ) // end of [Some_vt]
-    | ~None_vt () => let
-        val loc = q.d0ynq_loc
-        val () = prerr_error2_loc (loc)
+    | ~None_vt((*void*)) => let
+        val () =
+          prerr_error2_loc(q.d0ynq_loc)
+        // end of [val]
         val () = prerr ": the qualifier ["
-        val () = $SYM.prerr_symbol (sym)
+        val () = $SYM.prerr_symbol(sym)
         val () = prerr "] is unrecognized."
-        val () = prerr_newline ()
+        val () = prerr_newline((*void*))
       in
-        None_vt ()
+        None_vt ((*void*))
       end // end of [None_vt]
   end // end of [S2RTsymdot]
-| $SYN.D0YNQsymcolon _ => None_vt ()
-| $SYN.D0YNQsymdotcolon _ => None_vt ()
+(*
+//
+// HX-2017-01-24:
+// removed due to no use
+//
+| $SYN.D0YNQsymcolon _ => None_vt((*void*))
+| $SYN.D0YNQsymdotcolon _ => None_vt((*void*))
+*)
 //
 end // end of [the_s2expenv_find_qua]
 
@@ -1182,7 +1266,7 @@ local
 assume
 trans2_env_push_v = @(
   s2rtenv_push_v, s2expenv_push_v, d2expenv_push_v
-) // end of [trans2_env_push_v]
+) (* end of [trans2_env_push_v] *)
 
 in (* in of [local] *)
 
@@ -1228,7 +1312,7 @@ the_trans2_env_pervasive_joinwth
   val fenv = filenv_make (fil, m0, m1, m2, d2cs)
   val ((*void*)) = the_filenvmap_add (fsymb, fenv)
 //
-} // end of [the_trans2_env_pervasive_joinwth]
+} // end of [the_trans2_env_pervasive_joinwth1]
 
 end // end of [local]
 
@@ -1272,7 +1356,10 @@ end // end of [local]
 local
 
 fun
-the_s2rtenv_initialize (): void = {
+the_s2rtenv_initialize
+(
+// argless
+) : void = {
 //
   val (pfenv | ()) = the_s2rtenv_push_nil ()
 //
@@ -1281,15 +1368,19 @@ the_s2rtenv_initialize (): void = {
   val () = the_s2rtenv_add ($SYM.symbol_INT, S2TEsrt s2rt_int)
   val () = the_s2rtenv_add ($SYM.symbol_ADDR, S2TEsrt s2rt_addr)
   val () = the_s2rtenv_add ($SYM.symbol_BOOL, S2TEsrt s2rt_bool)
+//
 (*
   val () = the_s2rtenv_add ($SYM.symbol_CHAR, S2TEsrt s2rt_char)
 *)
 //
   val () = the_s2rtenv_add ($SYM.symbol_REAL, S2TEsrt s2rt_real)
 //
-  val () = the_s2rtenv_add ($SYM.symbol_CLS, S2TEsrt s2rt_cls)
+  val () = the_s2rtenv_add ($SYM.symbol_FLOAT, S2TEsrt s2rt_float)
+  val () = the_s2rtenv_add ($SYM.symbol_STRING, S2TEsrt s2rt_string)
 //
-  val () = the_s2rtenv_add ($SYM.symbol_EFF, S2TEsrt s2rt_eff)
+  val () = the_s2rtenv_add ($SYM.symbol_CLS, S2TEsrt s2rt_cls) // classes
+//
+  val () = the_s2rtenv_add ($SYM.symbol_EFF, S2TEsrt s2rt_eff) // effects
 //
   val () = the_s2rtenv_add ($SYM.symbol_TKIND, S2TEsrt s2rt_tkind)
 //
@@ -1313,8 +1404,20 @@ the_s2rtenv_initialize (): void = {
   val map = the_s2rtenv_pop (pfenv | (*none*))
   val ((*void*)) = the_s2rtenv_pervasive_joinwth0 (map)
 //
-} // end of [trans2_env_initialize]
+} (* end of [trans2_env_initialize] *)
 
+fun
+the_s2rtenv_reinitialize(): void = the_s2rtenv_top_clear ()
+
+(* ****** ****** *)
+//
+fun 
+the_s2expenv_initialize (): void = ()
+fun
+the_s2expenv_reinitialize(): void = the_s2expenv_top_clear()
+//
+(* ****** ****** *)
+//
 fun 
 the_d2expenv_initialize (): void = {
 (*
@@ -1330,19 +1433,47 @@ end // end of [val]
 //
 val map = the_d2expenv_pop (pfenv | (*none*))
 //
-val () = the_d2expenv_pervasive_joinwth (map)
+val () = the_d2expenv_pervasive_joinwth0 (map)
 //
 *)
 //
-} // end of [the_d2expenv_initialize]
+} (* end of [the_d2expenv_initialize] *)
+//
+fun
+the_d2expenv_reinitialize(): void = the_d2expenv_top_clear()
+//
+(* ****** ****** *)
+
+val the_trans2_env_flag = ref<int> (0)
+
+(* ****** ****** *)
 
 in (* in of [local] *)
 
 implement
-the_trans2_env_initialize () = {
+the_trans2_env_initialize
+(
+// argumentless
+) = let
+//
+val n = !the_trans2_env_flag
+val () = !the_trans2_env_flag := n+1
+//
+in
+//
+if
+n = 0
+then {
   val () = the_s2rtenv_initialize ()
+  val () = the_s2expenv_initialize ()
   val () = the_d2expenv_initialize ()
-} // end of [the_trans2_env_initialize]
+} else {
+  val () = the_s2rtenv_reinitialize ()
+  val () = the_s2expenv_reinitialize ()
+  val () = the_d2expenv_reinitialize ()
+} (* end of [if] *)
+//
+end // end of [the_trans2_env_initialize]
 
 end // end of [local]
 

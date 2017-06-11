@@ -1,8 +1,10 @@
 %{
 //
-dynload "libatsdoc/dynloadall.dats"
+dynload
+"libatsdoc/dynloadall.dats"
 //
-staload "libatsdoc/SATS/libatsdoc_atext.sats"
+staload
+"libatsdoc/SATS/libatsdoc_atext.sats"
 //
 extern
 fun comment (x: string): atext
@@ -43,8 +45,8 @@ val () = fprint_string (out, "\
 # This script is automatically generated.\n\
 #\n\
 \n\
-SOURCE=../../libats/ML/\n\
-TARGET=ATS-Postiats/libats/ML/\n\
+SOURCE=../../libats/ML\n\
+TARGET=ATS-Postiats/libats/ML\n\
 \n\
 srcget ()\n\
 {\n\
@@ -62,7 +64,7 @@ packpostamble () = let
 val out = stdout_ref
 val () = fprint_string (out, "\
 #\n\
-echo \"The ATSLIB-libats files have been copied.\"\n\
+echo \"The ATSLIB-libats-ML files have been copied.\"\n\
 #\n\
 # end of the automatically generated script\n\
 #\n\
@@ -111,10 +113,29 @@ The ATSLIB/libats/ML library\
 #packfilename("SATS/matrix0.sats")
 #packfilename("SATS/string.sats")
 #packfilename("SATS/strarr.sats")
+
+(* ****** ****** *)
+
+#packfilename("SATS/stream.sats")
+#packfilename("SATS/stream_vt.sats")
+
+(* ****** ****** *)
+
+#packfilename("SATS/gvalue.sats")
+
+(* ****** ****** *)
+
 #packfilename("SATS/filebas.sats")
+#packfilename("SATS/intrange.sats")
+
+(* ****** ****** *)
+
 #packfilename("SATS/stdlib.sats")
 #packfilename("SATS/funset.sats")
 #packfilename("SATS/funmap.sats")
+#packfilename("SATS/dynarray.sats")
+#packfilename("SATS/qlistref.sats")
+#packfilename("SATS/slistref.sats")
 #packfilename("SATS/hashtblref.sats")
 #packfilename("SATS/monad_list.sats")
 #packfilename("SATS/monad_maybe.sats")
@@ -137,20 +158,46 @@ The ATSLIB/libats/ML library\
 #packfilename("DATS/string.dats")
 #packfilename("DATS/strarr.dats")
 
-#packfilename("DATS/filebas.dats")
-#packfilename("DATS/filebas_dirent.dats")
+(* ****** ****** *)
 
-#packfilename("DATS/stdlib.dats")
-
-#packfilename("DATS/funset.dats")
-#packfilename("DATS/funmap.dats")
-#packfilename("DATS/hashtblref.dats")
-#packfilename("DATS/monad_list.dats")
-#packfilename("DATS/monad_maybe.dats")
+#packfilename("DATS/stream.dats")
+#packfilename("DATS/stream_vt.dats")
 
 (* ****** ****** *)
 
+#packfilename("DATS/gvalue.dats")
+
+(* ****** ****** *)
+
+#packfilename("DATS/filebas.dats")
+#packfilename("DATS/filebas_dirent.dats")
+
+(* ****** ****** *)
+
+#packfilename("DATS/intrange.dats")
+
+(* ****** ****** *)
+
+#packfilename("DATS/stdlib.dats")
+
+(* ****** ****** *)
+
+#packfilename("DATS/funset.dats")
+#packfilename("DATS/funmap.dats")
+#packfilename("DATS/dynarray.dats")
+#packfilename("DATS/qlistref.dats")
+#packfilename("DATS/slistref.dats")
+#packfilename("DATS/hashtblref.dats")
+
+#packfilename("DATS/monad_list.dats")
+#packfilename("DATS/monad_maybe.dats")
 #packfilename("DATS/SHARE/monad.hats")
+
+(* ****** ****** *)
+
+#packfilename("HATS/myfunmap.hats")
+#packfilename("HATS/myfunset.hats")
+#packfilename("HATS/myhashtblref.hats")
 
 (* ****** ****** *)
 
@@ -159,9 +206,7 @@ The ATSLIB/libats/ML library\
 (* ****** ****** *)
 
 %{
-
-implement main () = ()
-
+implement main (argc, argv) = ()
 %}
 
 (* ****** ****** *)

@@ -26,10 +26,10 @@ HTML/%s.html: \
   $(ATSDOC) --prefix __datatok --outcode htmlgendecl_data_atxt.dats > $@
 %s_atxt.exe: htmlgendecl_atxt.dats \
   %s_atxt.txt $(DECLATEXT) $(HTMLGENDECL) ; \
-  $(ATSCC) $(INCLUDE) $(INCLATS) $(ATSGCFLAG) -o $@ $< \
-    $(DECLATEXT) $(HTMLGENDECL) $(PATSHOMEQ)/libatsynmark/libatsynmark.a -latsdoc
+  $(ATSCC) $(INCLUDE) $(INCLATS) -o $@ $< \
+    $(DECLATEXT) $(HTMLGENDECL) $(LDPATH) -latsynmark -latsopt -latsdoc -lats -lgmp
 upload_%s:: ; \
-  scp HTML/%s.html ats-hwxi,ats-lang@web.sourceforge.net:htdocs/LIBRARY/libats
+  scp HTML/%s.html ats-hwxi,ats-lang@web.sourceforge.net:htdocs/LIBRARY/libats/SATS/DOCUGEN/HTML
 clean:: ; $(RMF) %s_atxt.exe
 cleanall:: ; $(RMF) HTML/%s.html
 ", @(nm, nm, nm, nm, nm, nm, nm, nm, nm, nm, nm)
@@ -66,12 +66,13 @@ SHAREDOCU=$(PATSHOMEQ)/share/DOCUGEN
 
 ######
 
-INCLUDE:=-I $(PATSHOMEQ)/src
-INCLATS:=-IATS $(SHAREDOCU) -IATS $(PATSHOMEQ) -IATS $(ATSHOMEQ)
+LDPATH :=
+LDPATH += -L$(PATSHOME)/ccomp/atslib/lib
 
 ######
 
-ATSGCFLAG=-D_ATS_GCATS
+INCLUDE:=-I $(PATSHOMEQ)/src
+INCLATS:=-IATS $(SHAREDOCU) -IATS $(PATSHOMEQ) -IATS $(ATSHOMEQ)
 
 ######
 
@@ -153,7 +154,7 @@ all_html::
 ######
 
 uploadall:: ; \
-  scp HTML/*.html ats-hwxi,ats-lang@web.sourceforge.net:htdocs/LIBRARY/libats
+  scp HTML/*.html ats-hwxi,ats-lang@web.sourceforge.net:htdocs/LIBRARY/libats/SATS/DOCUGEN/HTML
 
 ######
 
@@ -172,5 +173,6 @@ cleanall:: clean
 ###### end of [Makefile] ######
 \
 %{
-implement main () = fprint_filsub (stdout_ref, "Makefile_atxt.txt")
+implement
+main (argc, argv) = fprint_filsub (stdout_ref, "Makefile_atxt.txt")
 %}\

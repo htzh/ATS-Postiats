@@ -1,11 +1,12 @@
 (*
-** Some code used in the book INT2PROGINATS
+** Some code used
+** in the book INT2PROGINATS
 *)
 
 (* ****** ****** *)
 //
-#include "share/atspre_define.hats"
-#include "share/atspre_staload.hats"
+#include
+"share/atspre_staload.hats"
 //
 (* ****** ****** *)
 
@@ -31,21 +32,26 @@ in '{
 
 (* ****** ****** *)
 
+symelim .get // HX: avoid potential overloading
+
+(* ****** ****** *)
+
 implement
 main0 () =
 {
 //
-val mycntr = newCounter ()
+val
+mycntr = newCounter()
 //
-val () = println! ("mycntr.count = ", mycntr.get ())
+val () = println! ("mycntr.count = ", mycntr.get())
 //
-val () = mycntr.inc ()
+val () = mycntr.inc()
 //
-val () = println! ("mycntr.count = ", mycntr.get ())
+val () = println! ("mycntr.count = ", mycntr.get())
 //
-val () = mycntr.inc ()
+val () = mycntr.inc()
 //
-val () = println! ("mycntr.count = ", mycntr.get ())
+val () = println! ("mycntr.count = ", mycntr.get())
 //
 } (* end of [main0] *)
 

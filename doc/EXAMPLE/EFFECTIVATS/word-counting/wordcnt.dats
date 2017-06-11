@@ -20,12 +20,6 @@ UN = "prelude/SATS/unsafe.sats"
 
 (* ****** ****** *)
 
-staload _ = "libats/DATS/hashfun.dats"
-staload _ = "libats/DATS/linmap_list.dats"
-staload _ = "libats/DATS/hashtbl_chain.dats"
-
-(* ****** ****** *)
-
 staload "libats/ML/SATS/basis.sats"
 staload "libats/ML/SATS/list0.sats"
 staload "libats/ML/SATS/string.sats"
@@ -34,8 +28,15 @@ staload "libats/ML/SATS/string.sats"
 
 staload _ = "libats/ML/DATS/list0.dats"
 staload _ = "libats/ML/DATS/string.dats"
-staload _ = "libats/ML/DATS/hashtblref.dats"
 
+(* ****** ****** *)
+//
+staload _ = "libats/DATS/hashfun.dats"
+staload _ = "libats/DATS/linmap_list.dats"
+staload _ = "libats/DATS/hashtbl_chain.dats"
+//
+staload _ = "libats/ML/DATS/hashtblref.dats"
+//
 (* ****** ****** *)
 
 abstype wcmap_type = ptr
@@ -131,12 +132,16 @@ end // end of [word_get]
 (* ****** ****** *)
 
 local
-
+//
+staload
+"libats/ML/SATS/basis.sats"
+//
 staload
 HT = "libats/ML/SATS/hashtblref.sats"
-
-assume wcmap_type = $HT.hashtbl (string, int)
-
+//
+assume
+wcmap_type = hashtbl(string, int)
+//
 in (* in of [local] *)
 
 implement
@@ -169,9 +174,10 @@ end // end of [local]
 (* ****** ****** *)
 
 local
-
-staload STDIO = "libc/SATS/stdio.sats"
-
+//
+staload
+STDIO = "libats/libc/SATS/stdio.sats"
+//
 in (* in of [local] *)
 
 implement char_get () = $STDIO.getchar0 ()
@@ -218,7 +224,7 @@ end // end of [local]
 //
 val () = fprint_newline (stdout_ref)
 //
-} // end of [main0]
+} (* end of [main0] *)
 
 (* ****** ****** *)
 

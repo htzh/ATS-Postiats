@@ -83,6 +83,8 @@ case+
 //
 end // end of [funval_isbot]
 
+(* ****** ****** *)
+
 fun aux_funval
 (
   out: FILEref
@@ -151,15 +153,14 @@ case+ fc of
 val () =
 (
 if isclo
-  then emit_text (out, "_clo")
-  else emit_text (out, "_fun")
+  then emit_text (out, "_clo") else emit_text (out, "_fun")
 // end of [if]
 ) : void // end of [val]
 //
-val () = emit_lparen (out)
+val () = emit_LPAREN (out)
 val () = emit_primval (out, pmv_fun)
 val () = emit_text (out, ", ")
-val () = emit_lparen (out)
+val () = emit_LPAREN (out)
 //
 val hses_arg = (
 if isclo
@@ -168,14 +169,16 @@ if isclo
 ) : hisexplst // end of [val]
 val () = emit_hisexplst_sep (out, hses_arg, ", ")
 //
-val () = emit_rparen (out)
+val () = emit_RPAREN (out)
 val () = emit_text (out, ", ")
 val () = emit_hisexp (out, hse_res)
-val () = emit_rparen (out)
+val () = emit_RPAREN (out)
 //
 in
   // nothing
 end // end of [aux_funval2]
+
+(* ****** ****** *)
 
 fun aux_funenv
 (
@@ -213,6 +216,8 @@ pmv_fun.primval_node of
 //
 end // end of [aux_funenv]
 
+(* ****** ****** *)
+
 fun
 emit_fparamlst
 (
@@ -233,20 +238,46 @@ case+ pmvs of
 //
 end // end of [emit_fparamlst]
 
+(* ****** ****** *)
+
+fun emit_freeaft_fun
+(
+  out: FILEref, pmv: primval
+) : void = let
+in
+//
+case+
+  pmv.primval_node of
+| PMVrefarg
+    (knd, freeknd, pmv) =>
+  if freeknd > 0 then
+  (
+    emit_text (out, "ATSINSfreeclo(");
+    emit_primval (out, pmv); emit_text (out, ") ;\n")
+  ) (* end of [PMVrefarg] *)
+| _ => ()
+//
+end // end of [emit_freeaft_fun]
+
+(* ****** ****** *)
+
 (*
 //
 // HX-2014-03-02:
-// no support for auto-freeing
-// auto-freeing interferes with tail-recursion
+// no support for auto-freeing of funarg
+// as it may interfere with tail-recursion
 //
 fun
-emit_fun_freeaft
+emit_freeaft_funarg
 (
   out: FILEref, pmvs: primvalist
 ) : void = let
 in
 //
 case+ pmvs of
+//
+| list_nil () => ()
+//
 | list_cons
     (pmv, pmvs) => let
     val () = (
@@ -264,11 +295,10 @@ case+ pmvs of
       | _ (*non-refarg*) => ()
     ) : void // end of [val]
   in
-    emit_fun_freeaft (out, pmvs)
+    emit_freeaft_funarg (out, pmvs)
   end // end of [list_cons]
-| list_nil ((*void*)) => ()
 //
-end // end of [emit_fun_freeaft]
+end // end of [emit_freeaft_funarg]
 *)
 
 in (* in of [local] *)
@@ -310,15 +340,17 @@ if isclo
   then list_cons (pmv_fun, pmvs_arg) else (pmvs_arg)
 ) : primvalist // end of [val]
 //
-val () = emit_lparen (out)
+val () = emit_LPAREN (out)
 val ln = aux_funenv (out, pmv_fun)
 val () = emit_fparamlst (out, ln, pmvs_arg)
-val () = emit_rparen (out)
+val () = emit_RPAREN (out)
 //
 val () = emit_text (out, ") ;\n")
 //
+val () = emit_freeaft_fun (out, pmv_fun)
+//
 (*
-val () = emit_fun_freeaft (out, pmvs_arg)
+val () = emit_freeaft_funarg (out, pmvs_arg)
 *)
 //
 in
@@ -329,7 +361,8 @@ end // end of [emit_instr_fcall]
 
 local
 
-fun aux1
+fun
+aux1
 (
   out: FILEref
 , ntl: int, pmv: primval, i: int
@@ -337,13 +370,15 @@ fun aux1
 //
 val () =
 emit_text (out, "ATSINSmove_tlcal(")
+//
 val () =
 (
 if ntl <= 1
-  then fprintf (out, "argx%i", @(i))
-  else fprintf (out, "a%irgx%i", @(ntl, i))
+  then fprintf (out, "apy%i", @(i))
+  else fprintf (out, "a%ipy%i", @(ntl, i))
 // end of [if]
 ) : void // end of [val]
+//
 val () = emit_text (out, ", ")
 val () = emit_primval (out, pmv)
 val () = emit_text (out, ") ;\n")
@@ -352,7 +387,8 @@ in
   // nothing
 end // end of [aux1]
 
-fun aux1lst
+fun
+aux1lst
 (
   out: FILEref
 , ntl: int, pmvs: primvalist, i: int
@@ -370,7 +406,8 @@ case+ pmvs of
 //
 end // end of [aux1lst]
 
-fun aux2
+fun
+aux2
 (
   out: FILEref
 , ntl: int, pmv: primval, i: int
@@ -388,17 +425,19 @@ if ntl <= 1
 val () =
 (
 if ntl <= 1
-  then fprintf (out, ", argx%i", @(i))
-  else fprintf (out, ", a%irgx%i", @(ntl, i))
+  then fprintf (out, ", apy%i", @(i))
+  else fprintf (out, ", a%ipy%i", @(ntl, i))
 // end of [if]
 ) : void // end of [val]
+//
 val () = emit_text (out, ") ;\n")
 //
 in
   // nothing
 end // end of [aux2]
 
-fun aux2lst
+fun
+aux2lst
 (
   out: FILEref
 , ntl: int, pmvs: primvalist, i: int
@@ -416,15 +455,15 @@ case+ pmvs of
 //
 end // end of [aux2lst]
 
-fun auxgoto
+fun
+auxgoto
 (
   out: FILEref, flab: funlab
 ) : void = let
 //
-val (
-) = emit_text (out, "ATSgoto(")
-val (
-) = emit_text (out, "__patsflab_")
+val () =
+emit_text (out, "ATSINSfgoto(")
+val () = emit_text (out, "__patsflab_")
 val () = emit2_funlab (out, flab)
 val () = emit_text (out, ") ;\n")
 //
@@ -439,13 +478,17 @@ emit_instr_fcall2
   (out, ins) = let
 //
 val-INSfcall2
-  (tmp, flab, ntl, hse_fun, pmvs_arg) = ins.instr_node
+(
+  tmp, flab, ntl, hse_fun, pmvs_arg
+) = ins.instr_node
 //
-val () = emit_text (out, "ATStailcalbeg()\n")
+val () = emit_text (out, "ATStailcal_beg()\n")
+//
 val () = aux1lst (out, ntl, pmvs_arg, 0(*i*))
 val () = aux2lst (out, ntl, pmvs_arg, 0(*i*))
 val () = auxgoto (out, flab) // HX: loop again
-val () = emit_text (out, "ATStailcalend()\n")
+//
+val () = emit_text (out, "ATStailcal_end()\n")
 //
 in
   // nothing
@@ -465,26 +508,69 @@ val-INSextfcall
 //
 val noret = tmpvar_is_void (tmp)
 //
-val () =
-(
-  if ~noret
-    then emit_text (out, "ATSINSmove(")
-    else emit_text (out, "ATSINSmove_void(")
-  // end of [if]
+val (
+) = (
+if ~noret
+  then emit_text (out, "ATSINSmove(")
+  else emit_text (out, "ATSINSmove_void(")
+// end of [if]
 ) : void // end of [val]
 //
 val () =
 (
   emit_tmpvar (out, tmp); emit_text (out, ", ")
 ) (* end of [val] *)
+//
+val () =
+emit_text(out, "ATSextfcall(")
 val () = emit_text (out, _fun)
+val () = emit_text (out, ", ")
 val () = emit_text (out, "(")
 val () = emit_primvalist (out, pmvs_arg)
-val () = emit_text (out, ")) ;")
+val () = emit_text (out, "))) ;")
 //
 in
   // nothing
 end // end of [emit_instr_extfcall]
+
+(* ****** ****** *)
+
+implement
+emit_instr_extmcall
+  (out, ins) = let
+//
+val loc0 = ins.instr_loc
+val-INSextmcall
+  (tmp, pmv_obj, _mtd, pmvs_arg) = ins.instr_node
+//
+val noret = tmpvar_is_void (tmp)
+//
+val (
+) = (
+if ~noret
+  then emit_text (out, "ATSINSmove(")
+  else emit_text (out, "ATSINSmove_void(")
+// end of [if]
+) : void // end of [val]
+//
+val () =
+(
+  emit_tmpvar (out, tmp); emit_text (out, ", ")
+) (* end of [val] *)
+//
+val () =
+emit_text(out, "ATSextmcall(")
+val () = emit_primval (out, pmv_obj)
+val () = emit_text (out, ", ")
+val () = emit_text (out, _mtd)
+val () = emit_text (out, ", ")
+val () = emit_text (out, "(")
+val () = emit_primvalist (out, pmvs_arg)
+val () = emit_text (out, "))) ;")
+//
+in
+  // nothing
+end // end of [emit_instr_extmcall]
 
 end // end of [local]
 

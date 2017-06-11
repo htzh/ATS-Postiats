@@ -82,7 +82,7 @@ d2con_struct = @{
 , d2con_tag= int // tag for dynamic constructor
 , d2con_pack= Stropt // for ATS_PACKNAME
 , d2con_stamp= stamp // uniqueness
-} // end of [d2con_struct]
+} (* end of [d2con_struct] *)
 
 (* ****** ****** *)
 
@@ -90,14 +90,15 @@ local
 
 assume d2con_type = ref (d2con_struct)
 
-in // in of [local]
+in (* in of [local] *)
 
 (* ****** ****** *)
 
 implement
 d2con_make
 (
-  loc, fil, id, s2c, vwtp, qua, npf, arg, ind
+  loc, fil
+, id, s2c, vwtp, qua, npf, arg, ind
 ) = let
 (*
 val out = stdout_ref
@@ -156,10 +157,11 @@ in
 end : s2exp // end of [val]
 //
 val pack = $GLOB.the_PACKNAME_get ()
+//
 val stamp = $STMP.d2con_stamp_make ()
 //
 val (pfgc, pfat | p) = ptr_alloc<d2con_struct> ()
-prval () = free_gc_elim {d2con_struct?} (pfgc)
+prval ((*freed*)) = free_gc_elim {d2con_struct?} (pfgc)
 //
 val () = p->d2con_sym := id
 val () = p->d2con_loc := loc
@@ -272,6 +274,8 @@ d2con_get_stamp
   val (vbox pf | p) = ref_get_view_ptr (d2c) in p->d2con_stamp
 end // end of [d2con_get_stamp]
 
+(* ****** ****** *)
+
 end // end of [local]
 
 (* ****** ****** *)
@@ -341,6 +345,15 @@ d2con_is_binarian (d2c) =
 // end of [d2con_is_binarian]
 
 (* ****** ****** *)
+//
+implement
+d2con_is_linear
+  (d2c) = s2cst_is_linear(d2con_get_scst(d2c))
+implement
+d2con_is_nonlinear
+  (d2c) = s2cst_is_nonlinear(d2con_get_scst(d2c))
+//
+(* ****** ****** *)
 
 implement
 eq_d2con_d2con
@@ -399,20 +412,24 @@ prerr_d2conlst (xs) = fprint_d2conlst (stderr_ref, xs)
 (* ****** ****** *)
 
 local
-
+//
 staload
 FS = "libats/SATS/funset_avltree.sats"
 staload _ = "libats/DATS/funset_avltree.dats"
-
+staload
+LS = "libats/SATS/linset_avltree.sats"
+staload _ = "libats/DATS/linset_avltree.dats"
+//
 val cmp = lam
 (
   d2c1: d2con, d2c2: d2con
 ) : int =<cloref>
   compare_d2con_d2con (d2c1, d2c2)
 // end of [val]
-
+//
 assume d2conset_type = $FS.set (d2con)
-
+assume d2conset_vtype = $LS.set (d2con)
+//
 in (* in of [local] *)
 
 implement
@@ -427,8 +444,23 @@ implement
 d2conset_add
   (xs, x) = xs where {
   var xs = xs
-  val _(*replaced*) = $FS.funset_insert (xs, x, cmp)
+  val _(*rplced*) = $FS.funset_insert (xs, x, cmp)
 } // end of [d2conset_add]
+
+(* ****** ****** *)
+
+implement
+d2conset_vt_nil () = $LS.linset_make_nil ()
+
+implement
+d2conset_vt_add
+  (xs, x) = xs where {
+  var xs = xs
+  val _(*rplced*) = $LS.linset_insert (xs, x, cmp)
+} // end of [d2conset_vt_add]
+
+implement
+d2conset_vt_listize_free (xs) = $LS.linset_listize_free (xs)
 
 end // end of [local]
 

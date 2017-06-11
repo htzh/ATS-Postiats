@@ -45,7 +45,6 @@
 
 (* ****** ****** *)
 //
-#include "share/atspre_define.hats"
 #include "share/atspre_staload.hats"
 //
 (* ****** ****** *)
@@ -56,7 +55,7 @@ insertion_sort
   A: arrszref (a)
 , cmp: (a, a) -> int
 ) : void = let
-  val n = g0uint2int_size_int (A.size)
+  val n = g0uint2int_size_int(A.size())
   fun ins (x: a, i: int):<cloref1> void =
     if i >= 0 then
       if cmp (x, A[i]) < 0 then (A[i+1] := A[i]; ins (x, i-1))
@@ -71,29 +70,43 @@ in
 end // end of [insertion_sort]
 
 (* ****** ****** *)
-
+//
 staload
-UN = "prelude/SATS/unsafe.sats"
-
+UN =
+"prelude/SATS/unsafe.sats"
+//
 (* ****** ****** *)
-
-staload "libc/SATS/stdlib.sats"
-
+//
+staload
+"libats/libc/SATS/stdlib.sats"
+//
 (* ****** ****** *)
-
-staload "{$LIBATSHWXI}/testing/SATS/randgen.sats"
-staload _(*anon*) = "{$LIBATSHWXI}/testing/DATS/randgen.dats"
-
+//
+#define
+ATSCNTRB_sourceloc
+"http://www.ats-lang.org/LIBRARY/contrib"
+#define
+ATSCNTRB_targetloc "../.INT2PROGINATS-atscntrb"
+//
+staload RG =
+"{$ATSCNTRB}/libats-hwxi/testing/SATS/randgen.sats"
+staload _(*RG*) =
+"{$ATSCNTRB}/libats-hwxi/testing/DATS/randgen.dats"
+//
 (* ****** ****** *)
 
 typedef T = int
 
+(* ****** ****** *)
+
 macdef INTMAX = 1000L
 
 implement
-randgen_val<T> () = let
+$RG.randgen_val<T> () = let
   val x = lrand48 () mod INTMAX in $UN.cast2int(x)
 end // end of [randgen]
+
+(* ****** ****** *)
 
 implement
 fprint_val<T>
@@ -103,7 +116,7 @@ fprint_val<T>
 (* ****** ****** *)
 //
 typedef T2 = double
-implement randgen_val<T2> () = drand48 ()
+implement $RG.randgen_val<T2> () = drand48 ()
 implement fprint_val<T2> (out, x) = fprint_double (out, x)
 //
 (* ****** ****** *)
@@ -114,12 +127,12 @@ main0 () =
 //
 #define N 10
 //
-val A = randgen_arrszref<T> (i2sz(N))
+val A = $RG.randgen_arrszref<T> (i2sz(N))
 val () = fprintln! (stdout_ref, "input:\t", A)
 val () = insertion_sort<T> (A, lam (x, y) => compare (x, y))
 val () = fprintln! (stdout_ref, "output:\t", A)
 //
-val A2 = randgen_arrszref<T2> (i2sz(N))
+val A2 = $RG.randgen_arrszref<T2> (i2sz(N))
 val () = fprintln! (stdout_ref, "input:\t", A2)
 val () = insertion_sort<T2> (A2, lam (x, y) => compare (x, y))
 val () = fprintln! (stdout_ref, "output:\t", A2)

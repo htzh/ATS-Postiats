@@ -1,5 +1,6 @@
 (*
-** for testing [prelude/float]
+** For testing
+** [prelude/integer]
 *)
 
 (* ****** ****** *)
@@ -31,15 +32,18 @@ val () = assertloc (abs(x) = max(x, 0) - min(x, 0))
 val x = ~10
 val () = assertloc (abs(x) = max(x, 0) - min(x, 0))
 //
-val () = assertloc (10 mod 2 = 0)
-val () = assertloc (10 mod 3 = 1)
+val () = assertloc (10 % 2 = 0)
+val () = assertloc (10 % 3 = 1)
+val () = assertloc (10 mod 4 = 2)
 val () = assertloc ((10 \nmod 5) = 0)
 val () = assertloc ((10 \nmod 7) = 3)
 //
+(*
 macdef ngcd = g1int_ngcd
 val () = assertloc ((0 \ngcd 0) = 0)
 val () = assertloc ((15 \ngcd 27) = 3)
 val () = assertloc ((24 \ngcd 60) = 12)
+*)
 //
 } // end of [val]
 
@@ -121,6 +125,19 @@ val () = assertloc ((0x00000000ULL lor x) = x)
 val () = assertloc ((0xFFFFFFFFULL land x) = x)
 //
 } // end of [val]
+
+(* ****** ****** *)
+
+val () =
+{
+//
+val _1si = $UNSAFE.cast2sint(1)
+val _2si = $UNSAFE.cast2sint(2)
+#define si2i g0int2int_sint_int
+//
+val () = assertloc ($UNSAFE.cast2int(si2i(_1si) + si2i(_2si)) = 3)
+//
+} (* end of [val] *)
 
 (* ****** ****** *)
 

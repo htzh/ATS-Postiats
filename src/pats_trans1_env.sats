@@ -88,11 +88,17 @@ fun fprint_the_fxtyenv (out: FILEref): void // mostly for debugging
 
 (* ****** ****** *)
 
+(*
+//
+// HX-2014-07:
+// these function are no longer in use
+//
 absview
 trans1_level_v // for avoiding negative levels
 fun the_trans1_level_get (): int
 fun the_trans1_level_dec (pf: trans1_level_v | (*none*)): void
 fun the_trans1_level_inc (): (trans1_level_v | void)
+*)
 
 (* ****** ****** *)
 
@@ -117,9 +123,39 @@ fun the_trans1_env_restore (pf: trans1_env_save_v | (*none*)): void
 
 (* ****** ****** *)
 
-fun staload_file_search (fil: filename): Option_vt@(int(*ldflg*), d1eclist)
-fun staload_file_insert (fil: filename, loadflag: int, d1cs: d1eclist): void
+fun
+staload_file_search
+  (fil: filename): Option_vt@(int(*ldflg*), d1eclist)
+fun
+staload_file_insert
+  (fil: filename, loadflag: int, d1cs: d1eclist): void
 
+(* ****** ******* *)
+//
+datatype
+atsrelocitm =
+  | ATSRELOCITM of (d0ecl, string(*given*))
+  | ATSRELOCITM2 of (d0ecl, string(*source*), string(*target*))
+// end of [atsrelocitm]
+//
+typedef atsrelocitmlst = List (atsrelocitm)
+//
+fun
+fprint_atsrelocitm (out: FILEref, x: atsrelocitm): void
+fun
+fprint_atsrelocitmlst (out: FILEref, xs: atsrelocitmlst): void
+//
+(* ****** ******* *)
+//
+fun the_atsrelocitmlst_get (): atsrelocitmlst
+//
+fun
+the_atsreloc_insert
+  (d0c: d0ecl, given: string): void
+fun
+the_atsreloc_insert2
+  (d0c: d0ecl, given_s: string, given_t: string): void
+//
 (* ****** ******* *)
 
 fun the_trans1_env_initialize (): void

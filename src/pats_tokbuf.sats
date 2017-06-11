@@ -62,31 +62,37 @@ viewtypedef tokbuf = tokbuf_vt0ype
 //
 (* ****** ****** *)
 
-fun tokbuf_initialize_filp
+fun
+tokbuf_initize_filp
   {m:file_mode} {l:addr} (
   pfmod: file_mode_lte (m, r)
 , pffil: FILE m @ l
 | r: &tokbuf? >> tokbuf, p: ptr l
-) : void // end of [tokbuf_initialize_filp]
+) : void // end of [tokbuf_initize_filp]
 
-fun tokbuf_initialize_getc (
+fun
+tokbuf_initize_getc
+(
   buf: &tokbuf? >> tokbuf, getc: () -<cloptr1> int
-) : void // end of [tokbuf_initialize_getc]
+) : void // end of [tokbuf_initize_getc]
 
-fun tokbuf_initialize_string (
+fun
+tokbuf_initize_string
+(
   buf: &tokbuf? >> tokbuf, inp: string
-) : void // end of [tokbuf_initialize_string]
+) : void // end of [tokbuf_initize_string]
 
-fun tokbuf_initialize_lexbuf (
+fun
+tokbuf_initize_lexbuf
+(
   buf: &tokbuf? >> tokbuf, lbf: &lexbuf >> lexbuf?
-) : void // end of [tokbuf_initialize_lexbuf]
+) : void // end of [tokbuf_initize_lexbuf]
 
 (* ****** ****** *)
-
-fun tokbuf_uninitialize (
-  buf: &tokbuf >> tokbuf?
-) : void // end of [tokbuf_uninitialize]
-
+//
+fun
+tokbuf_uninitize (buf: &tokbuf >> tokbuf?) : void
+//
 (* ****** ****** *)
 
 fun tokbuf_get_ntok (buf: &tokbuf): uint
@@ -107,15 +113,17 @@ fun tokbuf_get_token (buf: &tokbuf): token
 fun tokbuf_getinc_token (buf: &tokbuf): token
 
 (* ****** ****** *)
-//
-// HX-2012-06: for pushing back a given token
-//
-fun tokbuf_unget_token (buf: &tokbuf, tok: token): void
-
-(* ****** ****** *)
 
 fun tokbuf_discard_all (buf: &tokbuf): void
 
+(* ****** ****** *)
+//
+// HX-2012-06:
+// for pushing back a given token
+// this one is needed by libatsynmark
+//
+fun tokbuf_unget_token (buf: &tokbuf, tok: token): void
+//
 (* ****** ****** *)
 
 (* end of [pats_tokbuf.sats] *)

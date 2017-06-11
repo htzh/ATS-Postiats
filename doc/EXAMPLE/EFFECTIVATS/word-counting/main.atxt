@@ -1,15 +1,14 @@
+<!DOCTYPE html>
 %{
-#include "./../ATEXT/atextfun.hats"
+#include "./../MYTEXT/mytextfun.hats"
 %}
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-   "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <title>EFFECTIVATS-word-counting</title>
 #patscode_style()
+#patspage_style()
 </head>
 
 <body>
@@ -69,7 +68,7 @@ that of a pointer (of the type [ptr]).
 
 <p>
 
-How should a map of the type [wcmap] be created? We introduce a function
+How should a value of the type [wcmap] be created? We introduce a function
 for creating an empty map:
 
 <pre
@@ -88,7 +87,7 @@ fun wcmap_incby1 (map: wcmap, w: string): void
 ")</pre>
 
 As we also need to sort words according to their numbers of occurrences, we
-introduce a function for sequentializing a [wcmap]:
+introduce a function for sequentializing a wcmap-value:
 
 <pre
 class="patsyntax">
@@ -115,9 +114,9 @@ class="patsyntax">
 fun WordCounting (): wcmap
 ")</pre>
 
-So by calling [WordCounting], we generate a [wcmap] that maps each
-encountered word to its number of occurrences. An implementation of
-[WordCounting] is given as follows:
+So by calling [WordCounting], we generate a map of the type [wcmap] that
+maps each encountered word to its (current) number of occurrences. An
+implementation of [WordCounting] is given as follows:
 
 <pre
 class="patsyntax">
@@ -235,10 +234,10 @@ end // end of [word_get]
 Note that [loop] is called to skip non-alphabetical chars while [loop2] is
 called to accumulate alphabetical chars. The keyword [fnx] (in place of
 [fun]) means that [loop] and [loop2] are compiled jointly so that the
-tail-recursive calls in their bodies can all be turned into direct local
-jumps.  The function [string_make_rlist] creates a string consisting of the
-sequence of chars in the reverse of a given list. For instance, if the list
-consists of 'a', 'b' and 'c', then the created string is "cba".
+mutually tail-recursive calls in their bodies can all be turned into direct
+local jumps.  The function [string_make_rlist] creates a string consisting
+of the sequence of chars in the reverse of a given list. For instance, if
+the list consists of 'a', 'b' and 'c', then the created string is "cba".
 
 <h2>
 How should [wcmap] be implemented?
@@ -246,7 +245,7 @@ How should [wcmap] be implemented?
 
 The following code gives a straightforward hashtable-based implementation
 of [wcmap]. Some details on various hashtable-functions can be found
-<a href="http://www.ats-lang.org/LIBRARY/libats/ML/hashtbl.html">on-line</a>.
+<a href="http://www.ats-lang.org/LIBRARY/libats/ML/hashtblref.html">on-line</a>.
 
 <pre
 class="patsyntax">
@@ -254,9 +253,12 @@ class="patsyntax">
 local
 //
 staload
-HT = "libats/ML/SATS/hashtbl.sats"
+"libats/ML/SATS/basis.sats"
 //
-assume wcmap_type = $HT.hashtbl (string, int)
+staload
+HT = "libats/ML/SATS/hashtblref.sats"
+//
+assume wcmap_type = hashtbl(string, int)
 //
 in (* in of [local] *)
 
@@ -499,8 +501,10 @@ entirety of the modified version. Also, there is a Makefile for compiling it.
 
 <hr size="2">
 
+<p>
 This article is written by <a href="http://www.cs.bu.edu/~hwxi/">Hongwei Xi</a>.
-
+</p>
+#patspage_script()
 </body>
 </html>
 

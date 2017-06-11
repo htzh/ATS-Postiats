@@ -38,9 +38,12 @@ STDIO = "libc/SATS/stdio.sats"
 
 (* ****** ****** *)
 
-staload ERR = "./pats_error.sats"
-staload FIL = "./pats_filename.sats"
-staload SYM = "./pats_symbol.sats"
+staload
+ERR = "./pats_error.sats"
+staload
+FIL = "./pats_filename.sats"
+staload
+SYM = "./pats_symbol.sats"
 
 (* ****** ****** *)
 
@@ -55,35 +58,85 @@ staload "./pats_parsing.sats"
 (* ****** ****** *)
 
 implement
-parse_from_string
+parse_from_string_parser
   (inp, f) = let
   var buf: tokbuf
-  val () = tokbuf_initialize_string (buf, inp)
+  val () =
+  tokbuf_initize_string(buf, inp)
   var nerr: int = 0
   val res = f (buf, 0(*bt*), nerr)
   val _(*EOF*) = p_EOF (buf, 0, nerr) // HX: all tokens need to consumed
-  val () = tokbuf_uninitialize (buf)
+  val ((*cleared*)) = tokbuf_uninitize(buf)
 in
   if nerr = 0 then Some_vt (res) else None_vt ()
-end // end of [parser_from_string]
+end // end of [parse_from_string_parser]
 
 (* ****** ****** *)
 
 implement
 parse_from_tokbuf_toplevel
   (stadyn, buf) = let
-  var nerr: int = 0
-  val () = the_lexerrlst_clear ()
-  val () = the_parerrlst_clear ()
-  val d0cs = (if stadyn = 0 then
+//
+var nerr: int = 0
+val ((*void*)) = the_lexerrlst_clear ()
+val ((*void*)) = the_parerrlst_clear ()
+//
+val d0cs =
+(
+  if stadyn = 0 then
     p_toplevel_sta (buf, nerr) else p_toplevel_dyn (buf, nerr)
-  ) : d0eclist // end of [val]
-  val err1 = fprint_the_lexerrlst (stderr_ref)
-  val err2 = fprint_the_parerrlst (stderr_ref)
-  val () = if (err1 + err2) > 0 then $ERR.abort {void} ()
+  // end of [if]
+) : d0eclist // end of [val]
+//
+val nerr1 = fprint_the_lexerrlst (stderr_ref)
+val nerr2 = fprint_the_parerrlst (stderr_ref)
+//
+val () = if (nerr1 + nerr2) > 0 then $ERR.abort {void} ()
+//
 in
   d0cs
 end // end of [parse_from_tokbuf]
+
+(* ****** ****** *)
+//
+// HX-2015-10-04:
+// This one is for libatsopt
+//
+implement
+parse_from_string_toplevel
+  (stadyn, inp) = d0cs where
+{
+//
+var buf: tokbuf
+val () = tokbuf_initize_string(buf, inp)
+val d0cs = parse_from_tokbuf_toplevel (stadyn, buf)
+val ((*cleared*)) = tokbuf_uninitize (buf)
+//
+} // end of [parser_from_string_toplevel]
+
+(* ****** ****** *)
+
+implement
+parse_from_stdin_toplevel
+  (stadyn) =
+  parse_from_fileref_toplevel(stadyn, stdin_ref)
+// end of [parser_from_stdin_toplevel]
+
+implement
+parse_from_fileref_toplevel
+  (stadyn, inp) = d0cs where
+{
+//
+var buf: tokbuf
+//
+val () =
+tokbuf_initize_getc
+  (buf, lam () =<cloptr1> $STDIO.fgetc0_err(inp))
+//
+val d0cs = parse_from_tokbuf_toplevel (stadyn, buf)
+val () = tokbuf_uninitize (buf)
+//
+} // end of [parser_from_fileref_toplevel]
 
 (* ****** ****** *)
 
@@ -94,58 +147,101 @@ parse_from_filename_toplevel
 var buf: tokbuf
 prval pfmod = file_mode_lte_r_r
 //
-local
-val fname =
-  $FIL.filename_get_fullname (fil)
-in (* in of [local] *)
-val fname = $SYM.symbol_get_name (fname)
-end // end of [local]
+val
+fname =
+$FIL.filename_get_fullname(fil)
 //
-val (
-  pffil | filp
-) = $STDIO.fopen_exn (fname, file_mode_r)
-val () =
-  tokbuf_initialize_filp (pfmod, pffil | buf, filp)
+val
+fname = $SYM.symbol_get_name(fname)
+//
+val (pf|fp) =
+  $STDIO.fopen_exn(fname, file_mode_r)
+//
+val ((*void*)) =
+  tokbuf_initize_filp(pfmod, pf | buf, fp)
 // end of [val]
 //
-val (pfpush | ()) = $FIL.the_filenamelst_push (fil)
-val d0cs = parse_from_tokbuf_toplevel (stadyn, buf)
-val () = $FIL.the_filenamelst_pop (pfpush | (*none*))
+val (pf|()) =
+  $FIL.the_filenamelst_push(fil)
+val () =
+  $LOC.the_location_pragma_push()
+val d0cs_res =
+  parse_from_tokbuf_toplevel(stadyn, buf)
+val ((*void*)) =
+  $FIL.the_filenamelst_pop(pf|(*none*))
+val () =
+  $LOC.the_location_pragma_pop((*void*))
 //
-val () = tokbuf_uninitialize (buf)
+val ((*void*)) = tokbuf_uninitize (buf)
 //
 in
-  d0cs
+  d0cs_res
 end // end of [parser_from_filename_toplevel]
+
+(* ****** ****** *)
+
+implement
+parse_from_filename_toplevel2
+  (stadyn, fil) = let
+//
+val
+isnot = $FIL.filename_isnot_dummy(fil)
+//
+in
+//
+if
+isnot
+then parse_from_filename_toplevel(stadyn, fil)
+else list_nil(*void*)
+//
+end // end of [parse_from_filename_toplevel2]
+
+(* ****** ****** *)
 
 implement
 parse_from_givename_toplevel
   (stadyn, given, filref) = let
 //
 val filopt =
-  $FIL.filenameopt_make_local (given)
+  $FIL.filenameopt_make_local(given)
 // end of [val]
 in
 //
 case+ filopt of
-| ~Some_vt (fil) => let
+| ~Some_vt(fil) => let
     val () = filref := fil
     val d0cs = 
-      parse_from_filename_toplevel (stadyn, fil)
-    val () = $FIL.the_filenamelst_ppush (fil) // permanent push
+      parse_from_filename_toplevel(stadyn, fil)
+    // end of [val]
+    val ((*void*)) = $FIL.the_filenamelst_ppush(fil)
   in
     d0cs
   end // end of [Some_vt]
-| ~None_vt () => let
+| ~None_vt((*void*)) => let
+//
     val () = filref := $FIL.filename_dummy
-    val () = prerrln! (
-      "error(ATS): the file of the name [", given, "] is not available."
-    ) (* end of [val] *)
+//
 (*
-    val () = assertloc (false) // HX: immediately abort!
+    val () =
+    the_parerrlst_add (
+    parerr_make($LOC.location_dummy, PE_FILENONE(given))
+    ) (* end of [the_parerrlst_add] *)
 *)
+//
+    val () =
+    prerr("patsopt: error(0)")
+    val () =
+    prerrln!
+    (
+      ": the given file [", given, "] cannot be accessed."
+    ) (* end of [prerrln!] *)
+//
+// HX: this is treated as a meta-level failure:
+//
+    val ((*exit*)) = $raise($ERR.PATSOPT_FILENONE_EXN(given))
+//
   in
-    list_nil ()
+    list_nil(*deadcode*)
   end // end of [None_vt]
 //
 end // end of [parse_from_givename_toplevel]
@@ -153,20 +249,100 @@ end // end of [parse_from_givename_toplevel]
 (* ****** ****** *)
 
 implement
-parse_from_fileref_toplevel
-  (stadyn, inp) = d0cs where {
-  var buf: tokbuf
-  val () = tokbuf_initialize_getc
-    (buf, lam () =<cloptr1> $STDIO.fgetc0_err (inp))
-  val d0cs = parse_from_tokbuf_toplevel (stadyn, buf)
-  val () = tokbuf_uninitialize (buf)
-} // end of [parser_from_fileref_toplevel]
+parse_from_givename_toplevel2
+  (stadyn, given, filref) = let
+//
+val filopt =
+  $FIL.filenameopt_make_local(given)
+// end of [val]
+in
+//
+case+ filopt of
+| ~Some_vt(fil) => let
+    val () = filref := fil
+    val d0cs = 
+      parse_from_filename_toplevel(stadyn, fil)
+    // end of [val]
+    val ((*void*)) = $FIL.the_filenamelst_ppush(fil)
+  in
+    d0cs
+  end // end of [Some_vt]
+| ~None_vt((*void*)) => let
+//
+    val () =
+    prerr("patsopt: error(0)")
+    val () =
+    prerrln! (
+    ": the given file [", given, "] cannot be accessed."
+    ) (* end of [prerrln!] *)
+//
+    val () = filref := $FIL.filename_dummy in list_nil()
+  end // end of [None_vt]
+//
+end // end of [parse_from_givename_toplevel2]
+
+(* ****** ****** *)
 
 implement
-parse_from_stdin_toplevel
-  (stadyn) =
-  parse_from_fileref_toplevel (stadyn, stdin_ref)
-// end of [parser_from_stdin_toplevel]
+parse_from_givenames_toplocal2
+(
+  stadyn, givens, filref
+) = let
+//
+fun
+auxlst
+(
+  stadyn: int
+, givens: List(string)
+, filref: &filename >> filename
+) : d0eclist =
+(
+//
+case+ givens of
+| list_nil
+    () => list_nil()
+  // list_nil
+| list_cons
+    (given1, givens) =>
+    list_cons(d0c1, d0cs) where
+  {
+//
+    val d0cs =
+    parse_from_givename_toplevel2
+      (stadyn, given1, filref)
+    val d0c1 =
+      d0ecl_toplocal(filref, d0cs)
+    // end of [val]
+    val d0cs =
+      auxlst(stadyn, givens, filref)
+    // end of [val]
+//
+  } (* end of [list_cons] *)
+//
+) (* end of [auxlst] *)
+//
+in
+//
+case+ givens of
+| list_cons
+    (given0, givens) =>
+    list_cons(d0c0, d0cs) where
+  {
+//
+    val d0cs =
+    parse_from_givename_toplevel2
+      (stadyn, given0, filref)
+//
+    val d0c0 = d0ecl_list(filref, d0cs)
+    val d0cs = auxlst(stadyn, givens, filref)
+//
+  } (* end of [list_cons] *)
+| list_nil((*void*)) => let
+    val () =
+    filref := $FIL.filename_dummy in list_nil()
+  end // end of [list_nil]
+//
+end // end of [parse_from_givenames_toplocal2]
 
 (* ****** ****** *)
 

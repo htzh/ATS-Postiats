@@ -30,12 +30,14 @@
 #define ATS_DYNLOADFLAG 0 // HX: no dynloading
 
 (* ****** ****** *)
-
+//
 extern
-fun atsruntime_handle_uncaughtexn (exn): void = "ext#"
+fun
+atsruntime_handle_uncaughtexn (exn): void = "ext#"
 extern
-fun atsruntime_handle_uncaughtexn_rest (exn): void = "ext#"
-
+fun
+atsruntime_handle_uncaughtexn_rest (exn): void = "ext#"
+//
 (* ****** ****** *)
 
 implement
@@ -43,8 +45,14 @@ atsruntime_handle_uncaughtexn
   (exn) = let
 //
 macdef
-errmsghead (
-) = prerr ("exit(ATS): uncaught exception at run-time")
+errmsghead
+(
+// argless
+) =
+prerr_string
+(
+  "exit(ATS): uncaught exception at run-time"
+) (* print_string *)
 //
 in
 //
@@ -67,7 +75,7 @@ case+ exn of
     val () = prerrln! (": IllegalArgExn: ", msg) in exit(1)
   end // end of [IllegalArgExn]
 //
-| _ => atsruntime_handle_uncaughtexn_rest (exn)
+| _ (*non-specials*) => atsruntime_handle_uncaughtexn_rest (exn)
 //
 end // end of [atsruntime_handle_uncaughtexn]
 

@@ -34,7 +34,6 @@
 (* ****** ****** *)
 
 #define ATS_PACKNAME "ATSLIB.libats.ML"
-#define ATS_STALOADFLAG 0 // no need for staloading at run-time
 #define ATS_EXTERN_PREFIX "atslib_ML_" // prefix for external names
 
 (* ****** ****** *)
@@ -46,21 +45,25 @@ staload "./basis.sats"
 #include "./SHARE/monad.hats"
 
 (* ****** ****** *)
-
+//
 fun{a:t0p}
-monad_maybe_none (): monad (a)
+monad_maybe_none(): monad(a)
 fun{a:t0p}
-monad_maybe_some (x: a): monad (a)
-
-(* ****** ****** *)
-
-fun{a:t0p}
-monad_maybe_optize (m: monad (a)): Option (a)
-
+monad_maybe_some(x0: a): monad(a)
+//
 (* ****** ****** *)
 //
 fun{a:t0p}
-fprint_monad (out: FILEref, m: monad (INV(a))): void
+monad_maybe_optize
+  (m0: monad(INV(a))): Option(a)
+//
+(* ****** ****** *)
+//
+fun
+{a:t0p}
+fprint_monad
+  (out: FILEref, m: monad(INV(a))): void
+//
 overload fprint with fprint_monad
 //
 (* ****** ****** *)

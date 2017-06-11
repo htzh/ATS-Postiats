@@ -45,6 +45,22 @@ DiningPhil2:
 IPC-redis:
   A simple example of inter-process communication based on redis
 
+Readers-and-Writers:
+  implementing the classical Readers-and-Writers problem in concurrent
+  programming
+
+mergesort: 
+  A concrete example that demonstrates a natural style of refinement-based
+  programming.
+
+sorting-linear-lists:
+  A concrete example that demonstrates a typical way of programming with
+  abstract types.
+
+funcomb-style:
+  Some examples of a combinator-based programming style that makes extensive
+  use of combinators.
+
 ######
 
 ###### end of [README] ######

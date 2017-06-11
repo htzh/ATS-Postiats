@@ -46,6 +46,19 @@ UN = "prelude/SATS/unsafe.sats"
 staload "./pats_basics.sats"
 
 (* ****** ****** *)
+//
+staload "./pats_errmsg.sats"
+staload _(*anon*) = "./pats_errmsg.dats"
+//
+implement
+prerr_FILENAME<> () = prerr "pats_ccomp_dynexp"
+//
+(* ****** ****** *)
+//
+staload
+GLOBAL = "./pats_global.sats"
+//  
+(* ****** ****** *)
 
 staload
 LOC = "./pats_location.sats"
@@ -110,10 +123,12 @@ val opt = ccompenv_find_vbindmapall (env, d2v)
 //
 in
 case+ opt of
-| ~Some_vt (pmv) =>
-    d2var_ccomp_some (env, loc0, hse0, d2v, pmv)
-| ~None_vt () =>
-    primval_err (loc0, hse0) // HX-2013-04: deadcode?!
+| ~Some_vt(pmv) =>
+    d2var_ccomp_some(env, loc0, hse0, d2v, pmv)
+  // end of [Some_vt]
+| ~None_vt((*void*)) =>
+    primval_error (loc0, hse0) // HX-2013-04: deadcode?!
+  // end of [None_vt]
 //
 end // end of [d2var_ccomp]
 
@@ -130,13 +145,13 @@ in
 //
 case+ 0 of
 | _ when
-    lvl1 < lvl0 => let (* environval *)
+    lvl1 < lvl0 => let (* environvar *)
 (*
     val () = println! ("d2var_ccomp_some: pmv = ", pmv)
 *)
   in
     case+
-      pmv.primval_node of
+    pmv.primval_node of
     | PMVfunlab (fl) => let
         val () = ccompenv_add_flabsetenv (env, fl) in pmv
       end // end of [PMVfunlab]
@@ -146,14 +161,14 @@ case+ 0 of
     | PMVd2vfunlab (d2v, fl) => let
         val () = ccompenv_add_flabsetenv (env, fl) in pmv
       end // end of [PMVd2vfunlab]
-    | _ => let
+    | _ (*non-funlab*) => let
         val () = ccompenv_add_dvarsetenv_var (env, d2v)
       in
         if lvl1 > 0 then primval_env (loc0, hse0, d2v) else pmv(*toplevel*)
       end (* end of [_] *)
-  end // end of [environval]
+  end // end of [environvar]
 //
-| _ => pmv (* [d2v] is at current-level *)
+| _ (*lvl1 >= lvl0*) => pmv (* [d2v] is at current-level *)
 //
 end // end of [d2var_ccomp_some]
 
@@ -165,6 +180,8 @@ extern fun hidexp_ccomp_cst : hidexp_ccomp_funtype
 extern fun hidexp_ccomp_string : hidexp_ccomp_funtype
 
 extern fun hidexp_ccomp_cstsp : hidexp_ccomp_funtype
+
+extern fun hidexp_ccomp_tyrep : hidexp_ccomp_funtype
 
 extern fun hidexp_ccomp_tmpcst : hidexp_ccomp_funtype
 extern fun hidexp_ccomp_tmpvar : hidexp_ccomp_funtype
@@ -206,6 +223,8 @@ extern
 fun hidexp_ccomp_ret_app : hidexp_ccomp_ret_funtype
 extern
 fun hidexp_ccomp_ret_extfcall : hidexp_ccomp_ret_funtype
+extern
+fun hidexp_ccomp_ret_extmcall : hidexp_ccomp_ret_funtype
 
 extern
 fun hidexp_ccomp_ret_if : hidexp_ccomp_ret_funtype
@@ -281,6 +300,8 @@ case+ hde0.hidexp_node of
 //
 | HDEcstsp _ => hidexp_ccomp_cstsp (env, res, hde0)
 //
+| HDEtyrep _ => hidexp_ccomp_tyrep (env, res, hde0)
+//
 | HDEtop () => primval_top (loc0, hse0)
 | HDEempty () => primval_empty (loc0, hse0)
 | HDEignore (hde) => hidexp_ccomp (env, res, hde)
@@ -299,6 +320,7 @@ case+ hde0.hidexp_node of
   end // end of [HDEcastfn]
 //
 | HDEextfcall _ => auxret (env, res, hde0)
+| HDEextmcall _ => auxret (env, res, hde0)
 //
 | HDEcon _ => auxret (env, res, hde0)
 //
@@ -318,7 +340,7 @@ case+ hde0.hidexp_node of
 //
 | HDElet (hids, hde_scope) => let
 //
-    val (pfpush | ()) = ccompenv_push (env)
+    val (pfpush|()) = ccompenv_push (env)
 //
     val pmds = hideclist_ccomp (env, hids)
     val ins_push = instr_letpush (loc0, pmds)
@@ -329,7 +351,7 @@ case+ hde0.hidexp_node of
     val ins_pop = instr_letpop (loc0)
     val () = instrseq_add (res, ins_pop)
 //
-    val () = ccompenv_pop (pfpush | env)
+    val ((*popped*)) = ccompenv_pop (pfpush | env)
 //
   in
     pmv_scope
@@ -369,6 +391,23 @@ case+ hde0.hidexp_node of
 //
 | HDEraise (hde_exn) => auxret (env, res, hde0)
 //
+(*
+| HDEvcopyenv (d2v) => HX: HDEvar (d2v)
+*)
+//
+| HDEtempenver(d2vs) => let
+//
+    val () =
+    ccompenv_add_tempenver(env, d2vs)
+    val () =
+    instrseq_add
+      (res, instr_tempenver(loc0, d2vs))
+    // end of [val]
+//
+  in
+    primval_empty(loc0, hse0)
+  end // end of [HDEtempenver]
+//
 | HDElam _ => hidexp_ccomp_lam (env, res, hde0)
 | HDEfix _ => hidexp_ccomp_fix (env, res, hde0)
 //
@@ -381,14 +420,25 @@ case+ hde0.hidexp_node of
 //
 | HDEtrywith _ => auxret (env, res, hde0)
 //
-| _ => let
-    val () = println! ("hidexp_ccomp: loc0 = ", loc0)
-    val () = println! ("hidexp_ccomp: hde0 = ", hde0)
+| HDEsif _(*error*) => let
+    val () =
+    prerr_errccomp_loc(loc0)
+    val () = prerrln!
+    (
+      ": [sif] is not supported after proof-erasure."
+    ) (* end of [println!] *)
   in
-    exitloc (1)
-  end // end of [_]
+    primval_error (loc0, hse0)
+  end (* end of [HDEsif] *)
 //
-end // end of [hidexp_ccomp]
+| _(*unspported*) => let
+    val () =
+    prerr_interror_loc(loc0)
+    val () =
+    prerrln! (": hidexp_ccomp: hde0 = ", hde0) in exitloc(1)
+  end // end of [_(*unsupported*)]
+//
+end // end of [let] // end of [hidexp_ccomp]
 
 implement
 hidexp_ccompv
@@ -421,10 +471,14 @@ case+ hdes of
     (hde, hdes) => let
     val pmv =
       hidexp_ccomp (env, res, hde)
-    val () = pmvs := list_vt_cons {..}{0} (pmv, ?)
+    // end of [val]
+    val () =
+    (
+      pmvs := list_vt_cons {..}{0} (pmv, ?)
+    ) (* end of [val] *)
     val list_vt_cons (_, !p_pmvs) = pmvs
     val () = loop (env, res, hdes, !p_pmvs)
-    val () = fold@ (pmvs)
+    prval ((*folded*)) = fold@ (pmvs)
   in
     // nothing
   end // end of [list_cons]
@@ -445,34 +499,101 @@ end // end of [hidexplst_ccomp]
 
 (* ****** ****** *)
 
+implement
+hidexplst_ccompv
+  (env, res, hdes) = let
+//
+fun loop (
+  env: !ccompenv
+, res: !instrseq
+, hdes: hidexplst
+, pmvs: &primvalist_vt? >> primvalist_vt
+) : void = let
+in
+//
+case+ hdes of
+| list_cons
+    (hde, hdes) => let
+    val pmv =
+      hidexp_ccompv (env, res, hde)
+    val () = pmvs := list_vt_cons {..}{0} (pmv, ?)
+    val list_vt_cons (_, !p_pmvs) = pmvs
+    val () = loop (env, res, hdes, !p_pmvs)
+    prval ((*folded*)) = fold@ (pmvs)
+  in
+    // nothing
+  end // end of [list_cons]
+| list_nil () => let
+    val () = pmvs := list_vt_nil () in (*nothing*)
+  end // end of [list_nil]
+//
+end // end of [loop]
+//
+var pmvs: primvalist_vt
+val () = loop (env, res, hdes, pmvs)
+//
+in
+//
+list_of_list_vt (pmvs)
+//
+end // end of [hidexplst_ccompv]
+
+(* ****** ****** *)
+
 extern
-fun labhidexplst_ccomp
-  (env: !ccompenv, res: !instrseq, lhdes: labhidexplst): labprimvalist
-// end of [labhidexplst_ccomp]
+fun
+labhidexplst_ccomp
+(
+  env: !ccompenv, res: !instrseq, lhdes: labhidexplst
+) : labprimvalist // end of [labhidexplst_ccomp]
 
 implement
 labhidexplst_ccomp
   (env, res, lhdes) = let
 //
-fun loop (
+fun
+loop
+(
   env: !ccompenv
 , res: !instrseq
 , lhdes: labhidexplst
 , lpmvs: &labprimvalist_vt? >> labprimvalist_vt
 ) : void = let
+//
+(*
+val () =
+println! ("labhidexplst_ccomp: loop")
+*)
+//
 in
 //
 case+ lhdes of
 | list_cons
     (lhde, lhdes) => let
-    val LABHIDEXP (lab, hde) = lhde
+//
+    val LABHIDEXP(lab, hde) = lhde
+//
+(*
+    val () =
+      println! ("loop: hde = ", hde)
+    // end of [val]
+    val () =
+      println! ("loop: hde.type = ", hde.hidexp_type)
+    // end of [val]
+*)
+//
     val pmv =
       hidexp_ccomp (env, res, hde)
+    // end of [val]
+//
     val lpmv = LABPRIMVAL (lab, pmv)
-    val () = lpmvs := list_vt_cons {..}{0} (lpmv, ?)
-    val list_vt_cons (_, !p_lpmvs) = lpmvs
+    val () =
+    (
+      lpmvs := list_vt_cons{..}{0}(lpmv, ?)
+    ) (* end of [val] *)
+    val+list_vt_cons(_, !p_lpmvs) = lpmvs
     val () = loop (env, res, lhdes, !p_lpmvs)
-    val () = fold@ (lpmvs)
+    prval ((*folded*)) = fold@ (lpmvs)
   in
     // nothing
   end // end of [list_cons]
@@ -495,17 +616,19 @@ end // end of [labhidexplst_ccomp]
 
 local
 
-fun auxval (
+fun
+auxval
+(
   env: !ccompenv
 , res: !instrseq
 , tmpret: tmpvar
-, hde0: hidexp
+, hde0_val: hidexp
 ) : void = let
-  val loc0 = hde0.hidexp_loc
-  val pmv = hidexp_ccomp (env, res, hde0)
-  val ins = instr_move_val (loc0, tmpret, pmv)
+  val loc0 = hde0_val.hidexp_loc
+  val pmv0 = hidexp_ccomp (env, res, hde0_val)
+  val ins0 = instr_move_val (loc0, tmpret, pmv0)
 in
-  instrseq_add (res, ins)
+  instrseq_add (res, ins0)
 end // end of [auxval]
 
 in (* in of [local] *)
@@ -543,15 +666,22 @@ case+ hde0.hidexp_node of
     val _ = hidexp_ccomp (env, res, hde) in (*nothing*)
   end (* end of [HDEignore] *)
 //
-| HDEextval _ => auxval (env, res, tmpret, hde0)
 | HDEcastfn _ => auxval (env, res, tmpret, hde0)
+//
+| HDEextval _ => auxval (env, res, tmpret, hde0)
 | HDEextfcall _ =>
     hidexp_ccomp_ret_extfcall (env, res, tmpret, hde0)
   (* end of [HDEextfcall] *)
+| HDEextmcall _ =>
+    hidexp_ccomp_ret_extmcall (env, res, tmpret, hde0)
+  (* end of [HDEextmcall] *)
 //
 | HDEcon _ => 
     hidexp_ccomp_ret_con (env, res, tmpret, hde0)
   (* end of [HDEcon] *)
+//
+| HDEtmpcst _ => auxval (env, res, tmpret, hde0)
+| HDEtmpvar _ => auxval (env, res, tmpret, hde0)
 //
 | HDEfoldat _ => auxval (env, res, tmpret, hde0)
 | HDEfreeat _ => auxval (env, res, tmpret, hde0)
@@ -609,10 +739,13 @@ case+ hde0.hidexp_node of
 | HDExchng_var _ => auxval (env, res, tmpret, hde0)
 | HDExchng_ptr _ => auxval (env, res, tmpret, hde0)
 //
-| HDEarrpsz _ => hidexp_ccomp_ret_arrpsz (env, res, tmpret, hde0)
-| HDEarrinit _ => hidexp_ccomp_ret_arrinit (env, res, tmpret, hde0)
+| HDEarrpsz _ =>
+    hidexp_ccomp_ret_arrpsz (env, res, tmpret, hde0)
+| HDEarrinit _ =>
+    hidexp_ccomp_ret_arrinit (env, res, tmpret, hde0)
 //
-| HDEraise (hde_exn) => hidexp_ccomp_ret_raise (env, res, tmpret, hde0)
+| HDEraise (hde_exn) =>
+    hidexp_ccomp_ret_raise (env, res, tmpret, hde0)
 //
 | HDElam (knd, _, _) =>
   (
@@ -635,6 +768,8 @@ case+ hde0.hidexp_node of
 | HDEloopexn _ => auxval (env, res, tmpret, hde0)
 //
 | HDEtrywith _ => hidexp_ccomp_ret_trywith (env, res, tmpret, hde0)
+//
+| HDEsif _(*error*) => auxval (env, res, tmpret, hde0)
 //
 | _ => let
     val () = println! ("hidexp_ccomp_ret: loc0 = ", loc0)
@@ -698,9 +833,10 @@ val pmv = d2var_ccomp (env, loc0, hse0, d2v)
 in
 //
 case+
-  d2var_get_view (d2v) of
+d2var_get_view (d2v) of
+//
+| None _(*val*) => pmv
 | Some _(*ref*) => primval_selptr (loc0, hse0, pmv, hse0, list_nil)
-| None _(*val*) => (pmv)
 //
 end // end of [hidexp_ccomp_var]
 
@@ -763,6 +899,20 @@ in
 end // end of [hidexp_ccomp_cstsp]
 
 (* ****** ****** *)
+//
+implement
+hidexp_ccomp_tyrep
+  (env, res, hde0) = let
+//
+val loc0 = hde0.hidexp_loc
+val hse0 = hde0.hidexp_type
+val-HDEtyrep(hse) = hde0.hidexp_node
+//
+in
+  primval_tyrep (loc0, hse0, hse)
+end // end of [hidexp_ccomp_tyrep]
+//
+(* ****** ****** *)
 
 implement
 hidexp_ccomp_tmpcst
@@ -770,26 +920,26 @@ hidexp_ccomp_tmpcst
 //
 val loc0 = hde0.hidexp_loc
 val hse0 = hde0.hidexp_type
-val-HDEtmpcst (d2c, t2mas) = hde0.hidexp_node
+val-HDEtmpcst(d2c, t2mas) = hde0.hidexp_node
 //
-val tmplev = ccompenv_get_tmplevel (env)
+val tmplev = ccompenv_get_tmplevel(env)
 //
 in
 //
 case+ 0 of
 | _ when
-    d2cst_is_sizeof (d2c) => let
-    val-list_cons (t2ma, _) = t2mas
+    d2cst_is_sizeof(d2c) => let
+    val-list_cons(t2ma, _) = t2mas
     val tloc = t2ma.t2mpmarg_loc
-    val-list_cons (targ, _) = t2ma.t2mpmarg_arg
-    val hselt = $TYER.s2exp_tyer_shallow (tloc, targ)
+    val-list_cons(targ, _) = t2ma.t2mpmarg_arg
+    val hselt = $TYER.s2exp_tyer_shallow(tloc, targ)
   in
     primval_make_sizeof (loc0, hselt)
   end // ...
 | _ when
     tmplev > 0 => let
   in
-    primval_tmpltcst (loc0, hse0, d2c, t2mas)
+    primval_tmpltcst(loc0, hse0, d2c, t2mas)
   end // ...
 | _ => let
     val tmpmat =
@@ -936,7 +1086,9 @@ val pmls = hilablst_ccomp (env, res, hils)
 //
 in
 //
-case+ d2var_get_view (d2v) of
+case+
+d2var_get_view (d2v)
+of // case+
 | Some _ => primval_selptr (loc0, hse0, pmv, hse_rt, pmls)
 | None _ => primval_select2 (loc0, hse0, pmv, hse_rt, pmls)
 //
@@ -1117,16 +1269,27 @@ hidexp_ccomp_ret_app
 //
 val loc0 = hde0.hidexp_loc
 val hse0 = hde0.hidexp_type
-val-HDEapp (hde_fun, hse_fun, hdes_arg) = hde0.hidexp_node
+val-HDEapp(hde_fun, hse_fun, hdes_arg) = hde0.hidexp_node
 //
 val pmv_fun = hidexp_ccomp (env, res, hde_fun)
 val pmvs_arg = hidexplst_ccomp (env, res, hdes_arg)
 //
 var added: int = 0
-val isret = tmpvar_isret (tmpret)
+//
+val
+tlcalopt =
+  $GLOBAL.the_CCOMPATS_tlcalopt_get()
+//
+val isret =
+(
+  if tlcalopt > 0 then tmpvar_isret(tmpret) else false
+) : bool // end of [val]
 //
 (*
-val () = println! ("hidexp_ccomp_ret_app: pmv_fun = ", pmv_fun)
+val () =
+println! ("hidexp_ccomp_ret_app: loc0 = ", loc0)
+val () =
+println! ("hidexp_ccomp_ret_app: pmv_fun = ", pmv_fun)
 *)
 //
 val () =
@@ -1134,80 +1297,120 @@ if isret then (
 case+
 pmv_fun.primval_node of
 //
-| PMVcst (d2c) => let
-    val opt = ccompenv_find_tailcalenv_cst (env, d2c)
+| PMVcst(d2c) => let
+    val opt =
+      ccompenv_find_tailcalenv_cst(env, d2c)
+    // end of [val]
   in
     case+ opt of
     | ~Some_vt (fl) => let
         val ntl = 0
-        val ins = instr_fcall2 (loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
-        val () = added := added + 1
-        val () = instrseq_add (res, ins)
+        val ins =
+          instr_fcall2(loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
+        // end of [val]
+        val ((*void*)) = added := added + 1
+        val ((*void*)) = instrseq_add(res, ins)
       in
         // nothing
       end // end of [Some_vt]
     | ~None_vt ((*void*)) => ((*void*))
   end // end of [PMVcst]
 //
-| PMVfunlab (fl) => let
-    val ntl = ccompenv_find_tailcalenv (env, fl)
+| PMVfunlab(fl) => let
+    val ntl = ccompenv_find_tailcalenv(env, fl)
   in
     case+ 0 of
     | _ when ntl >= 0 => let
-        val ins = instr_fcall2 (loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
-        val () = added := added + 1
-        val () = instrseq_add (res, ins)
+        val ins =
+          instr_fcall2(loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
+        // end of [val]
+        val ((*void*)) = added := added + 1
+        val ((*void*)) = instrseq_add(res, ins)
       in
         // nothing
       end // end of [ntl >= 0]
     | _ (*ntl < 0*) => ((*void*))
   end // end of [PMVfunlab]
 //
-| PMVcfunlab (knd, fl) => let
-    val ntl = ccompenv_find_tailcalenv (env, fl)
+| PMVcfunlab(knd, fl) => let
+    val ntl = ccompenv_find_tailcalenv(env, fl)
   in
     case+ 0 of
     | _ when ntl >= 0 => let
-        val ins = instr_fcall2 (loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
-        val () = added := added + 1
-        val () = instrseq_add (res, ins)
+        val ins =
+          instr_fcall2(loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
+        // end of [val]
+        val ((*void*)) = added := added + 1
+        val ((*void*)) = instrseq_add(res, ins)
       in
         // nothing
       end // end of [if]
     | _ (*ntl < 0*) => ((*void*))
   end // end of [PMVcfunlab]
 //
-| PMVd2vfunlab (d2v, fl) => let
-    val ntl = ccompenv_find_tailcalenv (env, fl)
+| PMVd2vfunlab(d2v, fl) => let
+    val ntl = ccompenv_find_tailcalenv(env, fl)
   in
     case+ 0 of
     | _ when ntl >= 0 => let
-        val ins = instr_fcall2 (loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
-        val () = added := added + 1
-        val () = instrseq_add (res, ins)
+        val ins =
+          instr_fcall2(loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
+        // end of [val]
+        val ((*void*)) = added := added + 1
+        val ((*void*)) = instrseq_add(res, ins)
       in
         // nothing
       end // end of [if]
     | _ (*ntl < 0*) => ((*void*))
   end // end of [PMVd2vfunlab]
 //
-| PMVtmpltcst (d2c, t2mas) => let
-    val opt = ccompenv_find_tailcalenv_tmpcst (env, d2c, t2mas)
+| PMVtmpltcst(d2c, t2mas) => let
+    val opt =
+      ccompenv_find_tailcalenv_tmpcst(env, d2c, t2mas)
+    // end of [val]
   in
     case+ opt of
     | ~Some_vt (fl) => let
         val ntl = 0
-        val ins = instr_fcall2 (loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
-        val () = added := added + 1
-        val () = instrseq_add (res, ins)
+        val ins =
+          instr_fcall2(loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
+        // end of [val]
+        val ((*void*)) = added := added + 1
+        val ((*void*)) = instrseq_add(res, ins)
       in
         // nothing
       end // end of [Some_vt]
     | ~None_vt ((*void*)) => ((*void*))
   end // end of [PMVtmpltcst]
 //
+| PMVtmpltvar(d2v, t2mas) => let
+    var ntl: int = 0
+    val opt =
+      ccompenv_find_tailcalenv_tmpvar(env, d2v, t2mas, ntl)
+    // end of [val]
+  in
+    case+ opt of
+    | ~Some_vt (fl) => let
+        val ins =
+          instr_fcall2(loc0, tmpret, fl, ntl, hse_fun, pmvs_arg)
+        // end of [val]
+        val ((*void*)) = added := added + 1
+        val ((*void*)) = instrseq_add(res, ins)
+      in
+        // nothing
+      end // end of [Some_vt]
+    | ~None_vt ((*void*)) => ((*void*))
+  end // end of [PMVtmpltvar]
+//
 | _ (*non-tail-recursive*) => () // HX: [INSfcall] is to be added
-) // end of [if]
+//
+) (* end of [if] *)
+//
+(*
+val () =
+println!
+  ("hidexp_ccomp_ret_app: added = ", added)
+*)
 //
 val () =
 if added > 0 then tmpvar_inc_tailcal (tmpret)
@@ -1217,7 +1420,7 @@ if added = 0 then let
   val ins = instr_fcall (loc0, tmpret, pmv_fun, hse_fun, pmvs_arg)
 in
   instrseq_add (res, ins)
-end // end of [if]
+end // end of [then] // end of [if]
 //
 in
   // nothing
@@ -1231,15 +1434,34 @@ hidexp_ccomp_ret_extfcall
 //
 val loc0 = hde0.hidexp_loc
 val hse0 = hde0.hidexp_type
-val-HDEextfcall (_fun, hdes_arg) = hde0.hidexp_node
+val-HDEextfcall (_fun, _arg) = hde0.hidexp_node
 //
-val pmvs_arg = hidexplst_ccomp (env, res, hdes_arg)
+val _arg = hidexplst_ccomp (env, res, _arg)
 //
-val ins = instr_extfcall (loc0, tmpret, _fun, pmvs_arg)
+val ins = instr_extfcall (loc0, tmpret, _fun, _arg)
 //
 in
   instrseq_add (res, ins)
 end // end of [hidexp_ccomp_ret_extfcall]
+
+(* ****** ****** *)
+
+implement
+hidexp_ccomp_ret_extmcall
+  (env, res, tmpret, hde0) = let
+//
+val loc0 = hde0.hidexp_loc
+val hse0 = hde0.hidexp_type
+val-HDEextmcall (_obj, _mtd, _arg) = hde0.hidexp_node
+//
+val _obj = hidexp_ccomp (env, res, _obj)
+val _arg = hidexplst_ccomp (env, res, _arg)
+//
+val ins = instr_extmcall (loc0, tmpret, _obj, _mtd, _arg)
+//
+in
+  instrseq_add (res, ins)
+end // end of [hidexp_ccomp_ret_extmcall]
 
 (* ****** ****** *)
 
@@ -1369,8 +1591,12 @@ end // end of [local]
 
 local
  
-fun auxlst (
-  env: !ccompenv, res: !instrseq, lxs: labhidexplst
+fun
+auxlst
+(
+  env: !ccompenv
+, res: !instrseq
+, lxs: labhidexplst
 ) : labprimvalist = let
 in
 //
@@ -1463,94 +1689,75 @@ end // end of [hidexp_ccomp_ret_seq]
 
 local
 
-fun auxelt
+fun
+auxlst
 (
   env: !ccompenv
 , res: !instrseq
 , arrp: tmpvar
-, hse_elt: hisexp, hde: hidexp, asz: int
-) : void = let
-(*
-val () = 
-(
-println! ("hidexp_ccomp_ret_arrinit: auxelt: asz = ", asz)
-)
-*)
-in
+, asz: int, hse_elt: hisexp, hdes_elt: hidexplst
+) : void = (
 //
-if asz >= 0 then let
+case+ hdes_elt of
+| list_cons _ => let
+    val
+    pmvs_elt =
+    hidexplst_ccompv (env, res, hdes_elt)
+  in
+    auxlst2 (env, res, arrp, hse_elt, pmvs_elt, asz, pmvs_elt)
+  end // end of [list_cons]
+| list_nil((*void*)) => () // HX: uninitized array
 //
-val pmv = hidexp_ccomp (env, res, hde)
-//
-in
-  auxelt2 (env, res, arrp, hse_elt, pmv, asz)
-end else () // end of [if]
-//
-end // end of [auxelt]
+) (* end of [auxlst] *)
 
-and auxelt2
+and auxlst2
 (
   env: !ccompenv
 , res: !instrseq
 , arrp: tmpvar
-, hse_elt: hisexp, pmv: primval, asz: int
-) : void = let
-in
+, hse_elt: hisexp
+, pmvs_elt: primvalist
+, n: int, xs: primvalist
+) : void = (
 //
-if asz >= 1 then let
-  val loc = pmv.primval_loc
-  val ins =
-    instr_pmove_val (loc, arrp, pmv)
-  val () = instrseq_add (res, ins)
-  val asz = asz - 1
-  val () =
-  if asz >= 1 then {
-    val ins =
-      instr_update_ptrinc (loc, arrp, hse_elt)
-    val () = instrseq_add (res, ins)
-  } // end of [if] // end of [val]
-in
-  auxelt2 (env, res, arrp, hse_elt, pmv, asz)
-end else () // end of [if]
-//
-end // end of [auxelt2]
-
-fun auxlst
+if n > 0 then
 (
-  env: !ccompenv
-, res: !instrseq
-, arrp: tmpvar
-, hse_elt: hisexp, hdes: hidexplst
-) : void = let
-in
 //
-case+ hdes of
-//
-| list_nil ((*void*)) => ()
+case+ xs of
 //
 | list_cons
-    (hde, hdes) => let
-    val loc = hde.hidexp_loc
+    (x, xs) => let
 //
-    val pmv =
-      hidexp_ccomp (env, res, hde)
-    val ins = instr_pmove_val (loc, arrp, pmv)
+    val n = n - 1
+    val loc = x.primval_loc
+//
+    val ins =
+      instr_pmove_val (loc, arrp, x)
     val () = instrseq_add (res, ins)
 //
     val () = (
-      case+ hdes of
-      | list_nil () => ()
-      | list_cons _ => let
-          val ins = instr_update_ptrinc (loc, arrp, hse_elt)
-        in
-          instrseq_add (res, ins)
-        end // end of [list_cons]
+      if n >= 1 then let
+        val ins =
+          instr_update_ptrinc (loc, arrp, hse_elt)
+        // end of [val]
+      in
+        instrseq_add (res, ins)
+      end // end of [then] // end of [if]
     ) : void // end of [val]
+//
   in
-    auxlst (env, res, arrp, hse_elt, hdes)
+    auxlst2 (env, res, arrp, hse_elt, pmvs_elt, n, xs)
   end // end of [list_cons]
 //
-end // end of [auxlst]
+| list_nil () => let
+    val xs = pmvs_elt
+  in
+    auxlst2 (env, res, arrp, hse_elt, pmvs_elt, n, xs)
+  end // end of [list_nil]
+//
+) (* end of [then] *)
+//
+) (* end of [auxlst2] *)
 
 in (* in of [local] *)
 
@@ -1579,7 +1786,7 @@ val ins = instr_move_arrpsz_ptr (loc0, arrp, tmpret)
 val ((*void*)) = instrseq_add (res, ins)
 //
 in
-  auxlst (env, res, arrp, hse_elt, hdes)
+  auxlst (env, res, arrp, asz, hse_elt, hdes)
 end // end of [hidexp_ccomp_ret_arrpsz]
 
 (* ****** ****** *)
@@ -1598,19 +1805,7 @@ val ins = instr_move_val (loc0, arrp, primval_make_tmp (loc, tmpret))
 val ((*void*)) = instrseq_add (res, ins)
 //
 in
-//
-case+ hdes of
-| list_nil () => ()
-| list_cons
-    (hde, hdes2) =>
-  (
-    case+ hdes2 of
-    | list_cons _ =>
-        auxlst (env, res, arrp, hse_elt, hdes)
-    | list_nil ((*void*)) =>
-        auxelt (env, res, arrp, hse_elt, hde, asz)
-  ) (* end of [list_cons] *)
-//
+  auxlst (env, res, arrp, asz, hse_elt, hdes)
 end // end of [hidexp_ccomp_ret_arrinit]
 
 end // end of [local]
@@ -1648,9 +1843,10 @@ hidexp_ccomp_funlab_arg_body
 ) = let
 (*
 val () =
+println!
 (
-  println! ("hidexp_ccomp_funlab_arg_body: flab = ", flab)
-) // end of [val]
+"hidexp_ccomp_funlab_arg_body: flab = ", flab
+) (* end of [val] *)
 *)
 //
 val res = instrseq_make_nil ()
@@ -1681,9 +1877,10 @@ val flset =
 val fls0 = funlabset_vt_listize_free (flset)
 val fls0 = ccompenv_addlst_flabsetenv_ifmap (env, flvl0, vbmap, fls0)
 //
-var d2eset =
+val d2es =
   ccompenv_getdec_dvarsetenv (env)
-val d2es = d2envset_vt_listize_free (d2eset)
+//
+val d2es = d2envset_vt_listize_free (d2es)
 //
 val () = the_d2varlev_dec (pfinc | (*none*))
 //
@@ -1703,9 +1900,11 @@ end // end of [hidexp_ccomp_funlab_arg_body]
 (* ****** ****** *)
 
 extern
-fun hidexp_ccomp_lam_flab
+fun
+hidexp_ccomp_lam_flab
 (
-  env: !ccompenv, res: !instrseq, hde0: hidexp, flab: funlab
+  env: !ccompenv
+, res: !instrseq, hde0: hidexp, flab: funlab
 ) : void // end of [hidexp_ccomp_lam_flab]
 
 (* ****** ****** *)
@@ -1715,12 +1914,18 @@ hidexp_ccomp_lam_flab
   (env, res, hde0, flab) = let
 //
 val loc0 = hde0.hidexp_loc
-val-HDElam (knd, hips_arg, hde_body) = hde0.hidexp_node
 //
-val () = ccompenv_inc_tailcalenv (env, flab)
+val-
+HDElam
+(knd, hips_arg, hde_body) = hde0.hidexp_node
 //
-val tmplev = ccompenv_get_tmplevel (env)
-val () = if tmplev > 0 then funlab_set_tmpknd (flab, 1)
+val () =
+ccompenv_inc_tailcalenv(env, flab)
+//
+val
+tmplev = ccompenv_get_tmplevel(env)
+val () =
+if tmplev > 0 then funlab_set_tmpknd(flab, 1)
 //
 val fent = let
   val imparg = list_nil(*s2vs*)
@@ -1732,9 +1937,9 @@ in
     (env, flab, imparg, tmparg, prolog, loc0, hips_arg, hde_body)
   // end of [hidexp_ccomp_funlab_arg_body]
 end // end of [val]
-val () = funlab_set_funent (flab, Some(fent))
+val () = funlab_set_funent(flab, Some(fent))
 //
-val () = ccompenv_dec_tailcalenv (env)
+val () = ccompenv_dec_tailcalenv(env)
 //
 (*
 val out = stdout_ref
@@ -1757,15 +1962,15 @@ hidexp_ccomp_lam
 //
 val loc0 = hde0.hidexp_loc
 val hse0 = hde0.hidexp_type
-val flab = funlab_make_type (hse0)
-val pmv0 = primval_make_funlab (loc0, flab)
+val flab = funlab_make_type(hse0)
+val pmv0 = primval_make_funlab(loc0, flab)
 //
-val () = the_funlablst_add (flab)
-val () = ccompenv_add_flabsetenv (env, flab)
-val () = hidexp_ccomp_lam_flab (env, res, hde0, flab)
+val () = the_funlablst_add(flab)
+val () = ccompenv_add_flabsetenv(env, flab)
+val () = hidexp_ccomp_lam_flab(env, res, hde0, flab)
 //
 in
-  primval_lamfix (0(*lam*), pmv0)
+  primval_lamfix(None(*lam*), pmv0)
 end // end of [hidexp_ccomp_lam]
 
 (* ****** ****** *)
@@ -1775,19 +1980,38 @@ hidexp_ccomp_fix
   (env, res, hde0)  = let
 //
 val loc0 = hde0.hidexp_loc
-val-HDEfix (knd, f_d2v, hde_def) = hde0.hidexp_node
-val hse0 = hde_def.hidexp_type
-val flab = funlab_make_type (hse0)
-val pmv0 = primval_make_funlab (loc0, flab)
 //
-val () = the_funlablst_add (flab)
-val () = ccompenv_add_flabsetenv (env, flab)
-val () = ccompenv_add_vbindmapenvall (env, f_d2v, pmv0)
+val-
+HDEfix
+(knd, f_d2v, hde_def) = hde0.hidexp_node
 //
-val () = hidexp_ccomp_lam_flab (env, res, hde_def, flab)
+val hse = hde_def.hidexp_type
+val flab = funlab_make_type(hse)
+//
+val
+pmv0 = let
+//
+val
+tmplev = ccompenv_get_tmplevel(env)
 //
 in
-  primval_lamfix (1(*fix*), pmv0)
+//
+if
+(tmplev = 0)
+then primval_make_funlab(loc0, flab)
+else primval_make_d2vfunlab(loc0, f_d2v, flab)
+//
+end : primval // end of [val]
+//
+val () = the_funlablst_add(flab)
+//
+val () = ccompenv_add_flabsetenv(env, flab)
+val () = ccompenv_add_vbindmapenvall(env, f_d2v, pmv0)
+//
+val () = hidexp_ccomp_lam_flab(env, res, hde_def, flab)
+//
+in
+  primval_lamfix(Some(f_d2v)(*fix*), pmv0)
 end // end of [hidexp_ccomp_fix]
 
 (* ****** ****** *)
@@ -1814,21 +2038,24 @@ hidexp_ccomp_ret_laminit
 //
 val loc0 = hde0.hidexp_loc
 val hse0 = hde0.hidexp_type
-val flab = funlab_make_type (hse0)
-val flvl = funlab_get_level (flab)
+val flab = funlab_make_type(hse0)
+val flvl = funlab_get_level(flab)
 //
-val () = the_funlablst_add (flab)
-val () = ccompenv_add_flabsetenv (env, flab)
-val () = hidexp_ccomp_lam_flab (env, res, hde0, flab)
+val ((*void*)) = the_funlablst_add(flab)
+val ((*void*)) = ccompenv_add_flabsetenv(env, flab)
 //
-val () =
-if flvl > 0 then
-  tmpvar_set2_tyclo (tmpret, flab)
+val ((*void*)) =
+  hidexp_ccomp_lam_flab(env, res, hde0, flab)
+//
+val ((*void*)) =
+if flvl > 0 then tmpvar_set2_tyclo(tmpret, flab)
 // end of [if] // end of [val]
 //
-val ins =
-instr_closure_initize (loc0, tmpret, flab)
-val () = instrseq_add (res, ins)
+val
+ins =
+instr_closure_initize(loc0, tmpret, None(*lam*), flab)
+//
+val ((*void*)) = instrseq_add(res, ins)
 //
 in
   // nothing
@@ -1840,30 +2067,59 @@ implement
 hidexp_ccomp_ret_fixinit
   (env, res, tmpret, hde0) = let
 //
-val loc0 = hde0.hidexp_loc
-val-HDEfix (knd, d2v, hde) = hde0.hidexp_node
+val
+loc0 = hde0.hidexp_loc
 //
-val loc = hde.hidexp_loc
-val hse = hde.hidexp_type
-val flab = funlab_make_type (hse)
-val flvl = funlab_get_level (flab)
+val-HDEfix(knd, f_d2v, hde_def) = hde0.hidexp_node
 //
-val () = the_funlablst_add (flab)
-val () = ccompenv_add_flabsetenv (env, flab)
+val loc = hde_def.hidexp_loc
+val hse = hde_def.hidexp_type
 //
-val pmv = primval_funlab (loc, hse, flab)
-val () = ccompenv_add_vbindmapenvall (env, d2v, pmv)
+val flab = funlab_make_type(hse)
 //
-val () = hidexp_ccomp_lam_flab (env, res, hde, flab)
+(*
+val flab =
+funlab_make_dvar_type
+  (d2v, hse, None_vt((*fcopt*)))
+*)
+//
+val () = the_funlablst_add(flab)
+val () = ccompenv_add_flabsetenv(env, flab)
+//
+val
+pmv0 = let
+//
+val
+tmplev = ccompenv_get_tmplevel(env)
+//
+in
+//
+if
+(tmplev = 0)
+then primval_funlab(loc, hse, flab)
+else primval_make_d2vfunlab(loc, f_d2v, flab)
+//
+end : primval // end of [val]
 //
 val () =
-if flvl > 0 then
-  tmpvar_set2_tyclo (tmpret, flab)
+ccompenv_add_vbindmapenvall(env, f_d2v, pmv0)
+//
+val () =
+hidexp_ccomp_lam_flab(env, res, hde_def, flab)
+//
+val
+flvl = funlab_get_level(flab)
+//
+val () =
+if flvl > 0
+  then tmpvar_set2_tyclo(tmpret, flab)
 // end of [if] // end of [val]
 //
-val ins =
-instr_closure_initize (loc0, tmpret, flab)
-val () = instrseq_add (res, ins)
+val
+ins =
+instr_closure_initize(loc0, tmpret, Some(f_d2v), flab)
+//
+val ((*void*)) = instrseq_add(res, ins)
 //
 in
   // nothing

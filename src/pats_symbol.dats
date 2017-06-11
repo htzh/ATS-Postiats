@@ -43,11 +43,12 @@ staload "./pats_symbol.sats"
 (* ****** ****** *)
 
 local
-
+//
 %{^
 typedef ats_ptr_type string ;
 typedef ats_ptr_type symbol ;
-%} // end of [%{^]
+%} (* end of [%{^] *)
+//
 staload
 "libats/SATS/hashtable_linprb.sats"
 staload _(*anon*) =
@@ -58,14 +59,24 @@ staload _(*anon*) =
 symintr encode decode
 //
 abstype string_t = $extype"string"
-extern castfn string_encode (x: string):<> string_t
-extern castfn string_decode (x: string_t):<> string
+//
+extern
+castfn
+string_encode (x: string):<> string_t
+extern
+castfn
+string_decode (x: string_t):<> string
 overload encode with string_encode
 overload decode with string_decode
 //
 abstype symbol_t = $extype"symbol"
-extern castfn symbol_encode (x: symbol):<> symbol_t
-extern castfn symbol_decode (x: symbol_t):<> symbol
+//
+extern
+castfn
+symbol_encode (x: symbol):<> symbol_t
+extern
+castfn
+symbol_decode (x: symbol_t):<> symbol
 overload encode with symbol_encode
 overload decode with symbol_decode
 //
@@ -269,11 +280,15 @@ implement symbol_REFAT = symbol_make_string "ref@"
 implement symbol_INT = symbol_make_string "int"
 implement symbol_BOOL = symbol_make_string "bool"
 implement symbol_ADDR = symbol_make_string "addr"
+//
 (*
 implement symbol_CHAR = symbol_make_string "char"
 *)
 //
 implement symbol_REAL = symbol_make_string "real"
+//
+implement symbol_FLOAT = symbol_make_string "float"
+implement symbol_STRING = symbol_make_string "string"
 //
 implement symbol_CLS = symbol_make_string "cls" // nominal classes
 //
@@ -301,8 +316,10 @@ symbol_FALSE_BOOL = symbol_make_string "false_bool"
 
 (* ****** ****** *)
 
-implement symbol_DEFINED = symbol_make_string "defined"
-implement symbol_UNDEFINED = symbol_make_string "undefined"
+implement
+symbol_DEFINED = symbol_make_string "defined"
+implement
+symbol_UNDEFINED = symbol_make_string "undefined"
 
 (* ****** ****** *)
 
@@ -315,27 +332,55 @@ implement symbol_ISLIST = symbol_make_string "islist"
 implement symbol_TUPZ = symbol_make_string "tupz"
 
 (* ****** ****** *)
-
+//
+implement
+symbol__STDIN__ = symbol_make_string "__STDIN__"
+implement
+symbol__STRING__ = symbol_make_string "__STRING__"
+//
+(* ****** ****** *)
+//
 implement
 symbol_PATSHOME = symbol_make_string "PATSHOME"
+//
 implement
-symbol_PATSHOMERELOC = symbol_make_string "PATSHOMERELOC"
+symbol_PATSCONTRIB = symbol_make_string "PATSCONTRIB"
+//
+implement
+symbol_PATSHOMELOCS = symbol_make_string "PATSHOMELOCS"
+//
+implement
+symbol_PATSRELOCROOT = symbol_make_string "PATSRELOCROOT"
+//
+(* ****** ****** *)
+//
+implement
+symbol_ATS_PACKNAME = symbol_make_string "ATS_PACKNAME"
+//
+(*
+// HX-2014-06-06: this one is no longer in use:
+implement
+symbol_ATS_STALOADFLAG = symbol_make_string "ATS_STALOADFLAG"
+*)
+implement
+symbol_ATS_DYNLOADFLAG = symbol_make_string "ATS_DYNLOADFLAG"
+//
+(* ****** ****** *)
+
+implement
+symbol_ATS_DYNLOADNAME = symbol_make_string "ATS_DYNLOADNAME"
 
 (* ****** ****** *)
 
 implement
-symbol_ATS_PACKNAME = symbol_make_string "ATS_PACKNAME"
+symbol_ATS_MAINATSFLAG = symbol_make_string "ATS_MAINATSFLAG"
 
-implement
-symbol_ATS_STALOADFLAG = symbol_make_string "ATS_STALOADFLAG"
-implement
-symbol_ATS_DYNLOADFLAG = symbol_make_string "ATS_DYNLOADFLAG"
+(* ****** ****** *)
 
 implement
 symbol_ATS_EXTERN_PREFIX = symbol_make_string "ATS_EXTERN_PREFIX"
-
 implement
-symbol_ATS_MAINATSFLAG = symbol_make_string "ATS_MAINATSFLAG"
+symbol_ATS_STATIC_PREFIX = symbol_make_string "ATS_STATIC_PREFIX"
 
 (* ****** ****** *)
 
@@ -352,15 +397,32 @@ compare_symbol_symbol (x1, x2) = compare (x1.stamp, x2.stamp)
 (* ****** ****** *)
 
 implement
-fprint_symbol
-  (out, x) = fprint_string (out, x.name)
-// end of [fprint_symbol]
-
-implement
 print_symbol (x) = fprint_symbol (stdout_ref, x)
 implement
 prerr_symbol (x) = fprint_symbol (stderr_ref, x)
 
+(* ****** ****** *)
+//
+implement
+fprint_symbol
+  (out, x) = fprint_string (out, x.name)
+//
+implement
+fprint_symbolopt
+  (out, opt) = let
+in
+//
+case+ opt of
+| Some (x) => {
+    val () =
+      fprint_string (out, "Some(")
+    val () = fprint_symbol (out, x)
+    val () = fprint_string (out, ")")
+  } (* end of [Some] *)
+| None () => fprint_string (out, "None()")
+//
+end (* end of [fprint_symbolopt] *)
+//
 (* ****** ****** *)
 
 (* end of [pats_symbol.dats] *)

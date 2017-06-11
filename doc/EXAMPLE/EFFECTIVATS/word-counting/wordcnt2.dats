@@ -134,9 +134,13 @@ end // end of [word_get]
 local
 //
 staload
+"libats/ML/SATS/basis.sats"
+//
+staload
 HT = "libats/ML/SATS/hashtblref.sats"
 //
-assume wcmap_type = $HT.hashtbl (string, int)
+assume
+wcmap_type = hashtbl(string, int)
 //
 in (* in of [local] *)
 
@@ -175,10 +179,11 @@ fun WordCounting_fileref (inp: FILEref): wcmap
 (* ****** ****** *)
 
 local
-
+//
 staload
-STDIO = "libc/SATS/stdio.sats"
-
+STDIO =
+"libats/libc/SATS/stdio.sats"
+//
 in (* in of [local] *)
 
 implement
@@ -234,7 +239,7 @@ end // end of [local]
 //
 val () = fprint_newline (stdout_ref)
 //
-} // end of [main0]
+} (* end of [main0] *)
 
 (* ****** ****** *)
 

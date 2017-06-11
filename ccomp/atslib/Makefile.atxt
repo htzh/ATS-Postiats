@@ -62,7 +62,8 @@ fun make_entry
 ) : atext = let
 //
 val lib2 = stringrepl (lib, '/', '_')
-val fnm2 = stringrepl (fnm, '.', '_')
+val fnm2 = stringrepl (fnm, '/', '_')
+val fnm2 = stringrepl (fnm2, '.', '_')
 val libfnm2 = sprintf ("%s_%s", @(lib2, fnm2))
 val libfnm2 = string_of_strptr (libfnm2)
 //
@@ -120,6 +121,7 @@ DATSMEMALLOC=
 ######
 
 all:: atslib
+all:: ; ranlib lib/libatslib.a
 
 ######
 
@@ -127,31 +129,28 @@ atslib:: atslib_prelude
 
 ######
 
+#make_entry("prelude", "basics.dats")
+
+######
+
+#make_entry("prelude", "integer.dats")
+#make_entry("prelude", "pointer.dats")
+
+#make_entry("prelude", "integer_long.dats")
+#make_entry("prelude", "integer_size.dats")
+#make_entry("prelude", "integer_short.dats")
+
 #make_entry("prelude", "bool.dats")
 #make_entry("prelude", "char.dats")
-#make_entry("prelude", "integer.dats")
 #make_entry("prelude", "float.dats")
 #make_entry("prelude", "string.dats")
 #make_entry("prelude", "strptr.dats")
+#make_entry("prelude", "integer_ptr.dats")
+#make_entry("prelude", "integer_fixed.dats")
 
 ######
 
 #make_entry("prelude", "filebas.dats")
-
-######
-
-atslib:: atslib_libc
-
-######
-
-#make_entry("libc", "dirent.dats")
-#make_entry("libc", "fcntl.dats")
-#make_entry("libc", "stdio.dats")
-#make_entry("libc", "stdlib.dats")
-#make_entry("libc", "string.dats")
-#make_entry("libc", "strings.dats")
-#make_entry("libc", "time.dats")
-#make_entry("libc", "unistd.dats")
 
 ######
 
@@ -186,6 +185,9 @@ atslib:: atslib_libats
 ######
 
 atslib:: atslib_libats_ML
+
+######
+
 #make_entry("libats/ML", "list0.dats")
 #make_entry("libats/ML", "option0.dats")
 #make_entry("libats/ML", "array0.dats")
@@ -195,8 +197,42 @@ atslib:: atslib_libats_ML
 
 ######
 
+#make_entry("libats/ML", "gvalue.dats")
+
+######
+
+#make_entry("libats/ML", "dynarray.dats")
+#make_entry("libats/ML", "hashtblref.dats")
+
+######
+
 #make_entry("libats/ML", "filebas.dats")
 #make_entry("libats/ML", "filebas_dirent.dats")
+
+######
+
+atslib:: atslib_libats_libc
+
+######
+
+#make_entry("libats/libc", "math.dats")
+#make_entry("libats/libc", "float.dats")
+#make_entry("libats/libc", "errno.dats")
+#make_entry("libats/libc", "fcntl.dats")
+#make_entry("libats/libc", "dirent.dats")
+#make_entry("libats/libc", "stdio.dats")
+#make_entry("libats/libc", "stdlib.dats")
+#make_entry("libats/libc", "string.dats")
+#make_entry("libats/libc", "strings.dats")
+#make_entry("libats/libc", "time.dats")
+#make_entry("libats/libc", "unistd.dats")
+
+######
+
+#make_entry("libats/libc", "sys/stat.dats")
+#make_entry("libats/libc", "sys/types.dats")
+#make_entry("libats/libc", "sys/socket.dats")
+#make_entry("libats/libc", "sys/socket_in.dats")
 
 ######
 
@@ -206,12 +242,12 @@ RMF=rm -f
 ######
 
 clean:: ; $(RMF) *~
-clean:: ; $(RMF) *_?ats.o *_?ats.c
+clean:: ; $(RMF) *_?ats.o
+clean:: ; $(RMF) *_?ats.c
 clean:: ; $(RMF) *_atxt.txt
 clean:: ; $(RMF) *_atxt.dats
 
 cleanall:: clean
-cleanall:: ; $(RMF) output/*
 cleanall:: ; $(RMF) Makefile.exe
 cleanall:: ; $(RMF) lib/libatslib.a
 

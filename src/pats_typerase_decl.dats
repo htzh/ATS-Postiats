@@ -37,20 +37,24 @@ staload
 ATSPRE = "./pats_atspre.dats"
 //
 (* ****** ****** *)
-
-staload UN = "prelude/SATS/unsafe.sats"
-staload _(*anon*) = "prelude/DATS/unsafe.dats"
-
+//
+staload
+UN = "prelude/SATS/unsafe.sats"
+staload
+_(*anon*) = "prelude/DATS/unsafe.dats"
+//
 (* ****** ****** *)
 
 staload "./pats_basics.sats"
 
 (* ****** ****** *)
-
+//
 staload "./pats_errmsg.sats"
 staload _(*anon*) = "./pats_errmsg.dats"
-implement prerr_FILENAME<> () = prerr "pats_typerase_decl"
-
+//
+implement
+prerr_FILENAME<> () = prerr "pats_typerase_decl"
+//
 (* ****** ****** *)
 
 staload LOC = "./pats_location.sats"
@@ -115,56 +119,65 @@ val loc0 = d3c0.d3ecl_loc
 in
 //
 case+
-  d3c0.d3ecl_node of
+d3c0.d3ecl_node of
 //
-| D3Cnone () => hidecl_none (loc0)
+| D3Cnone() => hidecl_none(loc0)
 //
-| D3Clist (d3cs) => let
-    val hids = d3eclist_tyer (d3cs) in hidecl_list (loc0, hids)
+| D3Clist(d3cs) => let
+    val hids =
+      d3eclist_tyer(d3cs) in hidecl_list(loc0, hids)
+    // end of [val]
   end // end of [D3Clist]
 //
-| D3Csaspdec (d2c) => hidecl_saspdec (loc0, d2c)
+| D3Csaspdec(d2c) => hidecl_saspdec(loc0, d2c)
+  // end of [D3Csaspdec]
+| D3Creassume(s2c) => hidecl_reassume(loc0, s2c)
+  // end of [D3Creassume]
 //
 | D3Cextype
     (name, s2e_def) => let
     val hse_def =
-      s2exp_tyer_deep (loc0, s2e_def)
+      s2exp_tyer_deep(loc0, s2e_def)
     // end of [val]
   in
-    hidecl_extype (loc0, name, hse_def)
+    hidecl_extype(loc0, name, hse_def)
   end // end of [D3Cextype]
-| D3Cextval (name, d3e_def) =>
-    hidecl_extval (loc0, name, d3exp_tyer (d3e_def))
+| D3Cextvar
+    (name, d3e_def) =>
+  (
+    hidecl_extvar(loc0, name, d3exp_tyer(d3e_def))
+  ) (* end of [D3Cextvar] *)
+//
 | D3Cextcode
-    (knd, pos, code) => hidecl_extcode (loc0, knd, pos, code)
+    (knd, pos, code) => hidecl_extcode(loc0, knd, pos, code)
   // end of [D3Cextcode]
 //
 | D3Cexndecs
-    (d2cs) => hidecl_exndecs (loc0, d2cs)
+    (d2cs) => hidecl_exndecs(loc0, d2cs)
 | D3Cdatdecs
-    (knd, s2cs) => hidecl_datdecs (loc0, knd, s2cs)
+    (knd, s2cs) => hidecl_datdecs(loc0, knd, s2cs)
 //
 | D3Cdcstdecs
-    (knd, dck, d2cs) => hidecl_dcstdecs (loc0, dck, d2cs)
+    (knd, dck, d2cs) => hidecl_dcstdecs(loc0, dck, d2cs)
 //
-| D3Cimpdec _ => d3ecl_tyer_impdec (d3c0)
+| D3Cimpdec _ => d3ecl_tyer_impdec(d3c0)
 //
-| D3Cfundecs _ => d3ecl_tyer_fundecs (d3c0)
+| D3Cfundecs _ => d3ecl_tyer_fundecs(d3c0)
 //
-| D3Cvaldecs _ => d3ecl_tyer_valdecs (d3c0)
-| D3Cvaldecs_rec _ => d3ecl_tyer_valdecs_rec (d3c0)
+| D3Cvaldecs _ => d3ecl_tyer_valdecs(d3c0)
+| D3Cvaldecs_rec _ => d3ecl_tyer_valdecs_rec(d3c0)
 //
-| D3Cvardecs _ => d3ecl_tyer_vardecs (d3c0)
+| D3Cvardecs _ => d3ecl_tyer_vardecs(d3c0)
 //
 | D3Cprvardecs _ => hidecl_none (loc0) // proof vars
 //
-| D3Cinclude (d3cs) => let
-    val hids = d3eclist_tyer (d3cs) in hidecl_include (loc0, hids)
+| D3Cinclude (knd, d3cs) => let
+    val hids = d3eclist_tyer (d3cs) in hidecl_include (loc0, knd, hids)
   end // end of [D3Cinclude]
 //
 | D3Cstaload
   (
-    fname, flag, fenv, loaded
+    idopt, fname, flag, fenv, loaded
   ) => let
     val-Some (d3cs) =
       $TRENV3.filenv_get_d3eclistopt (fenv)
@@ -192,17 +205,26 @@ case+
       end // end of [Some]
     ) : void // end of [val]
   in
-    hidecl_staload (loc0, fname, flag, fenv, loaded)
+    hidecl_staload (loc0, idopt, fname, flag, fenv, loaded)
   end // end of [D3Cstaload]
 //
-| D3Cdynload (fil) => hidecl_dynload (loc0, fil)
+| D3Cstaloadloc
+    (pfil, nspace, fenv) => let
+    val-Some (d3cs) =
+      $TRENV3.filenv_get_d3eclistopt (fenv)
+    val hids = d3eclist_tyer (d3cs)
+  in
+    hidecl_staloadloc (loc0, pfil, nspace, hids)
+  end // end of [D3Cstaloadloc]
+//
+| D3Cdynload (cfil) => hidecl_dynload (loc0, cfil)
 //
 | D3Clocal
-    (head, body) => let
-    val head = d3eclist_tyer (head)
-    val body = d3eclist_tyer (body)
+    (d3cs_head, d3cs_body) => let
+    val hids_head = d3eclist_tyer (d3cs_head)
+    val hids_body = d3eclist_tyer (d3cs_body)
   in
-    hidecl_local (loc0, head, body)
+    hidecl_local (loc0, hids_head, hids_body)
   end // end of [D3Clocal]
 //
 (*
@@ -253,6 +275,15 @@ end // end of [d3eclist_tyer]
 (* ****** ****** *)
 
 implement
+d3eclist_tyer_errck
+  (d3cs) = hids where {
+  val hids = d3eclist_tyer (d3cs)
+  val () = the_trans4errlst_finalize ()
+} // end of [d3eclist_tyer_errck]
+
+(* ****** ****** *)
+
+implement
 d3ecl_tyer_impdec
   (d3c0) = let
 //
@@ -261,23 +292,28 @@ val-D3Cimpdec (knd, impdec) = d3c0.d3ecl_node
 //
 in
 //
-if knd = 0 then let
+if
+knd >= 0
+then let
 //
-  val loc = impdec.i3mpdec_loc
-  val d2c = impdec.i3mpdec_cst
-  val imparg = impdec.i3mpdec_imparg
-  val tmparg = impdec.i3mpdec_tmparg
-  val tmparg = s2explstlst_mhnfize (tmparg)
+val loc = impdec.i3mpdec_loc
+val d2c = impdec.i3mpdec_cst
+val imparg = impdec.i3mpdec_imparg
+val tmparg = impdec.i3mpdec_tmparg
+val tmparg = s2explstlst_mhnfize (tmparg)
 //
-  val d2c = d2cst_tyer (d2c)
-  val hse_def = d3exp_tyer (impdec.i3mpdec_def)
-  val himp = hiimpdec_make (loc, d2c, imparg, tmparg, hse_def)
+val d2c = d2cst_tyer (d2c)
+val hse = d3exp_tyer (impdec.i3mpdec_def)
+val himp =
+  hiimpdec_make (loc, knd, d2c, imparg, tmparg, hse)
+// end of [val]
 //
 in
-  hidecl_impdec (loc0, knd(*0*), himp)
-end else
+  hidecl_impdec (loc0, knd(*implmnt/implement*), himp)
+end // end of [then]
+else (
   hidecl_none (loc0)
-// end of [if]
+) (* end of [else] *)
 //
 end // end of [d3ecl_tyer_impdec]
 
@@ -300,34 +336,46 @@ end // end of [decarg2imparg]
 
 local
 
-fun f3undec_tyer
+fun
+f3undec_tyer
 (
   imparg: s2varlst, f3d: f3undec
 ) : hifundec = let
 //
-  val loc = f3d.f3undec_loc
+val loc = f3d.f3undec_loc
 //
-  val d2v_fun = f3d.f3undec_var
-  val d3e_def = f3d.f3undec_def
+val d2v_fun = f3d.f3undec_var
+val d3e_def = f3d.f3undec_def
 //
-  val isprf = d3exp_is_prf (d3e_def)
+val isprf = d3exp_is_prf (d3e_def)
 //
-  val () = if isprf then let
-    val () = prerr_error4_loc (loc)
-    val () = prerr ": [fun] should be replaced with [prfun] as this is a proof binding."
-    val () = prerr_newline ()
-  in
-    the_trans4errlst_add (T4E_d3exp_tyer_isprf (d3e_def))
-  end // end of [val]
+val () = (
 //
-  val d2v_fun = d2var_tyer (d2v_fun)
-  val hde_def = d3exp_tyer (d3e_def)
+if
+isprf
+then let
+//
+val () = prerr_error4_loc (loc)
+val () =
+prerrln! (
+  ": [fun] should be replaced with [prfun]."
+) (* end of [val] *)
+//
+in
+  the_trans4errlst_add (T4E_d3exp_tyer_isprf (d3e_def))
+end // end of [if]
+//
+) (* end of [val] *)
+//
+val d2v_fun = d2var_tyer (d2v_fun)
+val hde_def = d3exp_tyer (d3e_def)
 //
 in
   hifundec_make (loc, d2v_fun, imparg, hde_def)
 end // end of [f3undec_tyer]
 
-fun f3undeclst_tyer
+fun
+f3undeclst_tyer
 (
   knd: funkind
 , decarg: s2qualst, f3ds: f3undeclst
@@ -335,14 +383,17 @@ fun f3undeclst_tyer
   val isprf = funkind_is_proof (knd)
 in
 //
-if isprf then
-  list_nil () // proofs are erased
+if
+isprf
+then list_nil () // proofs are erased
 else let
   val imparg = decarg2imparg (decarg)
-  val hfds = list_map_cloptr<f3undec><hifundec> (f3ds, lam (f3d) =<1> f3undec_tyer (imparg, f3d))
+  val hfds =
+    list_map_cloptr<f3undec><hifundec> (f3ds, lam (f3d) =<1> f3undec_tyer (imparg, f3d))
+  // end of [val]
 in
   list_of_list_vt (hfds)
-end // end of [if]
+end // end of [else]
 //
 end // end of [f3undeclst_tyer]
 
@@ -363,7 +414,7 @@ val hdc0 = hidecl_fundecs (loc0, knd, decarg, hfds)
 //
 val () = hifundeclst_set_hideclopt (hfds, Some(hdc0))
 //
-} // end of [d3ecl_tyer_fundecs]
+} (* end of [d3ecl_tyer_fundecs] *)
 
 end // end of [local]
 
@@ -371,25 +422,46 @@ end // end of [local]
 
 local
 
-fun v3aldec_tyer
-  (v3d: v3aldec): hivaldec = let
-  val loc = v3d.v3aldec_loc
-  val hip = p3at_tyer (v3d.v3aldec_pat)
-  val d3e_def = v3d.v3aldec_def
-  val isprf = d3exp_is_prf (d3e_def)
-  val () = if isprf then let
-    val () = prerr_error4_loc (loc)
-    val () = prerr ": [val] should be replaced with [prval] as this is a proof binding."
-    val () = prerr_newline ()
-  in
-    the_trans4errlst_add (T4E_d3exp_tyer_isprf (d3e_def))
-  end // end of [val]
-  val hde_def = d3exp_tyer (d3e_def)
+fun
+v3aldec_tyer
+(
+  v3d: v3aldec
+) : hivaldec = let
+//
+val loc = v3d.v3aldec_loc
+val hip =
+  p3at_tyer (v3d.v3aldec_pat)
+// end of [val]
+val d3e_def = v3d.v3aldec_def
+//
+val isprf = d3exp_is_prf(d3e_def)
+//
+val () = (
+if
+isprf
+then let
+//
+val () =
+prerr_error4_loc (loc)
+val () =
+prerrln! (
+  ": [val] should be replaced with [prval]."
+) (* end of [val] *)
+//
+in
+  the_trans4errlst_add (T4E_d3exp_tyer_isprf (d3e_def))
+end // end of [if]
+//
+) (* end of [val] *)
+//
+val hde_def = d3exp_tyer (d3e_def)
+//
 in
   hivaldec_make (loc, hip, hde_def)
 end // end of [v3aldec_tyer]
 
-fun v3aldeclst_tyer
+fun
+v3aldeclst_tyer
 (
   knd: valkind, v3ds: v3aldeclst
 ) : hivaldeclst = let
@@ -497,7 +569,7 @@ case+ x.hidecl_node of
   end // end of [HIDimpdec]
 //
 | HIDinclude
-    (xs_incl) => auxlst (map, xs_incl)
+    (knd, xs_incl) => auxlst (map, xs_incl)
   (* end of [HIDinclude] *)
 //
 | HIDlocal
@@ -554,7 +626,7 @@ case+ x.hidecl_node of
   end // end of [HIDfundecs]
 //
 | HIDinclude
-    (xs_incl) => auxlst (map, xs_incl)
+    (knd, xs_incl) => auxlst (map, xs_incl)
   (* end of [HIDinclude] *)
 //
 | HIDlocal

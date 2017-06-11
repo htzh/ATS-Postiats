@@ -79,22 +79,48 @@ staload "./pats_trans1_env.sats"
 
 (* ****** ****** *)
 
+staload "./pats_e1xpval.sats"
+
+(* ****** ****** *)
+
 #define l2l list_of_list_vt
 macdef list_sing (x) = list_cons (,(x), list_nil)
 
 (* ****** ****** *)
 
+local
+
+fun
+do_e0xpact_fprint
+(
+  out: FILEref, v0: v1al
+) : void =
+(
+//
+case+ v0 of
+//
+| V1ALint i => fprint(out, i)
+//
+| V1ALchar c => fprint(out, c)
+//
+| V1ALfloat f => fprint(out, f)
+//
+| V1ALstring s => fprint(out, s)
+//
+| V1ALerr () => let
+    val () = assertloc(false) in (*deadcode*)
+  end (* end of [V1ALerr] *)
+//
+) (* end of [do_e0xpact_fprint] *)
+
+in (* in-of-local *)
+
 implement
-do_e0xpact_prerr
-  (v) = case+ v of
-  | V1ALint i => prerr i
-  | V1ALchar c => prerr c
-  | V1ALstring s => prerr s
-  | V1ALfloat f => prerr f
-  | V1ALerr () => let
-      val () = assertloc (false) in (*deadcode*)
-    end (* end of [V1ALerr] *)
-// end of [do_e0xpact_prerr]
+do_e0xpact_prerr(v) = do_e0xpact_fprint(stderr_ref, v)
+implement
+do_e0xpact_print(v) = do_e0xpact_fprint(stdout_ref, v)
+
+end // end of [local]
 
 (* ****** ****** *)
 
@@ -247,8 +273,9 @@ fun aux_item (e0: e0xp): e1xpitm = let
     end // E0XPide(non-backslash)
 //
   | E0XPint (x) => let
-      val-T_INTEGER
+      val-T_INT
         (base, rep, sfx) = x.token_node
+      // end of [val]
     in
       FXITMatm (e1xp_intrep (loc0, rep))
     end // end of [E0XPint]
@@ -301,7 +328,12 @@ fun aux_item (e0: e0xp): e1xpitm = let
       FXITMatm (e1xp_if (loc0, e1_cond, e1_then, e1_else))
     end // end of [E0Xpif]
 //
-  | E0XPeval (e) => FXITMatm (e1xp_eval (loc0, e0xp_tr e))
+  | E0XPeval (e0) => let
+      val e1 = e0xp_tr (e0)
+      val v1 = e1xp_valize (e1)
+    in
+      FXITMatm (e1xp_v1al (loc0, v1))
+    end // end of [E0XPeval]
 //
 end // end of [aux_item]
 //
@@ -322,7 +354,9 @@ end // end of [aux_itemlst]
 //
 in
 //
-case+ aux_item e0 of
+case+
+aux_item(e0)
+of // case+
 | FXITMatm (e) => e
 | FXITMopr _ => e0xp_tr_errmsg_opr (e0)
 //

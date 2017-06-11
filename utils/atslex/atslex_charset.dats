@@ -3,6 +3,11 @@
 *)
 
 (* ****** ****** *)
+//
+#include
+"share/atspre_staload.hats"  
+//
+(* ****** ****** *)
 
 staload "./atslex.sats"
 
@@ -41,8 +46,8 @@ val i = uchar2int0 (c)
 //
 in
   if isprint (i)
-    then $extfcall (void, "fprintf", out, "'c'", c)
-    else $extfcall (void, "fprintf", out, "'0x%x'", i)
+    then $extfcall(void, "fprintf", out, "%c", c)
+    else $extfcall(void, "fprintf", out, "0x%x'", i)
   // end of [if]
 end // end of [fpc]
 //

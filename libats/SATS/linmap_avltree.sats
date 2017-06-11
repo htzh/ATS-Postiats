@@ -32,10 +32,11 @@
 (* Start time: December, 2012 *)
 
 (* ****** ****** *)
-
-#define ATS_PACKNAME "ATSLIB.libats.linmap_avltree"
-#define ATS_STALOADFLAG 0 // no static loading at run-time
-
+//
+#define
+ATS_PACKNAME
+"ATSLIB.libats.linmap_avltree"
+//
 (* ****** ****** *)
 
 #include "./SHARE/linmap.hats"

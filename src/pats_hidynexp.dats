@@ -43,11 +43,22 @@ staload "./pats_basics.sats"
 (* ****** ****** *)
 
 staload
+LAB = "./pats_label.sats"
+typedef label = $LAB.label
+
+(* ****** ****** *)
+//
+staload
 S2E = "./pats_staexp2.sats"
+typedef s2cst = $S2E.s2cst
+//
+staload
+S2C = "./pats_stacst2.sats"
+//
 staload
 D2E = "./pats_dynexp2.sats"
 typedef d2cst = $D2E.d2cst
-
+//
 (* ****** ****** *)
 
 staload "./pats_histaexp.sats"
@@ -175,46 +186,101 @@ hipat_empty
 (* ****** ****** *)
 
 implement
-hipat_rec (
-  loc, hse, knd, lhips, hse_rec
-) =
-  hipat_make_node (loc, hse, HIPrec (knd, lhips, hse_rec))
-// end of [hipat_rec]
-
-implement
-hipat_rec2 (
-  loc, hse, knd, lhips, hse_rec
+hipat_lst
+(
+  loc
+, lin, hse_lst, hse_elt, hips
 ) = let
 //
-val isflt =
+val s2c =
 (
-  if knd = 0 then true else false
-) : bool // end of [val]
+if lin = 0
+  then $S2C.s2cstref_get_cst ($S2C.the_list_t0ype_int_type)
+  else $S2C.s2cstref_get_cst ($S2C.the_list_vt0ype_int_vtype)
+) : s2cst
 //
+val-Some(xx) =
+  $S2E.s2cst_get_islst (s2c)
+//
+val d2c_nil = xx.0 and d2c_cons = xx.1
+//
+val pck =
+(
+  if lin = 0 then $D2E.PCKcon else $D2E.PCKfree
+) : $D2E.pckind
+//
+val l0 = $LAB.label_make_int (0)
+val l1 = $LAB.label_make_int (1)
+//
+val lhse0 = HSLABELED (l0, None, hse_elt)
+val lhse1 = HSLABELED (l1, None, hse_lst)
+val lhses_arg = list_pair (lhse0, lhse1)
+val hse_sum = hisexp_tysum (d2c_cons, lhses_arg)
+//
+fun auxlst
+(
+  hips: hipatlst
+) :<cloref1> hipat = let
 in
 //
-if isflt then
-(
-case lhips of
-| list_cons
-    (lx, list_nil ()) =>
-    let val+LABHIPAT (l, x) = lx in x end
-  // end of [list_cons]
-| _ (*notsing*) =>
-    hipat_rec (loc, hse, knd, lhips, hse_rec)
-) else (
-  hipat_rec (loc, hse, knd, lhips, hse_rec)
-) (* end of [if] *)
+case+ hips of
 //
-end // end of [hipat_rec2]
+| list_cons
+    (hip0, hips) => let
+    val hip1 = auxlst (hips)
+    val lhip0 = LABHIPAT (l0, hip0)
+    val lhip1 = LABHIPAT (l1, hip1)
+    val lhips_arg = list_pair (lhip0, lhip1)
+  in
+    hipat_con (loc, hse_lst, pck, d2c_cons, hse_sum, lhips_arg)
+  end // end of [list_cons]
+//
+| list_nil () => hipat_con_any (loc, hse_lst, pck, d2c_nil)
+//
+end // end of [auxlst]
+//
+in
+  auxlst (hips)
+end // end of [hipat_lst]
 
 (* ****** ****** *)
 
 implement
-hipat_lst
-  (loc, hse, hse_elt, hips) =
-  hipat_make_node (loc, hse, HIPlst (hse_elt, hips))
-// end of [hipat_lst]
+hipat_rec (
+  loc, hse, knd, pck, lhips, hse_rec
+) =
+(
+hipat_make_node
+  (loc, hse, HIPrec(knd, pck, lhips, hse_rec))
+) // end of [hipat_rec]
+
+implement
+hipat_rec2
+(
+  loc0, hse0, knd, pck, lhips, hse_rec
+) = let
+//
+val isflt =
+  (if knd = 0 then true else false): bool
+//
+in
+//
+if
+isflt
+then (
+case lhips of
+| list_cons
+    (lx, list_nil ()) =>
+    let val+LABHIPAT(l, x) = lx in x end
+  // end of [list_cons]
+| _ (*notsing*) =>
+    hipat_rec(loc0, hse0, knd, pck, lhips, hse_rec)
+) (* end of [then] *)
+else (
+  hipat_rec (loc0, hse0, knd, pck, lhips, hse_rec)
+) (* end of [else] *)
+//
+end // end of [hipat_rec2]
 
 (* ****** ****** *)
 
@@ -314,93 +380,108 @@ hidexp_i0nt
 implement
 hidexp_f0loat
   (loc, hse, tok) =
-  hidexp_make_node (loc, hse, HDEf0loat (tok))
+  hidexp_make_node (loc, hse, HDEf0loat(tok))
 // end of [hidexp_f0loat]
 
 (* ****** ****** *)
 
 implement
-hidexp_cstsp (loc, hse, x) = 
-  hidexp_make_node (loc, hse, HDEcstsp (x))
+hidexp_cstsp
+  (loc, hse, x) = 
+  hidexp_make_node (loc, hse, HDEcstsp(x))
 // end of [hidexp_cstsp]
 
 (* ****** ****** *)
 
 implement
-hidexp_top (loc, hse) = 
-  hidexp_make_node (loc, hse, HDEtop ())
+hidexp_tyrep
+  (loc, hse, x) = 
+  hidexp_make_node (loc, hse, HDEtyrep(x))
+// end of [hidexp_cstsp]
+
+(* ****** ****** *)
+
+implement
+hidexp_top(loc, hse) = 
+  hidexp_make_node (loc, hse, HDEtop())
 // end of [hidexp_top]
 
 implement
-hidexp_empty (loc, hse) = 
-  hidexp_make_node (loc, hse, HDEempty ())
+hidexp_empty(loc, hse) = 
+  hidexp_make_node (loc, hse, HDEempty())
 // end of [hidexp_empty]
 
 implement
 hidexp_ignore
   (loc, hse, hde) = 
-  hidexp_make_node (loc, hse, HDEignore (hde))
+  hidexp_make_node (loc, hse, HDEignore(hde))
 // end of [hidexp_ignore]
+
+(* ****** ****** *)
+
+implement
+hidexp_castfn
+  (loc, hse, d2c, arg) =
+  hidexp_make_node (loc, hse, HDEcastfn(d2c, arg))
+// end of [hidexp_castfn]
 
 (* ****** ****** *)
 
 implement
 hidexp_extval
   (loc, hse, name) =
-  hidexp_make_node (loc, hse, HDEextval (name))
+  hidexp_make_node (loc, hse, HDEextval(name))
 // end of [hidexp_extval]
-
-implement
-hidexp_castfn
-  (loc, hse, d2c, arg) =
-  hidexp_make_node (loc, hse, HDEcastfn (d2c, arg))
-// end of [hidexp_castfn]
 
 implement
 hidexp_extfcall
   (loc, hse, _fun, _arg) =
-  hidexp_make_node (loc, hse, HDEextfcall (_fun, _arg))
+  hidexp_make_node (loc, hse, HDEextfcall(_fun, _arg))
 // end of [hidexp_extfcall]
 
-(* ****** ****** *)
+implement
+hidexp_extmcall
+  (loc, hse, _obj, _mtd, _arg) =
+  hidexp_make_node (loc, hse, HDEextmcall(_obj, _mtd, _arg))
+// end of [hidexp_extmcall]
 
+(* ****** ****** *)
+//
 implement
 hidexp_con (
   loc, hse, d2c, hse_sum, lhdes
-) = hidexp_make_node
-  (loc, hse, HDEcon (d2c, hse_sum, lhdes))
-// end of [hidexp_con]
-
+) = hidexp_make_node(loc, hse, HDEcon (d2c, hse_sum, lhdes))
+//
 (* ****** ****** *)
 
 implement
 hidexp_tmpcst
   (loc, hse, d2c, t2mas) =
-  hidexp_make_node (loc, hse, HDEtmpcst (d2c, t2mas))
+  hidexp_make_node (loc, hse, HDEtmpcst(d2c, t2mas))
 // end of [hidexp_tmpcst]
 
 implement
 hidexp_tmpvar
   (loc, hse, d2v, t2mas) =
-  hidexp_make_node (loc, hse, HDEtmpvar (d2v, t2mas))
+  hidexp_make_node (loc, hse, HDEtmpvar(d2v, t2mas))
 // end of [hidexp_tmpvar]
 
 (* ****** ****** *)
 
 implement
 hidexp_foldat (loc, hse) =
-  hidexp_make_node (loc, hse, HDEfoldat ())
+  hidexp_make_node (loc, hse, HDEfoldat())
 
 implement
 hidexp_freeat (loc, hse, hde) =
-  hidexp_make_node (loc, hse, HDEfreeat (hde))
+  hidexp_make_node (loc, hse, HDEfreeat(hde))
 // end of [hidexp_freeat]
 
 (* ****** ****** *)
 
 implement
 hidexp_let (loc, hse, hids, hde) =
-  hidexp_make_node (loc, hse, HDElet (hids, hde))
+  hidexp_make_node (loc, hse, HDElet(hids, hde))
 // end of [hidexp_let]
 
 (* ****** ****** *)
@@ -420,7 +501,7 @@ val opt = (
   case+ _fun.hidexp_node of
   | HDEcst (d2c) =>
       if $D2E.d2cst_is_castfn (d2c) then Some_vt (d2c) else None_vt
-  | _ => None_vt ()
+  | _ (*non-HDEcst*) => None_vt ()
 ) : Option_vt (d2cst)
 //
 in
@@ -429,12 +510,13 @@ case+ opt of
 | ~Some_vt (d2c) => let
     val hde = (
       case+ _arg of
-      | list_cons (hse, _) => hse
+      | list_cons
+          (hse, _) => hse
+        // list_cons
       | list_nil () => let
           val loc = _fun.hidexp_loc
-          val hse = hisexp_void_t0ype ()
         in
-          hidexp_empty (loc, hse)
+          hidexp_empty (loc, hisexp_void_t0ype())
         end // end of [list_nil]
     ) : hidexp // end of [val]
   in
@@ -476,11 +558,44 @@ hidexp_lst
   hidexp_make_node (loc, hse, HDElst (lin, hse_elt, hdes))
 // end of [hidexp_lst]
 
+(* ****** ****** *)
+
 implement
 hidexp_rec
   (loc, hse, knd, lhdes, hse_rec) =
   hidexp_make_node (loc, hse, HDErec (knd, lhdes, hse_rec))
 // end of [hidexp_rec]
+
+implement
+hidexp_rec2
+(
+  loc0, hse0, knd, lhdes, hse_rec
+) = let
+//
+val isflt =
+  (if knd = 0 then true else false): bool
+//
+in
+//
+if
+isflt
+then (
+case+ lhdes of
+| list_cons
+  (
+    lhde, list_nil()
+  ) => let
+    val+LABHIDEXP (l, hde) = lhde in hde
+  end // end of [list_cons]
+| _ (*non-sing*) =>
+    hidexp_rec (loc0, hse0, knd, lhdes, hse_rec)
+  // end of [non-sing]
+) (* end of [then] *)
+else hidexp_rec (loc0, hse0, knd, lhdes, hse_rec)
+//
+end (* end of [hidexp_rec2] *)
+
+(* ****** ****** *)
 
 implement
 hidexp_seq
@@ -586,6 +701,20 @@ hidexp_raise
   hidexp_make_node (loc, hse, HDEraise (hde_exn))
 // end of [hidexp_raise]
 
+(* ****** ****** *)
+//
+implement
+hidexp_vcopyenv
+  (loc, hse, d2v) =
+  hidexp_make_node (loc, hse, HDEvar (d2v))
+//
+(* ****** ****** *)
+//
+implement
+hidexp_tempenver
+  (loc, hse, d2vs) =
+  hidexp_make_node (loc, hse, HDEtempenver (d2vs))
+//
 (* ****** ****** *)
 
 implement
@@ -771,10 +900,12 @@ hivardec_make
 (* ****** ****** *)
 
 implement
-hiimpdec_make (
-  loc, d2c, imparg, tmparg, def
+hiimpdec_make
+(
+  loc, knd, d2c, imparg, tmparg, def
 ) = '{
   hiimpdec_loc= loc
+, hiimpdec_knd= knd
 , hiimpdec_cst= d2c
 , hiimpdec_imparg= imparg
 , hiimpdec_tmparg= tmparg
@@ -793,54 +924,58 @@ hidecl_make_node
 
 implement
 hidecl_none (loc) =
-  hidecl_make_node (loc, HIDnone ())
+  hidecl_make_node (loc, HIDnone())
 // end of [hidecl_none]
 
 implement
 hidecl_list (loc, hids) =
-  hidecl_make_node (loc, HIDlist (hids))
+  hidecl_make_node (loc, HIDlist(hids))
 // end of [hidecl_list]
 
 (* ****** ****** *)
-
+//
 implement
 hidecl_saspdec (loc, d2c) =
-  hidecl_make_node (loc, HIDsaspdec (d2c))
+  hidecl_make_node (loc, HIDsaspdec(d2c))
 // end of [hidecl_saspdec]
-
+implement
+hidecl_reassume (loc, s2c) =
+  hidecl_make_node (loc, HIDreassume(s2c))
+// end of [hidecl_reassume]
+//
 (* ****** ****** *)
 
 implement
 hidecl_extype
   (loc, name, hse_def) =
-  hidecl_make_node (loc, HIDextype (name, hse_def))
+  hidecl_make_node (loc, HIDextype(name, hse_def))
 // end of [hidecl_extype]
 
 implement
-hidecl_extval
+hidecl_extvar
   (loc, name, hde_def) =
-  hidecl_make_node (loc, HIDextval (name, hde_def))
-// end of [hidecl_extval]
+  hidecl_make_node (loc, HIDextvar(name, hde_def))
+// end of [hidecl_extvar]
 
 implement
 hidecl_extcode
   (loc, knd, pos, code) =
-  hidecl_make_node (loc, HIDextcode (knd, pos, code))
+  hidecl_make_node (loc, HIDextcode(knd, pos, code))
 // end of [hidecl_extcode]
 
 (* ****** ****** *)
 
 implement
-hidecl_datdecs
-  (loc, knd, s2cs) =
-  hidecl_make_node (loc, HIDdatdecs (knd, s2cs))
-// end of [hidecl_datdecs]
-
-implement
 hidecl_exndecs
   (loc, d2cs) =
-  hidecl_make_node (loc, HIDexndecs (d2cs))
+  hidecl_make_node(loc, HIDexndecs(d2cs))
 // end of [hidecl_exndecs]
+
+implement
+hidecl_datdecs
+  (loc, knd, s2cs) =
+  hidecl_make_node(loc, HIDdatdecs(knd, s2cs))
+// end of [hidecl_datdecs]
 
 (* ****** ****** *)
 
@@ -888,18 +1023,27 @@ hidecl_vardecs (loc, hvds) =
 (* ****** ****** *)
 
 implement
-hidecl_include (loc, hids) =
-  hidecl_make_node (loc, HIDinclude (hids))
+hidecl_include
+  (loc, knd, hids) =
+  hidecl_make_node (loc, HIDinclude (knd, hids))
 // end of [hidecl_include]
 
 (* ****** ****** *)
 
 implement
 hidecl_staload (
-  loc, fname, flag, loaded, fenv
-) = hidecl_make_node (
-  loc, HIDstaload (fname, flag, loaded, fenv)
-) // end of [hidecl_staload]
+  loc, idopt, fname, flag, loaded, fenv
+) = hidecl_make_node
+  (loc, HIDstaload (idopt, fname, flag, loaded, fenv))
+// end of [hidecl_staload]
+
+implement
+hidecl_staloadloc
+  (loc, pfil, nspace, hids) =
+  hidecl_make_node (loc, HIDstaloadloc (pfil, nspace, hids))
+// end of [hidecl_staloadloc]
+
+(* ****** ****** *)
 
 implement
 hidecl_dynload (loc, fil) =

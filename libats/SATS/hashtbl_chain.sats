@@ -40,15 +40,15 @@
 (* ****** ****** *)
 //
 // HX-2013-01:
+//
 // ported to ATS/Postitats from ATS/Anairiats
 //
 (* ****** ****** *)
-
+//
 #define
-ATS_PACKNAME "ATSLIB.libats.hashtbl_chain"
-#define
-ATS_STALOADFLAG 0 // no static loading at run-time
-
+ATS_PACKNAME
+"ATSLIB.libats.hashtbl_chain"
+//
 (* ****** ****** *)
 
 #include "./SHARE/hashtbl.hats"

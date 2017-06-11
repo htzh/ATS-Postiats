@@ -1,5 +1,6 @@
 (*
-** for testing [libats/hashtbl_chain]
+** for testing
+** [libats/hashtbl_chain]
 *)
 
 (* ****** ****** *)
@@ -25,7 +26,7 @@ staload _(*anon*) = "libats/DATS/hashtbl_chain.dats"
 val () =
 {
 val tbl =
-  hashtbl_make_nil<string,string>(i2sz(1024))
+hashtbl_make_nil<string,string>(i2sz(1024))
 val-~list_vt_nil () = hashtbl_listize (tbl)
 } // end of [val]
 
@@ -62,7 +63,7 @@ val-~Some_vt(1) = hashtbl_search_opt (tbl, "a")
 val-~Some_vt(2) = hashtbl_search_opt (tbl, "b")
 val-~Some_vt(3) = hashtbl_search_opt (tbl, "c")
 //
-val true =
+val-true =
 hashtbl_reset_capacity (tbl, i2sz(10))
 val () = fprintln! (out, "tbl = ", tbl)
 val () = fprintln! (out, "size(tbl) = ", hashtbl_get_size (tbl))

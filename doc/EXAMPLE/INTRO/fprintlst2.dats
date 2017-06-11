@@ -20,7 +20,7 @@ prval () = lemma_list_param (xs)
 //
 fun loop
   {n:nat}
-  {i:int} .<n>. (
+  {i:nat} .<n>. (
   i: int i, xs: list (x, n), env: &env
 ) : intBtwe(i,n+i) =
   case+ xs of
@@ -44,19 +44,23 @@ val () =
 //
 val out = stdout_ref
 //
-val xs1 = nil0()
-val xs2 = nil0()
+val xs1 = g0ofg1($list{int}(0,1,2,3,4))
+val xs2 = g0ofg1($list{int}(5,6,7,8,9))
 val xss = cons0{list0(int)}(xs1, cons0{list0(int)}(xs2, nil0()))
 //
 (*
 implement
 fprint_val<list0(int)> (out, xs) = ()
 *)
+local
 implement
 fprint_val<list0(int)>
   (out, xs) = fprint_list0_sep<int> (out, xs, ", ")
+in(*in-of-local*)
+val () = fprint_list0_sep<list0(int)> (out, xss, "; ")
+end // end of [local]
 //
-val () = fprint_list0_sep<list0(int)> (out, xss, "\n")
+val ((*void*)) = fprint_newline (out)
 //
 } (* end of [val] *)
 
@@ -66,10 +70,10 @@ implement
 main0 () =
 {
 //
-val () = println! ("Your code has passed all the tests given here.")
+val () = println! ("The code has passed all the tests given here.")
 //
 } (* end of [main0] *)
 
 (* ****** ****** *)
 
-(* end of [mysolution4.dats] *)
+(* end of [fprintlst2.dats] *)

@@ -6,7 +6,7 @@ dnl = ***********************************************************************
 
 dnl = 
 dnl =  ATS/Postiats - Unleashing the Potential of Types!
-dnl =  Copyright (C) 2011-2013 Hongwei Xi, ATS Trustful Software, Inc.
+dnl =  Copyright (C) 2011-2014 Hongwei Xi, ATS Trustful Software, Inc.
 dnl =  All rights reserved
 dnl = 
 dnl =  ATS is free software;  you can  redistribute it and/or modify it under
@@ -46,12 +46,51 @@ dnl = checks for library functions
 dnl = checks for system services
 dnl = AC_CONFIG_FILES([file...])
 
-AC_INIT([ATS2/Postiats], [0.0.6], [gmpostiats@gmail.com])
+AC_INIT([ATS2/Postiats], [0.3.6], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.3.5], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.3.4], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.3.3], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.3.2], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.3.1], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.3.0], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.13], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.12], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.11], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.10], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.9], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.8], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.7], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.6], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.5], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.4], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.3], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.2], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.1], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.2.0], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.13], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.12], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.11], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.10], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.9], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.8], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.7], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.6], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.5], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.4], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.3], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.2], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.1], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.1.0], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.0.8], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.0.7], [gmpostiats@gmail.com])
+dnl = AC_INIT([ATS2/Postiats], [0.0.6], [gmpostiats@gmail.com])
 dnl = AC_INIT([ATS2/Postiats], [0.0.5], [gmpostiats@gmail.com])
 dnl = AC_INIT([ATS2/Postiats], [0.0.4], [gmpostiats@gmail.com])
 dnl = AC_INIT([ATS2/Postiats], [0.0.3], [gmpostiats@gmail.com])
 dnl = AC_INIT([ATS2/Postiats], [0.0.2], [gmpostiats@gmail.com])
 dnl = AC_INIT([ATS2/Postiats], [0.0.1], [gmpostiats@gmail.com])
+dnl = VERSION may have a trailing newline
+dnl = AC_INIT([ATS2/Postiats], m4_esyscmd([cat VERSION | tr -d '\n']), [gmpostiats@gmail.com])
 
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADER([config.h])
@@ -59,7 +98,7 @@ AC_CONFIG_FILES([config.mk])
 AC_CONFIG_FILES([bin/patscc_env.sh])
 AC_CONFIG_FILES([bin/patsopt_env.sh])
 
-AM_INIT_AUTOMAKE
+dnl = AM_INIT_AUTOMAKE
 
 AC_PROG_CC
 AC_PROG_INSTALL

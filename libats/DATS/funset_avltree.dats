@@ -66,13 +66,15 @@ datatype avltree
   | E (a, 0) of ((*void*))
 // end of [avltree]
 
-typedef avltree_inc (a:t0p, h:int) =
+typedef
+avltree_inc (a:t0p, h:int) =
   [h1:nat | h <= h1; h1 <= h+1] avltree (a, h1)
-// end of [avltree_inc]
+// end of [avltree_inc] // end of [typedef]
 
-typedef avltree_dec (a:t0p, h:int) =
+typedef
+avltree_dec (a:t0p, h:int) =
   [h1:nat | h1 <= h; h <= h1+1] avltree (a, h1)
-// end of [avltree_dec]
+// end of [avltree_dec] // end of [typedef]
 
 (* ****** ****** *)
 
@@ -641,7 +643,8 @@ end // end of [funset_takeoutmin]
 
 (* ****** ****** *)
 
-implement{a}
+implement
+{a}(*tmp*)
 funset_union
   (t1, t2) = let
 //
@@ -673,7 +676,8 @@ end // end of [funset_union]
 
 (* ****** ****** *)
 
-implement{a}
+implement
+{a}(*tmp*)
 funset_intersect
   (t1, t2) = let
 //
@@ -708,8 +712,9 @@ end // end of [funset_intersect]
 
 (* ****** ****** *)
 
-implement{a}
-funset_diff
+implement
+{a}(*tmp*)
+funset_differ
   (t1, t2) = let
 //
 fun aux
@@ -740,11 +745,12 @@ in
 //
 $effmask_wrt (aux (t1, t2))
 //
-end // end of [funset_diff]
+end // end of [funset_differ]
 
 (* ****** ****** *)
 
-implement{a}
+implement
+{a}(*tmp*)
 funset_symdiff
   (t1, t2) = let
 //
@@ -897,7 +903,7 @@ implement
 funset_foreach_env
   (xs, env) = let
 //
-val p_env = addr@ (env)
+val p_env = addr@(env)
 //
 fun foreach
   {h:nat} .<h>.
@@ -962,7 +968,41 @@ end // end of [funset_listize]
 
 (* ****** ****** *)
 
-implement{a}
+implement
+{a}(*tmp*)
+funset_streamize
+  (xs) = let
+//
+fun
+auxmain{h:nat}
+(
+t0: avltree (a, h)
+) : stream_vt(a) =
+(
+//
+case+ t0 of
+//
+| E () =>
+  stream_vt_make_nil()
+//
+| B (
+    _, x, tl, tr
+  ) => stream_vt_append
+  (
+    auxmain(tl)
+  , $ldelay(stream_vt_cons{a}(x, auxmain(tr)))
+  ) (* stream_vt_append *)
+//
+) (* end of [auxmain] *)
+//
+in
+  $effmask_all(auxmain(xs))
+end // end of [funset_streamize]
+
+(* ****** ****** *)
+
+implement
+{a}(*tmp*)
 funset_avltree_height (xs) = avlht (xs)
 
 (* ****** ****** *)

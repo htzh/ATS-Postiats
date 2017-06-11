@@ -28,15 +28,8 @@ val () = theAtextMap_insert_str ("thisfilename", _thisfilename)
 
 #atscode_separator_for_C()
 
-\#ifndef ATSLIB_PRELUDE_FLOAT_CATS
-\#define ATSLIB_PRELUDE_FLOAT_CATS
-
-#atscode_separator_for_C()
-
-\#ifndef fprintf
-extern
-int fprintf (FILE *stream, const char *format, ...) ;
-\#endif // end of [ifndef]
+\#ifndef ATSLIB_PRELUDE_CATS_FLOAT
+\#define ATSLIB_PRELUDE_CATS_FLOAT
 
 #atscode_separator_for_C()
 
@@ -121,7 +114,7 @@ atstype_double x
 extern double atof (const char *inp) ;
 //
 ATSinline()
-atstype_int
+atstype_double
 atspre_g0string2float_double
   (atstype_string inp) { return atof((char*)inp) ; }
 //
@@ -171,7 +164,8 @@ atspre_g0float_pred_ldouble (atstype_ldouble f) { return (f-1) ; }
 
 %{
 fun
-fun_g0float_aop_decl (
+fun_g0float_aop_decl
+(
   opr: string, knd: string
 ) : atext = let
 //
@@ -356,62 +350,6 @@ atspre_g0float_max_ldouble
 
 #atscode_separator_for_C()
 
-ATSinline()
-atsvoid_t0ype
-atspre_fprint_float (
-  atstype_ref r, atstype_float x
-) {
-  int err = 0 ;
-  err += fprintf((FILE*)r, "%f", x) ;
-/*
-  if (err < 0) {
-    fprintf(stderr, "exit(ATS): [fprint_float] failed.") ; exit(1) ;
-  } // end of [if]
-*/
-  return ;
-} // end [atspre_fprint_float]
-
-\#define atspre_print_float(x) atspre_fprint_float(stdout, (x))
-\#define atspre_prerr_float(x) atspre_fprint_float(stderr, (x))
-
-ATSinline()
-atsvoid_t0ype
-atspre_fprint_double (
-  atstype_ref r, atstype_double x
-) {
-  int err = 0 ;
-  err += fprintf((FILE*)r, "%f", x) ;
-/*
-  if (err < 0) {
-    fprintf(stderr, "exit(ATS): [fprint_double] failed.") ; exit(1) ;
-  } // end of [if]
-*/
-  return ;
-} // end [atspre_fprint_double]
-
-\#define atspre_print_double(x) atspre_fprint_double(stdout, (x))
-\#define atspre_prerr_double(x) atspre_fprint_double(stderr, (x))
-
-ATSinline()
-atsvoid_t0ype
-atspre_fprint_ldouble (
-  atstype_ref r, atstype_ldouble x
-) {
-  int err = 0 ;
-  err += fprintf((FILE*)r, "%Lf", x) ;
-/*
-  if (err < 0) {
-    fprintf(stderr, "exit(ATS): [fprint_ldouble] failed.") ; exit(1) ;
-  } // end of [if]
-*/
-  return ;
-} // end [atspre_fprint_ldouble]
-
-\#define atspre_print_ldouble(x) atspre_fprint_ldouble(stdout, (x))
-\#define atspre_prerr_ldouble(x) atspre_fprint_ldouble(stderr, (x))
-
-#atscode_separator_for_C()
-
 %{
 fun
 fun_aop_int_g0float_decl (
@@ -506,12 +444,13 @@ end // end of [fun_aop_g0float_int_decl]
 //
 #atscode_separator_for_C()
 
-\#endif // ifndef ATSLIB_PRELUDE_FLOAT_CATS
+\#endif // ifndef ATSLIB_PRELUDE_CATS_FLOAT
 
 #atscode_separator_for_C()
 
 #atscode_eof_strsub_for_C("\#thisfilename$")
 
 %{
-implement main () = fprint_filsub (stdout_ref, "float_atxt.txt")
+implement
+main (argc, argv) = fprint_filsub (stdout_ref, "float_atxt.txt")
 %}\

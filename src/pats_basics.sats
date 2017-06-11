@@ -34,9 +34,9 @@
 (* ****** ****** *)
 
 typedef
-fprint_type (a: t@ype) = (FILEref, a) -> void
+fprint_type(a:t@ype) = (FILEref, a) -> void
 typedef
-fprint_vtype (a: viewt@ype) = (FILEref, !a) -> void
+fprint_vtype(a:viewt@ype) = (FILEref, !a) -> void
 
 (* ****** ****** *)
 
@@ -51,8 +51,12 @@ fun test_prfkind (knd: int): bool // is proof?
 fun test_prgmkind (knd: int): bool // is program?
 fun test_polkind (knd: int): int // 0/1/-1
 
+(* ****** ****** *)
+
 fun impkind_linearize (knd: int): int
 fun impkind_neutralize (knd: int): int
+
+(* ****** ****** *)
 
 fun lte_impkind_impkind (k1: int, k1: int): bool
 
@@ -90,7 +94,7 @@ funkind =
   | FK_prfn // nonrec proof fun
   | FK_prfun // recursive proof fun
 //
-  | FK_praxi // proof axion
+  | FK_praxi // proof axiom
 //
   | FK_castfn // casting fun
 // end of [funkind]
@@ -104,16 +108,22 @@ fun fprint_funkind : fprint_type (funkind)
 datatype
 valkind =
   | VK_val // val
-  | VK_prval // prval
   | VK_val_pos // val+
   | VK_val_neg // val-
+(*
+  | VK_mcval // mcval: for model-checking
+*)
+  | VK_prval // prval: for theorem-proving
 // end of [valkind]
 
-fun valkind_is_proof (vk: valkind):<> bool
+(* ****** ****** *)
+
+fun
+valkind_is_model (vk: valkind):<> bool
+fun
+valkind_is_proof (vk: valkind):<> bool
 
 fun fprint_valkind : fprint_type (valkind)
-
-(* ****** ****** *)
 
 fun valkind2caskind (knd: valkind): caskind
 
@@ -140,7 +150,10 @@ fun dcstkind_is_castfn (dck: dcstkind):<> bool
 fun fprint_dcstkind : fprint_type (dcstkind)
 
 (* ****** ****** *)
-
+//
+#define CLOPTR ( 1)
+#define CLOREF (~1)
+//
 datatype
 funclo =
 //
@@ -156,8 +169,6 @@ vtypedef fcopt_vt = Option_vt (funclo)
 //
 (* ****** ****** *)
 
-#define CLOPTR ( 1)
-#define CLOREF (~1)
 macdef FUNCLOcloptr = FUNCLOclo (CLOPTR)
 macdef FUNCLOcloref = FUNCLOclo (CLOREF)
 
@@ -180,18 +191,43 @@ overload != with neq_funclo_funclo
 //
 // HX: implemented in pats_basics.dats
 //
-fun debug_flag_get (): int = "patsopt_debug_flag_get"
-fun debug_flag_set (i: int): void = "patsopt_debug_flag_set"
-
-fun prerrf_ifdebug {ts:types}
-  (fmt: printf_c ts, arg: ts): void = "patsopt_prerrf_ifdebug"
-// end of [prerrf_ifdebug]
-
+fun
+debug_flag_get
+  ((*void*)): int = "patsopt_debug_flag_get"
+fun
+debug_flag_set
+  (flag: int): void = "patsopt_debug_flag_set"
+//
+fun
+prerrf_ifdebug
+  {ts:types}
+(
+  fmt: printf_c ts, arg: ts
+) : void = "patsopt_prerrf_ifdebug"
+//
 macdef
 filprerr_ifdebug (x) =
   prerrf_ifdebug (": [%s]: %s", @(#FILENAME, ,(x)))
-// end of [filprerr_ifdebug]
-
+//
+(* ****** ****** *)
+//
+#define
+PATS_MAJOR_VERSION 0
+#define
+PATS_MINOR_VERSION 3
+#define
+PATS_MICRO_VERSION 6
+//
+// HX-2011-04-27: this is supported in Postiats:
+//
+macdef
+PATS_fVER(MAJOR, MINOR, MICRO) =
+  (1000 * (1000 * ,(MAJOR) + ,(MINOR)) + ,(MICRO))
+//
+macdef
+PATS_VERSION() =
+  PATS_fVER(PATS_MAJOR_VERSION, PATS_MINOR_VERSION, PATS_MICRO_VERSION)
+//
 (* ****** ****** *)
 
 (* end of [pats_basics.sats] *)

@@ -45,6 +45,11 @@ implement prerr_FILENAME<> () = prerr "pats_trans1_staexp"
 (* ****** ****** *)
 
 staload
+LOC = "./pats_location.sats"
+
+(* ****** ****** *)
+
+staload
 FIL = "./pats_filename.sats"
 staload FIX = "./pats_fixity.sats"
 staload SYM = "./pats_symbol.sats"
@@ -56,9 +61,17 @@ staload "./pats_symenv.sats"
 
 (* ****** ****** *)
 
+staload SYN = "./pats_syntax.sats"
+
+(* ****** ****** *)
+
 staload "./pats_staexp1.sats"
 staload "./pats_dynexp1.sats"
 staload "./pats_trans1_env.sats"
+
+(* ****** ****** *)
+
+overload print with $LOC.print_location
 
 (* ****** ****** *)
 
@@ -314,6 +327,11 @@ end // end of [local]
 
 (* ****** ****** *)
 
+(*
+//
+// HX-2014-07:
+// these function are no longer in use
+//
 local
 
 var the_level: int = 0
@@ -350,6 +368,7 @@ the_trans1_level_dec
 } // end of [the_trans1_level_dec]
 
 end // end of [local]
+*)
 
 (* ****** ****** *)
 
@@ -440,37 +459,49 @@ staload_file_search
   (fil) = let
 //
 val fname =
-  $FIL.filename_get_fullname (fil)
+  $FIL.filename_get_fullname(fil)
 //
-val k0 = $SYM.symbol_get_stamp (fname)
+val k0 = $SYM.symbol_get_stamp(fname)
 //
-val (vbox(pf) | p) = ref_get_view_ptr{map}(theStaloadMap)
+val
+(
+vbox(pf)|p
+) = ref_get_view_ptr{map}(theStaloadMap)
 //
 var res: itm?  
-val found = $LM.linmap_search<key,itm> (!p, k0, cmp0, res)
+//
+val found =
+  $LM.linmap_search<key,itm>(!p, k0, cmp0, res)
 //
 in
 //
-if found then let
-  prval () = opt_unsome {itm} (res) in Some_vt (res)
-end else let
-  prval () = opt_unnone {itm} (res) in None_vt ()
-end (* end of [if] *)
+if
+found
+then let
+  prval () = opt_unsome{itm}(res) in Some_vt(res)
+end // end of [then]
+else let
+  prval () = opt_unnone{itm}(res) in None_vt(*void*)
+end (* end of [else] *)
 //
 end // end of [staload_file_search]
 
 (* ****** ****** *)
 
+(*
+** HX-2014-06-06:
+** [ldflag] is no longer in use
+*)
 implement
 staload_file_insert
-  (fil, flag, d1cs) = {
+  (fil, ldflag, d1cs) = {
 //
 val fname =
   $FIL.filename_get_fullname (fil)
 //
 val k0 = $SYM.symbol_get_stamp (fname)
 //
-var x0: itm = (flag, d1cs) // HX: local var
+var x0: itm = (ldflag, d1cs) // HX: local var
 //
 val (vbox(pf) | p) = ref_get_view_ptr{map}(theStaloadMap)
 //
@@ -484,29 +515,215 @@ end // end of [local]
 
 (* ****** ****** *)
 
+implement
+fprint_atsrelocitm
+  (out, itm) = let
+//
+macdef
+prstr(s) =
+fprint_string(out, ,(s))
+//
+fun
+auxpr
+(
+  out: FILEref, d0c: $SYN.d0ecl
+) : void =
+(
+case+
+d0c.d0ecl_node
+of (* case+ *)
+| $SYN.D0Cinclude _ => fprint (out, "include")
+| $SYN.D0Cstaload _ => fprint (out, "staload")
+| $SYN.D0Crequire _ => fprint (out, "require")
+| $SYN.D0Cdynload _ => fprint (out, "dynload")
+| _ (*rest/deadcode*) => fprint (out, "*ERROR*")
+)
+//
+in
+//
+case+ itm of
+| ATSRELOCITM
+    (d0c, given) =>
+  {
+    val () = prstr "{\n"
+    val () = prstr "\"atsreloc_kind\": "
+    val () = prstr "\""
+    val () = auxpr (out, d0c)
+    val () = prstr "\""
+    val () = prstr "\n,\n"
+    val () = prstr "\"atsreloc_given\": "
+    val () = prstr "\""
+    val () = fprint_string (out, given)
+    val () = prstr "\""
+    val () = prstr "\n}\n"
+  }
+| ATSRELOCITM2
+    (d0c, source, target) =>
+  {
+    val () = prstr "{\n"
+    val () = prstr "\"atsreloc_kind\": "
+    val () = prstr "\""
+    val () = auxpr (out, d0c)
+    val () = prstr "\""
+    val () = prstr "\n,\n"
+    val () = prstr "\"atsreloc_target\": "
+    val () = prstr "\""
+    val () = fprint_string (out, target)
+    val () = prstr "\""
+    val () = prstr "\n,\n"
+    val () = prstr "\"atsreloc_source\": "
+    val () = prstr "\""
+    val () = fprint_string (out, source)
+    val () = prstr "\""
+    val () = prstr "\n}\n"  
+  }
+//
+end // end of [fprint_atsrelocitm]
+
+implement
+fprint_atsrelocitmlst
+  (out, xs) = let
+in
+//
+case+ xs of
+| list_nil () => ()
+| list_cons (x, xs) => (
+    fprint_atsrelocitm (out, x); fprint_atsrelocitmlst (out, xs)
+  ) (* end of [list_cons] *)
+//
+end // end of [fprint_atsrelocitmlst]
+
+(* ****** ****** *)
+
+local
+//
+val the_itmlst =
+  ref<atsrelocitmlst> (list_nil)
+//
+in (* in-of-local *)
+
+implement
+the_atsrelocitmlst_get () = let
+  val xs = !the_itmlst
+  val () = !the_itmlst := list_nil
+in
+  list_of_list_vt (list_reverse (xs))
+end // end of [the_itmlst_get]
+
+(* ****** ******* *)
+
+implement
+the_atsreloc_insert
+  (d0c0, given) = let
+//
+val
+loc0 = d0c0.d0ecl_loc
+//
+(*
+val () =
+println! ("the_atsreloc_insert: loc0 = ", loc0)
+val () =
+println! ("the_atsreloc_insert: given = ", given)
+*)
+//
+val itm =
+ATSRELOCITM(d0c0, given)
+val ((*void*)) =
+!the_itmlst := list_cons(itm, !the_itmlst)
+//
+in
+  // nothing
+end // end of [the_atsreloc_insert]
+
+implement
+the_atsreloc_insert2
+  (d0c0, given_s, given_t) = let
+//
+val
+loc0 = d0c0.d0ecl_loc
+//
+(*
+val (
+) = print
+  ("the_atsreloc_insert: d0c0 = ")
+val () = $SYN.fprint_d0ecl (stdout_ref, d0c0)
+val () = fprint_newline (stdout_ref)
+*)
+(*
+val () =
+println! ("the_atsreloc_insert2: ", loc0)
+val () =
+println! ("the_atsreloc_insert2: sourceloc= ", given_s)
+val () =
+println! ("the_atsreloc_insert2: targetloc= ", given_t)
+*)
+//
+val itm =
+ATSRELOCITM2(d0c0, given_s, given_t)
+//
+val () =
+!the_itmlst := list_cons(itm, !the_itmlst)
+//
+in
+  // nothing
+end // end of [the_atsreloc_insert2]
+
+end // end of [local]
+
+(* ****** ****** *)
+
 local
 
 %{^
-extern ats_ptr_type patsopt_PATSHOMERELOC_get () ;
+//
+extern
+ats_ptr_type patsopt_PATSHOME_get() ;
+extern
+ats_ptr_type patsopt_PATSCONTRIB_get() ;
+/*
+extern
+ats_ptr_type patsopt_PATSHOMELOCS_get() ;
+*/
+//
 %} // end of [%{^]
 
 in (* in of [local] *)
 
 implement
-the_trans1_env_initialize () =
+the_trans1_env_initialize
+  ((*void*)) =
 {
 //
-val opt = get () where
+val
+opt = get() where
 {
-  extern fun get (): Stropt = "mac#patsopt_PATSHOMERELOC_get"
+  extern
+  fun get(): Stropt = "mac#patsopt_PATSHOME_get"
+} (* end of [val] *)
+//
+val
+issome =
+stropt_is_some(opt)
+//
+val () =
+if issome then let
+  val k = $SYM.symbol_PATSHOME
+  val x = e1xp_string($LOC.location_dummy, stropt_unsome(opt))
+in
+  the_e1xpenv_addperv(k, x)
+end // end of [if] // end of [val]
+//
+val opt = get() where
+{
+  extern fun get(): Stropt = "mac#patsopt_PATSCONTRIB_get"
 } (* end of [val] *)
 val issome = stropt_is_some (opt)
 val () =
 if issome then let
-  val k = $SYM.symbol_PATSHOMERELOC
-  val x = e1xp_string ($LOC.location_dummy, stropt_unsome(opt))
+  val k = $SYM.symbol_PATSCONTRIB
+  val x = e1xp_string($LOC.location_dummy, stropt_unsome(opt))
 in
-  the_e1xpenv_addperv (k, x)
+  the_e1xpenv_addperv(k, x)
 end // end of [if] // end of [val]
 //
 } (* end of [the_trans1_env_initialize] *)

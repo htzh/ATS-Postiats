@@ -6,6 +6,14 @@
 // the problem of Dining Philosophers
 //
 (* ****** ****** *)
+
+%{^
+//
+#include <pthread.h>
+//
+%} // end of [%{^]
+
+(* ****** ****** *)
 //
 #include
 "share/atspre_define.hats"
@@ -18,13 +26,13 @@ staload
 UN = "prelude/SATS/unsafe.sats"
 
 (* ****** ****** *)
-
-staload "{$LIBATSHWXI}/teaching/mythread/SATS/channel.sats"
-
+//
+#include
+"{$LIBATSHWXI}/threadkit/staloadall.hats"
+//
 (* ****** ****** *)
 
-staload _ = "libats/DATS/deqarray.dats"
-staload _ = "{$LIBATSHWXI}/teaching/mythread/DATS/channel.dats"
+staload $CHANNEL
 
 (* ****** ****** *)
 

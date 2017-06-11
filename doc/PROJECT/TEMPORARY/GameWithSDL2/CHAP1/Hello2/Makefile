@@ -8,10 +8,14 @@ include \
 $(PATSHOME)/share/atsmake-pre.mk
 
 ######
-
+#
 CFLAGS += -O2
+CFLAGS += -I$(PATSCONTRIB)/contrib
+#
 CFLAGS += $(shell pkg-config sdl2 --cflags)
-
+#
+MALLOCFLAG := -DATS_MEMALLOC_LIBC
+#
 ######
 
 LDFLAGS :=
@@ -19,18 +23,11 @@ LDFLAGS += $(shell pkg-config sdl2 --libs)
 
 ######
 
-MALLOCFLAG := -DATS_MEMALLOC_LIBC
+MYTARGET=Hello
 
 ######
 
 SOURCES_DATS += Hello.dats
-SOURCES_DATS += Hello_Window.dats
-SOURCES_DATS += Hello_Renderer.dats
-SOURCES_DATS += Hello_isRunning.dats
-
-######
-
-MYTARGET=Hello
 
 ######
 

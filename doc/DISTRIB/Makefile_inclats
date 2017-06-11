@@ -4,17 +4,34 @@
 #
 
 ######
-
+#
 SRC=ATS-Postiats
 DST=ATS-Postiats-include
-
+#
+SRC2=ATS-Postiats-contrib
+DST2=ATS-Postiats-include/patscontrib
+#
 ######
 
 all:: update
+all:: update2
 
 ######
 
 CPF=cp -f
+CPRF=cp -rf
+
+######
+
+update:: ; \
+  $(CPF) $(SRC)/share/atsmake-pre.mk $(DST)/share/.
+update:: ; \
+  $(CPF) $(SRC)/share/atsmake-post.mk $(DST)/share/.
+
+######
+
+update:: ; \
+  $(CPF) $(SRC)/share/H/pats_atslib.h $(DST)/share/H/.
 
 ######
 
@@ -24,30 +41,92 @@ update:: ; \
   $(CPF) $(SRC)/ccomp/runtime/*.c $(DST)/ccomp/runtime/.
 
 ######
-
+#
 update:: ; \
   $(CPF) $(SRC)/prelude/CATS/*.cats $(DST)/prelude/CATS/.
-update:: ; $(CPF) $(SRC)/libc/CATS/*.cats $(DST)/libc/CATS/.
-update:: ; $(CPF) $(SRC)/libc/sys/CATS/*.cats $(DST)/libc/sys/CATS/.
-update:: ; $(CPF) $(SRC)/libc/gdbm/CATS/*.cats $(DST)/libc/sys/CATS/.
+#
 update:: ; $(CPF) $(SRC)/libats/CATS/*.cats $(DST)/libats/CATS/.
+update:: ; $(CPF) $(SRC)/libats/ML/CATS/*.cats $(DST)/libats/ML/CATS/.
+#
+update:: ; $(CPF) $(SRC)/libats/libc/CATS/*.cats $(DST)/libats/libc/CATS/.
+update:: ; $(CPF) $(SRC)/libats/libc/CATS/sys/*.cats $(DST)/libats/libc/CATS/sys/.
+update:: ; $(CPF) $(SRC)/libats/libc/CATS/arpa/*.cats $(DST)/libats/libc/CATS/arpa/.
+update:: ; $(CPF) $(SRC)/libats/libc/CATS/netinet/*.cats $(DST)/libats/libc/CATS/netinet/.
+update:: ; $(CPF) $(SRC)/libats/libc/CATS/gdbm/*.cats $(DST)/libats/libc/CATS/gdbm/.
+#
+######
+#
+# ATS-contrib
+#
+######
+
+update2:: ; \
+  $(CPF) $(SRC2)/contrib/glib/CATS/glib.cats $(DST2)/glib/CATS/.
+update2:: ; \
+  $(CPF) $(SRC2)/contrib/glib/CATS/glib-object.cats $(DST2)/glib/CATS/.
 
 ######
 
-TARVCFZ=tar vcfz
+update2:: ; \
+  $(CPF) $(SRC2)/contrib/GTK/CATS/gdk.cats $(DST2)/GTK/CATS/.
+update2:: ; $(CPRF) $(SRC2)/contrib/GTK/CATS/gdk $(DST2)/GTK/CATS/.
+update2:: ; \
+  $(CPF) $(SRC2)/contrib/GTK/CATS/gtk.cats $(DST2)/GTK/CATS/.
+update2:: ; $(CPRF) $(SRC2)/contrib/GTK/CATS/gtk $(DST2)/GTK/CATS/.
 
 ######
 
-PACKNAME=ATS2-Postiats-include-0.0.6
+TARZVCF=tar -zvcf
+
+######
+#
+PACKNAME=ATS2-Postiats-include-0.3.5
+# PACKNAME=ATS2-Postiats-include-0.3.4
+# PACKNAME=ATS2-Postiats-include-0.3.3
+# PACKNAME=ATS2-Postiats-include-0.3.2
+# PACKNAME=ATS2-Postiats-include-0.3.1
+# PACKNAME=ATS2-Postiats-include-0.3.0
+# PACKNAME=ATS2-Postiats-include-0.2.13
+# PACKNAME=ATS2-Postiats-include-0.2.12
+# PACKNAME=ATS2-Postiats-include-0.2.11
+# PACKNAME=ATS2-Postiats-include-0.2.10
+# PACKNAME=ATS2-Postiats-include-0.2.9
+# PACKNAME=ATS2-Postiats-include-0.2.8
+# PACKNAME=ATS2-Postiats-include-0.2.7
+# PACKNAME=ATS2-Postiats-include-0.2.6
+# PACKNAME=ATS2-Postiats-include-0.2.5
+# PACKNAME=ATS2-Postiats-include-0.2.4
+# PACKNAME=ATS2-Postiats-include-0.2.3
+# PACKNAME=ATS2-Postiats-include-0.2.2
+# PACKNAME=ATS2-Postiats-include-0.2.1
+# PACKNAME=ATS2-Postiats-include-0.2.0
+# PACKNAME=ATS2-Postiats-include-0.1.13
+# PACKNAME=ATS2-Postiats-include-0.1.12
+# PACKNAME=ATS2-Postiats-include-0.1.11
+# PACKNAME=ATS2-Postiats-include-0.1.10
+# PACKNAME=ATS2-Postiats-include-0.1.9
+# ATS2-Postiats-include-0.1.8(skipped)
+# PACKNAME=ATS2-Postiats-include-0.1.7
+# PACKNAME=ATS2-Postiats-include-0.1.6
+# PACKNAME=ATS2-Postiats-include-0.1.5
+# PACKNAME=ATS2-Postiats-include-0.1.4
+# PACKNAME=ATS2-Postiats-include-0.1.3
+# PACKNAME=ATS2-Postiats-include-0.1.2
+# PACKNAME=ATS2-Postiats-include-0.1.1
+# PACKNAME=ATS2-Postiats-include-0.1.0
+# PACKNAME=ATS2-Postiats-include-0.0.8
+# PACKNAME=ATS2-Postiats-include-0.0.7
+# PACKNAME=ATS2-Postiats-include-0.0.6
 # PACKNAME=ATS2-Postiats-include-0.0.5
 # PACKNAME=ATS2-Postiats-include-0.0.4
-
+#
 ######
 
-tarvcfz:: update
-tarvcfz:: ; rm -rf $(PACKNAME)
-tarvcfz:: ; cp -rf $(DST) $(PACKNAME)
-tarvcfz:: ; $(TARVCFZ) $(PACKNAME).tgz $(PACKNAME)
+tarzvcf:: update
+tarzvcf:: update2
+tarzvcf:: ; rm -rf $(PACKNAME)
+tarzvcf:: ; cp -rf $(DST) $(PACKNAME)
+tarzvcf:: ; $(TARZVCF) $(PACKNAME).tgz $(PACKNAME)
 
 ######
 

@@ -39,13 +39,13 @@
 // HX-2012-11-30: ported to ATS/Postiats from ATS/Anairiats
 //
 (* ****** ****** *)
-
-#define ATS_STALOADFLAG 0 // no need for staloading at run-time
-
-(* ****** ****** *)
-
-staload "libats/SATS/ilist_prf.sats" // for handling integer sequences
-
+//
+// HX:
+// for integer sequences
+//
+staload
+"libats/SATS/ilist_prf.sats"
+//
 (* ****** ****** *)
 
 staload "libats/SATS/gfarray.sats"
@@ -261,6 +261,36 @@ prval pfsnoc =
 in
   (pfsnoc, pf2at, pf1arr)
 end // end of [gfarray_v_unextend]
+
+(* ****** ****** *)
+
+local
+
+staload UN = "prelude/SATS/unsafe.sats"
+
+in (* in-of-local *)
+//
+implement
+{a}(*tmp*)
+gfarray_get_at
+  {l}{x0}{xs}{i0}
+  (pf1, pf2 | gp0, i0) =
+  $UN.ptr0_get_at<stamped_t(a, x0)>(gp0, i0)
+//
+implement
+{a}(*tmp*)
+gfarray_set_at
+  {l}{x0}{xs1}{xs2}{i0}
+  (pf1, pf2 | gp0, i0, x0) = let
+//
+prval () =
+  pf2 := $UN.castview0(pf2)
+//
+in
+  $UN.ptr0_set_at<stamped_t(a, x0)>(gp0, i0, x0)
+end // end of [gfarray_set_at]
+//
+end // end of [local]
 
 (* ****** ****** *)
 

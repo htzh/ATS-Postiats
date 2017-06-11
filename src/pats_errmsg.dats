@@ -38,6 +38,13 @@ staload "./pats_errmsg.sats"
 (* ****** ****** *)
 
 implement{}
+prerr_ERROR_beg() = prerr ("**ERROR(000000):beg**\n")
+implement{}
+prerr_ERROR_end() = prerr ("**ERROR(000000):end**\n")
+
+(* ****** ****** *)
+
+implement{}
 prerr_interror () =
 {
   val () = (
@@ -111,6 +118,12 @@ prerr_warning3_loc (loc) =
 (
   $LOC.prerr_location (loc); prerr ": warning(3)"
 ) // end of [prerr_warning3_loc]
+
+implement{}
+prerr_warning4_loc (loc) =
+(
+  $LOC.prerr_location (loc); prerr ": warning(4)"
+) // end of [prerr_warning4_loc]
 
 (* ****** ****** *)
 

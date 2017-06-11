@@ -19,7 +19,6 @@
 
 (* ****** ****** *)
 //
-#include "share/atspre_define.hats"
 #include "share/atspre_staload.hats"
 //
 (* ****** ****** *)
@@ -60,7 +59,7 @@ fun{
 a:t@ype
 } list0_length
   (xs: list0 (a)): int =
-  try 1 + list0_length<a> (xs.tail) with ~ListSubscriptExn() => 0
+  try 1 + list0_length<a> (xs.tail()) with ~ListSubscriptExn() => 0
 // end of [list0_length]
 
 (* ****** ****** *)
@@ -80,7 +79,7 @@ fun sumup
   val i = ref<int> (1)
   val res = ref<int> (0)
 //
-  fun loop ():<cloref1> void =
+  fun loop (): void =
     if !i <= n then (!res := !res + !i; !i := !i + 1; loop ())
   // end of [loop]
 in
@@ -115,17 +114,18 @@ a:t@ype
 val nrow = mtrxszref_get_nrow (M)
 //
 fnx loop1
-  (i: size_t):<cloref1> void =
+  (i: size_t): void =
   if i < nrow then loop2 (i, i2sz(0)) else ()
 //
 and loop2
-  (i: size_t, j: size_t):<cloref1> void =
-  if j < i then let
-    val tmp = M[i,j]
-  in
-    M[i,j] := M[j,i]; M[j,i] := tmp; loop2 (i, succ(j))
-  end else
-    loop1 (succ(i))
+  (i: size_t, j: size_t): void =
+  if j < i
+    then let
+      val tmp = M[i,j]
+    in
+      M[i,j] := M[j,i]; M[j,i] := tmp; loop2 (i, succ(j))
+    end // end of [then]
+    else loop1 (succ(i))
   // end of [if]
 //
 in
@@ -134,17 +134,7 @@ end // end of [mtrxszref_transpose]
 
 (* ****** ****** *)
 
-staload "libc/SATS/stdlib.sats"
-
-(* ****** ****** *)
-
-staload "{$LIBATSHWXI}/testing/SATS/randgen.sats"
-staload _(*anon*) = "{$LIBATSHWXI}/testing/DATS/randgen.dats"
-
-(* ****** ****** *)
-
-typedef T = double
-implement randgen_val<T> () = drand48 ()
+staload "libats/libc/SATS/stdlib.sats"
 
 (* ****** ****** *)
 

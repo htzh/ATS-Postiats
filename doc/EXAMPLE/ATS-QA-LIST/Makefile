@@ -142,15 +142,156 @@ cleanall:: ; $(RMF) qa-list-209
 
 ######
 
-all:: list_last
-list_last: list_last.dats ; \
+all:: qa-list-223
+qa-list-223: qa-list-223.dats ; $(PATSCC) -tcats $<
+
+######
+
+all:: qa-list-229
+qa-list-229: qa-list-229.dats ; \
+  $(PATSCC) -cleanaft -DATS_MEMALLOC_LIBC -o $@ $<
+cleanall:: ; $(RMF) qa-list-229
+
+######
+
+all:: qa-list-244
+qa-list-244: qa-list-244.dats ; $(PATSCC) -o $@ $<
+cleanall:: ; $(RMF) qa-list-244
+
+######
+
+all:: qa-list-262
+qa-list-262: qa-list-262.dats ; $(PATSCC) -o $@ $<
+cleanall:: ; $(RMF) qa-list-262
+
+######
+
+all:: \
+qa-list-285
+qa-list-285: \
+qa-list-285.dats ; \
+  $(PATSCC) -cleanaft -DATS_MEMALLOC_LIBC -o $@ $<
+cleanall:: ; $(RMF) qa-list-285
+
+######
+
+all:: \
+qa-list-303
+qa-list-303: \
+qa-list-303.dats ; $(PATSCC) -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-303
+
+######
+
+all:: \
+qa-list-312
+qa-list-312: \
+qa-list-312.dats ; $(PATSCC) -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-312
+
+######
+
+all:: \
+qa-list-334
+qa-list-334: qa-list-334.dats ; $(PATSCC) -tcats $<
+
+######
+
+all:: \
+qa-list-358
+qa-list-358: qa-list-358.dats ; $(PATSCC) -tcats $<
+
+######
+
+all:: \
+qa-list-370
+qa-list-370: qa-list-370.dats ; $(PATSCC) -tcats $<
+
+######
+
+all:: \
+qa-list-387
+qa-list-387: \
+qa-list-387.dats ; $(PATSCC) -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-387
+
+######
+
+all:: \
+qa-list-2014-12-04
+qa-list-2014-12-04: \
+qa-list-2014-12-04.dats ; \
+$(PATSCC) -DATS_MEMALLOC_LIBC -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-2014-12-04
+
+######
+
+all:: \
+qa-list-2014-12-04-2
+qa-list-2014-12-04-2: \
+qa-list-2014-12-04-2.dats ; \
+$(PATSCC) -DATS_MEMALLOC_LIBC -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-2014-12-04-2
+
+######
+
+all:: \
+qa-list-2014-12-07
+qa-list-2014-12-07: \
+qa-list-2014-12-07.dats ; \
+$(PATSCC) -DATS_MEMALLOC_LIBC -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-2014-12-07
+
+######
+
+all:: \
+qa-list-2015-01-03
+qa-list-2015-01-03: \
+qa-list-2015-01-03.dats ; \
+$(PATSCC) -DATS_MEMALLOC_LIBC -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-2015-01-03
+
+######
+
+all:: \
+qa-list-2015-01-03-2
+qa-list-2015-01-03-2: \
+qa-list-2015-01-03-2.dats ; \
+$(PATSCC) -DATS_MEMALLOC_LIBC -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-2015-01-03-2
+
+######
+
+all:: \
+qa-list-2015-02-08
+qa-list-2015-02-08: \
+qa-list-2015-02-08.dats ; \
+$(PATSCC) -DATS_MEMALLOC_LIBC -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-2015-02-08
+
+######
+
+all:: \
+qa-list-2015-02-20
+qa-list-2015-02-20: \
+qa-list-2015-02-20.dats; $(PATSCC) -cleanaft -o $@ $<
+cleanall:: ; $(RMF) qa-list-2015-02-20
+
+######
+
+all:: \
+list_last
+list_last: \
+list_last.dats ; \
   $(PATSCC) -cleanaft -DATS_MEMALLOC_LIBC -o $@ $<
 cleanall:: ; $(RMF) list_last
 
 ######
 
-all:: list_copy
-list_copy: list_copy.dats ; \
+all:: \
+list_copy
+list_copy: \
+list_copy.dats ; \
   $(PATSCC) -cleanaft -DATS_MEMALLOC_LIBC -o $@ $<
 cleanall:: ; $(RMF) list_copy
 

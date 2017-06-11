@@ -34,7 +34,6 @@
 (* ****** ****** *)
 
 #define ATS_PACKNAME "ATSLIB.libats.ML"
-#define ATS_STALOADFLAG 0 // no need for staloading at run-time
 #define ATS_EXTERN_PREFIX "atslib_ML_" // prefix for external names
 
 (* ****** ****** *)
@@ -48,17 +47,17 @@ staload "./basis.sats"
 (* ****** ****** *)
 
 fun{a:t0p}
-monad_list_list (xs: list0 (INV(a))): monad (a)
+monad_list_list(xs: list0(INV(a))): monad(a)
 
 (* ****** ****** *)
 
 fun{a:t0p}
-monad_list_listize (m: monad (INV(a))): list0 (a)
+monad_list_listize(m: monad(INV(a))): list0(a)
 
 (* ****** ****** *)
 //
 fun{a:t0p}
-fprint_monad (out: FILEref, m: monad (INV(a))): void
+fprint_monad(out: FILEref, m: monad(INV(a))): void
 overload fprint with fprint_monad
 //
 (* ****** ****** *)

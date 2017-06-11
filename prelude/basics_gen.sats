@@ -42,46 +42,72 @@
 #endif // end of [VERBOSE_PRELUDE]
 
 (* ****** ****** *)
-
-fun{a:t0p}
-gcopy_val (x: INV(a)):<> a
-
-fun{a:vt0p}
+//
+fun
+{a:t0p}
+gidentity (x: INV(a)):<> a
+//
+fun
+{a:vt0p}
+gidentity_vt (x: INV(a)):<> a
+//
+(* ****** ****** *)
+//
+fun
+{a:vt0p}
+gcopy_val (x: !INV(a)):<!wrt> a
+//
+fun
+{a:vt0p}
 gcopy_ref (x: &INV(a)):<!wrt> a
-
+//
 (* ****** ****** *)
-
-fun{a:vt0p}
+//
+fun
+{a:vt0p}
 gfree_val (x: INV(a)):<!wrt> void
+//
+(*
+fun
+{a:vt0p}
+gfree_ref (x: &INV(a) >> a?):<!wrt> void
+*)
+//
+(* ****** ****** *)
+
+fun
+{a:vt0p}
+ginit_ref (x: &a? >> a):<!wrt> void
 
 (* ****** ****** *)
 
-fun{a:vt0p}
-ginit_ref (x: &a? >> a):<!wrt> void
-fun{a:vt0p}
+fun
+{a:vt0p}
 gclear_ref (x: &a >> a?):<!wrt> void
 
 (* ****** ****** *)
-
-fun{a:t0p}
-gequal_val (x: a, y: a):<> bool
-fun{a:vt0p}
-gequal_ref (x: &INV(a), y: &a):<> bool
-
-(* ****** ****** *)
-
-fun{a:t0p} tostring_val (x: a):<> string
-fun{a:vt0p} tostring_ref (x: &INV(a)):<> string
-
-fun{a:t0p} tostrptr_val (x: a):<> Strptr1
-fun{a:vt0p} tostrptr_ref (x: &INV(a)):<> Strptr1
-
+//
+fun
+{a:t0p}
+gequal_val_val (x: a, y: a):<> bool
+//
+fun
+{a:vt0p}
+gequal_ref_ref (x: &INV(a), y: &a):<> bool
+//
 (* ****** ****** *)
 
 fun{a:t0p}
-fprint_val (out: FILEref, x: a): void
+tostring_val (x: a):<> string
 fun{a:vt0p}
-fprint_ref (out: FILEref, x: &INV(a)): void
+tostring_ref (x: &INV(a)):<> string
+
+(* ****** ****** *)
+
+fun{a:t0p}
+tostrptr_val (x: a):<!wrt> Strptr1
+fun{a:vt0p}
+tostrptr_ref (x: &INV(a)):<!wrt> Strptr1
 
 (* ****** ****** *)
 
@@ -99,6 +125,20 @@ prerr_ref (x: &INV(a)): void // = fprint_ref (stderr_ref, x)
 //
 *)
 
+(* ****** ****** *)
+//
+fun{a:t0p}
+fprint_val (out: FILEref, x: a): void
+fun{a:vt0p}
+fprint_ref (out: FILEref, x: &INV(a)): void
+//
+(* ****** ****** *)
+//
+fun
+{src:vt0p}
+{elt:vt0p}
+streamize_val (source: src): stream_vt(elt)
+//
 (* ****** ****** *)
 
 #if VERBOSE_PRELUDE #then

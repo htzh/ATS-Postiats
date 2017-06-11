@@ -8,15 +8,28 @@
 // Time: July 18-19, 2012
 //
 *)
-
+(* ****** ****** *)
+//
+(*
+##myatsccdef=\
+patsopt --constraint-ignore --dynamic $1 | \
+tcc - -run -DATS_MEMALLOC_LIBC -I${PATSHOME} -I${PATSHOME}/ccomp/runtime -L${PATSHOME}/ccomp/atslib/lib -latslib
+*)
+//
 (* ****** ****** *)
 //
 #include
 "share/atspre_staload.hats"
 //
 (* ****** ****** *)
-
+//
 staload "libats/ML/SATS/string.sats"
+//
+staload _ = "libats/ML/DATS/string.dats"
+//
+(* ****** ****** *)
+
+staload STDIO = "libats/libc/SATS/stdio.sats"
 
 (* ****** ****** *)
 
@@ -58,10 +71,6 @@ fun morse
 in
   stream_nth_exn (stream_map_fun(from{0}(0), go), n)
 end // end of [morse]
-
-(* ****** ****** *)
-
-staload STDIO = "libc/SATS/stdio.sats"
 
 (* ****** ****** *)
 

@@ -52,10 +52,13 @@ trans4errlst_vt = List_vt (trans4err)
 (* ****** ****** *)
 
 local
-
-val the_trans4errlst = ref<trans4errlst_vt> (list_vt_nil)
-
-fun the_trans4errlst_get
+//
+val
+the_trans4errlst =
+  ref<trans4errlst_vt> (list_vt_nil)
+//
+fun
+the_trans4errlst_get
   (): trans4errlst_vt = let
   val (vbox pf | p) = ref_get_view_ptr (the_trans4errlst)
   val xs = !p
@@ -63,8 +66,8 @@ fun the_trans4errlst_get
 in
   xs
 end // end of [the_trans4errlst_get]
-
-in // in of [local]
+//
+in (* in of [local] *)
 
 implement
 the_trans4errlst_add (x) = () where {
@@ -73,16 +76,28 @@ the_trans4errlst_add (x) = () where {
 } // end of [the_trans4errlst_add]
 
 implement
-the_trans4errlst_finalize () = {
-  val xs = the_trans4errlst_get ()
-  val n = list_vt_length (xs); val () = list_vt_free (xs)
+the_trans4errlst_finalize
+  ((*argumentless*)) = {
+  val xs =
+    the_trans4errlst_get ()
+  // end of [val]
+  val nxs = list_vt_length (xs)
+  val ((*freed*)) = list_vt_free (xs)
 // (*
-  val () = if n > 0 then {
-    val () = fprintf (stderr_ref, "TYPERASE: there are [%i] errors in total.\n", @(n))
-  } // end of [val]
+  val () =
+  if nxs > 0 then {
+    val () =
+    fprintf (
+      stderr_ref
+    , "patsopt(TYPERASE): there are [%i] errors in total.\n", @(nxs)
+    ) (* end of [fprintf] *)
+  } (* end of [if] *) // end of [val]
 // *)
-  val () = if n > 0 then $ERR.abort () else ()
-} // end of [the_trans4errlst_finalize]
+  val () =
+  if nxs > 0
+    then $raise($ERR.PATSOPT_TRANS4_EXN())
+  // end of [if]
+} (* end of [the_trans4errlst_finalize] *)
 
 end // end of [local]
 

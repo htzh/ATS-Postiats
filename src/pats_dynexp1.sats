@@ -45,9 +45,8 @@ datatype p1at_node =
   | P1Tany2 of () // wildcard: (_) // non-expandable
 //
   | P1Tide of symbol // variable
-  | P1Tdqid of // constructor (qualified) / variable (unqualified)
-      (d0ynq, symbol)
-    (* end of [P1Tdqid] *)
+    // qua: constructor // unqua: variable
+  | P1Tdqid of (d0ynq, symbol) // constructor/variable
 //
   | P1Tint of (int) // int constant
   | P1Tintrep of string(*rep*) // int constant
@@ -175,10 +174,12 @@ fun fprint_labp1at : fprint_type (labp1at)
 fun fprint_labp1atlst : fprint_type (labp1atlst)
 
 (* ****** ****** *)
-
+//
+fun p1at_make_v1al (loc: location, v: v1al): p1at
 fun p1at_make_e1xp (loc: location, e: e1xp): p1at
+//
 fun e1xp_make_p1at (loc: location, p1t: p1at): e1xp
-
+//
 (* ****** ****** *)
 
 typedef
@@ -226,7 +227,8 @@ typedef intlst = List (int)
 
 (* ****** ****** *)
 
-datatype d1ecl_node =
+datatype
+d1ecl_node =
   | D1Cnone of ()
   | D1Clist of d1eclist
 //
@@ -238,8 +240,11 @@ datatype d1ecl_node =
       i0delst
   | D1Coverload of (i0de, dqi0de, int(*pval*)) // overloading
 //
-  | D1Ce1xpdef of (symbol, e1xp)
-  | D1Ce1xpundef of (symbol, e1xp) // HX: undefining
+  | D1Ce1xpdef of (symbol, e1xp) // HX: #define
+  | D1Ce1xpundef of (symbol, e1xp) // HX: #undef
+//
+  | D1Cpragma of (e1xplst) // HX: meta-programming
+  | D1Ccodegen of (int(*kind*), e1xplst) // HX: meta-programming
 //
   | D1Cdatsrts of d1atsrtdeclst // datasorts
   | D1Csrtdefs of s1rtdeflst // sort definitions
@@ -251,10 +256,14 @@ datatype d1ecl_node =
 *)
   | D1Ctkindef of t1kindef // primitive tkind
   | D1Csexpdefs of (int(*knd*), s1expdeflst) // static definitions
-  | D1Csaspdec of s1aspdec // static assumption
 //
-  | D1Cexndecs of e1xndeclst // exception declarations
-  | D1Cdatdecs of (int(*knd*), d1atdeclst, s1expdeflst) // DT decls
+  | D1Csaspdec of s1aspdec // static assumption
+  | D1Creassume of sqi0de(*abstype*) // static re-assumption
+//
+  | D1Cexndecs of e1xndeclst // exception constructor declarations
+  | D1Cdatdecs of
+      (int(*knd*), d1atdeclst, s1expdeflst) // datatype declarations
+    // end of [D1Cdatdecs]
 //
   | D1Cclassdec of (i0de, s1expopt)
 //
@@ -262,7 +271,7 @@ datatype d1ecl_node =
       (string (*name*), s1exp (*definition*))
   | D1Cextype of (* external type *)
       (int(*knd*), string (*name*), s1exp (*definition*))
-  | D1Cextval of (* external value *)
+  | D1Cextvar of (* external variable *)
       (string (*name*), d1exp (*definition*))
 //
   | D1Cextcode of (
@@ -285,9 +294,13 @@ datatype d1ecl_node =
       (int(*knd*), v1ardeclst) (* variable declaration *) // knd=0/1:var/prvar
     // end of [D1Cvardecs]
 //
-  | D1Cinclude of d1eclist (* inclusion *)
+  | D1Cinclude of (int(*sta/dyn*), d1eclist) (* file inclusion *)
+//
   | D1Cstaload of (* staloading a file *)
-      (Option symbol, filename, int (*loadflag*), d1eclist)
+      (symbolopt, filename, int(*loadflag*), d1eclist)
+  | D1Cstaloadnm of (symbolopt(*alias*), symbol(*nspace*))
+  | D1Cstaloadloc of (filename(*pfil*), symbol(*nspace*), d1eclist)
+//
   | D1Cdynload of filename (* dynloading a file *)
 //
   | D1Clocal of (d1eclist(*head*), d1eclist(*body*)) // local declaration
@@ -317,10 +330,16 @@ and d1exp_node =
 //
   | D1Ecstsp of cstsp // special constants
 //
+  | D1Etyrep of s1exp // $tyrep(...)
+  | D1Eliteral of d1exp // $literal: int, float, string
+//
   | D1Eextval of (s1exp (*type*), string (*name*))
   | D1Eextfcall of // externally named fcall
-      (s1exp (*res*), string (*fun*), d1explst (*arg*))
+      (s1exp(*res*), string(*fun*), d1explst(*arg*))
     // end of [D1Eextfcall]
+  | D1Eextmcall of // externally named fcall
+      (s1exp(*res*), d1exp(*obj*), string(*method*), d1explst(*arg*))
+    // end of [D1Eextmcall]
 //
   | D1Efoldat of (* fold at a given address *)
       (s1exparglst, d1exp)
@@ -339,12 +358,16 @@ and d1exp_node =
   | D1Eapp_sta of (* static application *)
       (d1exp, s1exparglst)
 //
+  | D1Esing of (d1exp) // singleton
   | D1Elist of (int(*pfarity*), d1explst) // temporary
 //
   | D1Eifhead of
       (i1nvresstate, d1exp, d1exp, d1expopt)
   | D1Esifhead of
-      (i1nvresstate, s1exp, d1exp, d1exp) // HX: no dangling else-branch
+      (i1nvresstate, s1exp, d1exp, d1exp(*else*))
+//
+  | D1Eifcasehd of (i1nvresstate, i1fclist) // for ifcase-expressions
+//
   | D1Ecasehead of (* case-expression *)
       (caskind, i1nvresstate, d1explst, c1laulst)
   | D1Escasehead of (i1nvresstate, s1exp, sc1laulst)
@@ -364,16 +387,19 @@ and d1exp_node =
   | D1Earrpsz of (* arraysize expression *)
       (s1expopt (*element type*), d1explst (*elements*))
 //
+  | D1Eptrof of d1exp // taking the address of
+  | D1Eviewat of d1exp // taking view at a given address
+  | D1Eselab of (int(*knd*), d1exp, d1lab)
+//
   | D1Eraise of (d1exp) // raised exception
   | D1Eeffmask of (effcst(*eff*), d1exp(*body*)) // $effmask(...)
 //
   | D1Eshowtype of (d1exp) // $showtype: for debugging
 //
-  | D1Evcopyenv of (int(*knd*), d1exp) // $vcopyenv_v/$vcopyenv_vt
+  | D1Evcopyenv of
+      (int(*knd=0/1*), d1exp) // $vcopyenv_v/$vcopyenv_vt
 //
-  | D1Eptrof of d1exp // taking the address of
-  | D1Eviewat of d1exp // taking view at a given address
-  | D1Eselab of (int(*knd*), d1exp, d1lab)
+  | D1Etempenver of (d1exp) // $tempenver: for environvar
 //
   | D1Esexparg of s1exparg (* for temporary use *)
 //
@@ -408,12 +434,15 @@ and d1exp_node =
 //
   | D1Etrywith of (i1nvresstate, d1exp, c1laulst)
 //
-  | D1Emacsyn of (macsynkind, d1exp) // macro syntax
-  | D1Emacfun of (symbol(*name*), d1explst) // built-in macfun
-//
   | D1Eann_type of (d1exp, s1exp) // ascribed dynexp
   | D1Eann_effc of (d1exp, effcst) // ascribed with effects
   | D1Eann_funclo of (d1exp, funclo) // ascribed with funtype
+//
+  | D1Emacsyn of (macsynkind, d1exp) // macro syntax
+  | D1Emacfun of (symbol(*name*), d1explst) // built-in macfun
+//
+  | D1Esolassert of (d1exp) // $solver_assert(d1e_prf)
+  | D1Esolverify of (s1exp) // $solver_verify(s1e_prop)
 //
   | D1Eerrexp of () // HX: placeholder for indicating an error
 // end of [d1exp_node]
@@ -443,22 +472,40 @@ and labd1explst = List (labd1exp)
 
 (* ****** ****** *)
 
-and d1lab = '{
-  d1lab_loc= location, d1lab_node= d1lab_node
+and
+d1lab = '{
+  d1lab_loc= location
+, d1lab_node= d1lab_node
 }
 and d1lablst = List (d1lab)
 
 (* ****** ****** *)
 
-and gm1at = '{
-  gm1at_loc= location, gm1at_exp= d1exp, gm1at_pat= p1atopt
-} // end of [gm1at]
+and
+i1fcl = '{
+//
+  i1fcl_loc= location
+//
+, i1fcl_test= d1exp, i1fcl_body= d1exp
+//
+} (* end of [i1fcl] *)
 
-and gm1atlst = List gm1at
+and i1fclist = List(i1fcl)
 
 (* ****** ****** *)
 
-and c1lau = '{
+and
+gm1at = '{
+  gm1at_loc= location
+, gm1at_exp= d1exp, gm1at_pat= p1atopt
+} // end of [gm1at]
+
+and gm1atlst = List(gm1at)
+
+(* ****** ****** *)
+
+and
+c1lau = '{
   c1lau_loc= location
 , c1lau_pat= p1at
 , c1lau_gua= gm1atlst
@@ -467,11 +514,12 @@ and c1lau = '{
 , c1lau_body= d1exp
 } // end of [c1lau]
 
-and c1laulst = List c1lau
+and c1laulst = List(c1lau)
 
 (* ****** ****** *)
 
-and sc1lau = '{
+and
+sc1lau = '{
   sc1lau_loc= location
 , sc1lau_pat= sp1at
 , sc1lau_body= d1exp
@@ -481,7 +529,8 @@ and sc1laulst = List sc1lau
 
 (* ****** ****** *)
 
-and m1acdef = '{
+and
+m1acdef = '{
   m1acdef_loc= location
 , m1acdef_sym= symbol
 , m1acdef_arg= m1acarglst
@@ -492,7 +541,8 @@ and m1acdeflst = List m1acdef
 
 (* ****** ****** *)
 
-and f1undec = '{
+and
+f1undec = '{
   f1undec_loc= location
 , f1undec_sym= symbol
 , f1undec_sym_loc= location
@@ -504,7 +554,8 @@ and f1undeclst = List f1undec
 
 (* ****** ****** *)
 
-and v1aldec = '{
+and
+v1aldec = '{
   v1aldec_loc= location
 , v1aldec_pat= p1at
 , v1aldec_def= d1exp
@@ -515,7 +566,8 @@ and v1aldeclst = List (v1aldec)
 
 (* ****** ****** *)
 
-and v1ardec = '{
+and
+v1ardec = '{
   v1ardec_loc= location
 , v1ardec_knd= int (* knd=0/1:var/ptr *)
 , v1ardec_sym= symbol
@@ -529,7 +581,8 @@ and v1ardeclst = List v1ardec
 
 (* ****** ****** *)
 
-and i1mpdec = '{
+and
+i1mpdec = '{
   i1mpdec_loc= location
 , i1mpdec_qid= impqi0de
 , i1mpdec_tmparg= t1mpmarglst
@@ -564,18 +617,48 @@ fun d1exp_c0har (loc: location, x: c0har): d1exp
 fun d1exp_f0loat (loc: location, x: f0loat): d1exp
 fun d1exp_s0tring (loc: location, x: s0tring): d1exp
 //
-fun d1exp_cstsp (loc: location, x: cstsp): d1exp
-//
-fun d1exp_empty (loc: location): d1exp
 fun d1exp_top (loc: location): d1exp
-
+fun d1exp_empty (loc: location): d1exp
+//
 (* ****** ****** *)
-
-fun d1exp_extval
-  (loc: location, _type: s1exp, name: string): d1exp
-fun d1exp_extfcall
-  (loc: location, _type: s1exp, _fun: string, _arg: d1explst): d1exp
-
+//
+fun
+d1exp_cstsp
+  (loc: location, x: cstsp): d1exp
+//
+(* ****** ****** *)
+//
+fun
+d1exp_tyrep
+  (loc: location, s1e: s1exp): d1exp
+//
+(* ****** ****** *)
+//
+fun
+d1exp_literal
+  (loc: location, lit: d1exp): d1exp
+//
+(* ****** ****** *)
+//
+fun
+d1exp_extval
+(
+  loc: location, _type: s1exp, name: string
+) : d1exp // end of [d1exp_extval]
+//
+fun
+d1exp_extfcall
+(
+  loc: location
+, _type: s1exp, _fun: string, _arg: d1explst
+) : d1exp // end of [d1exp_extfcall]
+fun
+d1exp_extmcall
+(
+  loc: location
+, _type: s1exp, _obj: d1exp, _mtd: string, _arg: d1explst
+) : d1exp // end of [d1exp_extmcall]
+//
 (* ****** ****** *)
 
 fun d1exp_foldat
@@ -609,37 +692,50 @@ fun d1exp_app_dyn (
 ) : d1exp // end of [d1exp_app_dyn]
 
 (* ****** ****** *)
-
+//
+fun d1exp_sing
+  (loc: location, d1e: d1exp): d1exp
+//
 fun d1exp_list
   (loc: location, npf: int, d1es: d1explst): d1exp
-// end of [d1exp_list]
-
+//
 (* ****** ****** *)
 
-fun d1exp_ifhead (
+fun
+d1exp_ifhead (
   loc: location
 , inv: i1nvresstate
 , _cond: d1exp
-, _then: d1exp
-, _else: d1expopt
+, _then: d1exp, _else: d1expopt
 ) : d1exp // end of [d1exp_if]
 
-fun d1exp_sifhead (
+fun
+d1exp_sifhead (
   loc: location
 , inv: i1nvresstate
-, _cond: s1exp
-, _then: d1exp
-, _else: d1exp
+, _cond: s1exp, _then: d1exp, _else: d1exp
 ) : d1exp // end of [d1exp_if]
 
-fun d1exp_casehead (
+(* ****** ****** *)
+
+fun
+d1exp_ifcasehd
+(
+    loc: location, inv: i1nvresstate, ifcls: i1fclist
+) : d1exp // end of [d1exp_ifcasehd]
+
+(* ****** ****** *)
+
+fun
+d1exp_casehead (
   loc: location
 , knd: caskind
 , inv: i1nvresstate
 , d1es: d1explst, c1las: c1laulst
 ) : d1exp // end of [d1exp_casehead]
 
-fun d1exp_scasehead (
+fun
+d1exp_scasehead (
   loc: location
 , inv: i1nvresstate
 , s1e: s1exp, c1las: sc1laulst
@@ -673,36 +769,48 @@ fun d1exp_arrinit (
 ) : d1exp // end of [d1exp_arrinit]
 
 (* ****** ****** *)
-
-fun d1exp_sexparg (loc: location, s1a: s1exparg): d1exp
-fun d1exp_exist (loc: location, s1a: s1exparg, d1e: d1exp): d1exp
-
+//
+fun
+d1exp_sexparg
+  (loc: location, s1a: s1exparg): d1exp
+//
+fun
+d1exp_exist
+  (loc: location, s1a: s1exparg, d1e: d1exp): d1exp
+//
+(* ****** ****** *)
+//
+fun
+d1exp_selab
+  (loc: location, kind: int, root: d1exp, lab: d1lab): d1exp
+// end of [d1exp_selab]
+//
 (* ****** ****** *)
 
+fun d1exp_ptrof (loc: location, d1e: d1exp): d1exp
+fun d1exp_viewat (loc: location, d1e: d1exp): d1exp
+
+(* ****** ****** *)
+//
 fun d1exp_raise (loc: location, d1e: d1exp): d1exp
-
-(* ****** ****** *)
-
-fun d1exp_effmask (
-  loc: location, eff: effcst, d1e: d1exp
-) : d1exp // end of [d1exp_effmask]
-
-fun d1exp_effmask_arg
-  (loc: location, knd: int, d1e: d1exp): d1exp
-// end of [d1exp_effmask_arg]
-
+//
+fun
+d1exp_effmask (loc: location, eff: effcst, d1e: d1exp): d1exp
+fun
+d1exp_effmask_arg (loc: location, knd: int, d1e: d1exp): d1exp
+//
 (* ****** ****** *)
 
 fun d1exp_showtype (loc: location, d1e: d1exp): d1exp
 
 (* ****** ****** *)
 
-fun d1exp_vcopyenv (loc: location, knd: int, d1e: d1exp): d1exp
+fun d1exp_vcopyenv
+  (loc: location, knd(*0/1*): int, d1e: d1exp): d1exp
 
 (* ****** ****** *)
 
-fun d1exp_ptrof (loc: location, d1e: d1exp): d1exp
-fun d1exp_viewat (loc: location, d1e: d1exp): d1exp
+fun d1exp_tempenver (loc: location, d1e: d1exp): d1exp
 
 (* ****** ****** *)
 
@@ -734,13 +842,9 @@ fun d1exp_delay (loc: location, knd: int, d1e: d1exp): d1exp
 
 (* ****** ****** *)
 
-fun d1exp_selab
-  (loc: location, kind: int, root: d1exp, lab: d1lab): d1exp
-// end of [d1exp_selab]
-
-(* ****** ****** *)
-
-fun d1exp_trywith (
+fun
+d1exp_trywith
+(
   loc: location, inv: i1nvresstate, d1e: d1exp, handler: c1laulst
 ) : d1exp // end of [d1exp_trywith]
 
@@ -759,30 +863,44 @@ fun d1exp_while (
 fun d1exp_loopexn (loc: location, knd: int): d1exp
 
 (* ****** ****** *)
-
-fun d1exp_macsyn
-  (loc: location, knd: macsynkind, d1e: d1exp): d1exp
-// end of [d1exp_macsyn]
-
-fun d1exp_macfun
-  (loc: location, name: symbol, d1es: d1explst): d1exp
-// end of [d1exp_macfun]
-
-(* ****** ****** *)
-
-fun d1exp_ann_type
+//
+fun
+d1exp_ann_type
   (loc: location, d1e: d1exp, s1e: s1exp): d1exp
-fun d1exp_ann_effc
+fun
+d1exp_ann_effc
   (loc: location, d1e: d1exp, efc: effcst): d1exp
-fun d1exp_ann_funclo
-  (loc: location, d1e: d1exp, fc: funclo): d1exp
-fun d1exp_ann_funclo_opt
-  (loc: location, d1e: d1exp, fc: funclo): d1exp
-
+fun
+d1exp_ann_funclo
+  (loc: location, d1e: d1exp, fc0: funclo): d1exp
+fun
+d1exp_ann_funclo_opt
+  (loc: location, d1e: d1exp, fc0: funclo): d1exp
+//
 (* ****** ****** *)
-
-fun d1exp_errexp (loc: location): d1exp
-
+//
+fun
+d1exp_macsyn
+  (loc: location, knd: macsynkind, d1e: d1exp): d1exp
+//
+fun
+d1exp_macfun
+  (loc: location, name: symbol, d1es: d1explst): d1exp
+//
+(* ****** ****** *)
+//
+fun
+d1exp_solassert
+  (loc: location, d1e_prf: d1exp): d1exp
+fun
+d1exp_solverify
+  (loc: location, s1e_prop: s1exp): d1exp
+//
+(* ****** ****** *)
+//
+fun
+d1exp_errexp (loc: location): d1exp // indicating error
+//
 (* ****** ****** *)
 
 fun print_d1exp (x: d1exp): void
@@ -808,9 +926,13 @@ fun fprint_labd1explst : fprint_type (labd1explst)
 
 fun d1exp_is_metric (d1e: d1exp): bool
 
-fun d1exp_make_e1xp (loc: location, exp: e1xp): d1exp
+(* ****** ****** *)
+//
+fun d1exp_make_v1al (loc: location, v: v1al): d1exp
+fun d1exp_make_e1xp (loc: location, e: e1xp): d1exp
+//
 fun e1xp_make_d1exp (loc: location, d1e: d1exp): e1xp
-
+//
 (* ****** ****** *)
 
 fun d1lab_lab (loc: location, lab: label): d1lab
@@ -818,6 +940,14 @@ fun d1lab_ind (loc: location, ind: d1explst): d1lab
 
 fun fprint_d1lab : fprint_type (d1lab)
 
+(* ****** ****** *)
+//
+fun
+i1fcl_make
+(
+  loc: location, test: d1exp, body: d1exp
+) : i1fcl // end of [i1fcl_make]
+//
 (* ****** ****** *)
 
 fun gm1at_make
@@ -888,54 +1018,101 @@ i1mpdec_make
 fun d1ecl_none (loc: location): d1ecl
 fun d1ecl_list (loc: location, ds: d1eclist): d1ecl
 
+(* ****** ****** *)
+
 fun d1ecl_packname (opt: Stropt): d1ecl
+
+(* ****** ****** *)
 
 fun d1ecl_symintr (loc: location, ids: i0delst): d1ecl
 fun d1ecl_symelim (loc: location, ids: i0delst): d1ecl
+
+(* ****** ****** *)
+
 fun d1ecl_overload
   (loc: location, id: i0de, qid: dqi0de, pval: int): d1ecl
 // end of [d1ecl_overload]
 
-fun d1ecl_e1xpdef
-  (loc: location, id: symbol, def: e1xp): d1ecl
-fun d1ecl_e1xpundef
-  (loc: location, id: symbol, def: e1xp): d1ecl
-
-fun d1ecl_datsrts (loc: location, ds: d1atsrtdeclst): d1ecl
-
-fun d1ecl_srtdefs (loc: location, ds: s1rtdeflst): d1ecl
-
-fun d1ecl_stacsts (loc: location, ds: s1tacstlst): d1ecl
-fun d1ecl_stacons (loc: location, knd: int, ds: s1taconlst): d1ecl
-
+(* ****** ****** *)
+//
+fun
+d1ecl_e1xpdef(loc: location, id: symbol, def: e1xp): d1ecl
+fun
+d1ecl_e1xpundef(loc: location, id: symbol, def: e1xp): d1ecl
+//
+(* ****** ****** *)
+//
+fun
+d1ecl_pragma(loc: location, e1xps: e1xplst): d1ecl
+fun
+d1ecl_codegen(loc: location, knd: int, xs: e1xplst): d1ecl
+//
+(* ****** ****** *)
+//
+fun
+d1ecl_datsrts
+  (loc: location, ds: d1atsrtdeclst): d1ecl
+//
+fun
+d1ecl_srtdefs(loc: location, ds: s1rtdeflst): d1ecl
+//
+(* ****** ****** *)
+//
+fun
+d1ecl_stacsts(loc: location, ds: s1tacstlst): d1ecl
+fun
+d1ecl_stacons(loc: location, knd: int, ds: s1taconlst): d1ecl
+//
 (*
-fun d1ecl_stavars (loc: location, ds: s1tavarlst): d1ecl
+fun
+d1ecl_stavars (loc: location, ds: s1tavarlst): d1ecl
 *)
-
-fun d1ecl_tkindef (loc: location, d: t1kindef): d1ecl
-
-fun d1ecl_sexpdefs
+//
+(* ****** ****** *)
+//
+fun
+d1ecl_tkindef
+  (loc: location, d0: t1kindef): d1ecl
+//
+fun
+d1ecl_sexpdefs
   (loc: location, knd: int, ds: s1expdeflst): d1ecl
 // end of [d1ecl_sexpdefs]
-
-fun d1ecl_saspdec (loc: location, d: s1aspdec): d1ecl
-
-fun d1ecl_exndecs (loc: location, ds: e1xndeclst): d1ecl
-
-fun d1ecl_datdecs
+//
+(* ****** ****** *)
+//
+fun
+d1ecl_saspdec(loc: location, d0: s1aspdec): d1ecl
+//
+fun
+d1ecl_reassume(loc: location, qid: sqi0de): d1ecl
+//
+(* ****** ****** *)
+//
+fun
+d1ecl_exndecs
+  (loc: location, ds: e1xndeclst): d1ecl
+//
+fun
+d1ecl_datdecs
 (
-  loc: location, knd: int, ds1: d1atdeclst, ds2: s1expdeflst
+  loc: location
+, knd: int, ds1: d1atdeclst, ds2: s1expdeflst
 ) : d1ecl // end of [d1ecl_datdecs]
-
-fun d1ecl_classdec
+//
+fun
+d1ecl_classdec
   (loc: location, id: i0de, sup: s1expopt): d1ecl
+//
+(* ****** ****** *)
 
-fun d1ecl_dcstdecs
+fun
+d1ecl_dcstdecs
 (
   loc: location
 , knd: int(*0/1:sta/ext*)
 , dck: dcstkind, qarg: q1marglst, d1cs: d1cstdeclst
-) : d1ecl // end of [d1ec_dcstdecs]
+) : d1ecl // end of [d1ecl_dcstdecs]
 
 fun d1ecl_extype (
   loc: location, name: string, def: s1exp
@@ -943,43 +1120,66 @@ fun d1ecl_extype (
 fun d1ecl_extype2 (
   loc: location, knd: int, name: string, def: s1exp
 ) : d1ecl // end of [d1ecl_extype]
-fun d1ecl_extval (
+fun d1ecl_extvar (
   loc: location, name: string, def: d1exp
-) : d1ecl // end of [d1ecl_extval]
+) : d1ecl // end of [d1ecl_extvar]
 fun d1ecl_extcode (
   loc: location, knd: int, pos: int, code: string
 ) : d1ecl // end of [d1ecl_extcode]
 
-fun d1ecl_macdefs (
+(* ****** ****** *)
+
+fun
+d1ecl_macdefs
+(
   loc: location, knd: int, isrec: bool, m1ds: m1acdeflst
 ) : d1ecl // end of [d1ecl_macdefs]
 
-fun d1ecl_impdec (
+(* ****** ****** *)
+
+fun
+d1ecl_impdec
+(
   loc: location, knd: int, imparg: i1mparg, d1c: i1mpdec
 ) : d1ecl // end of [d1ecl_impdec]
 
-fun d1ecl_fundecs (
-  loc: location, knd: funkind, qarg: q1marglst, f1ds: f1undeclst
+(* ****** ****** *)
+
+fun
+d1ecl_fundecs
+(
+  loc: location
+, knd: funkind, qarg: q1marglst, f1ds: f1undeclst
 ) : d1ecl // end of [d1ecl_fundecs]
 
-fun d1ecl_valdecs (
+fun d1ecl_valdecs
+(
   loc: location, knd: valkind, isrec: bool, v1ds: v1aldeclst
 ) : d1ecl // end of [d1ecl_valdecs]
 
-fun d1ecl_vardecs (loc: location, knd: int, v1ds: v1ardeclst): d1ecl
+fun d1ecl_vardecs
+  (loc: location, knd: int, v1ds: v1ardeclst): d1ecl
 
 (* ****** ****** *)
 
-fun d1ecl_include (loc: location, ds: d1eclist): d1ecl
+fun d1ecl_include
+  (loc: location, stadyn: int, ds: d1eclist): d1ecl
+// end of [d1ecl_include]
 
+(* ****** ****** *)
+//
 fun
 d1ecl_staload (
   loc: location
 , idopt: symbolopt
-, fil: filename
-, loadflag: int
-, d1cs: d1eclist
-) : d1ecl // end of [d1ec_staload]
+, cfil: filename, ldflag: int, d1cs: d1eclist
+) : d1ecl // end of [d1ecl_staload]
+fun d1ecl_staloadnm
+  (loc: location, alias: symbolopt, nspace: symbol): d1ecl
+fun d1ecl_staloadloc
+  (loc: location, pfil: filename, nspace: symbol, d1cs: d1eclist): d1ecl
+//
+(* ****** ****** *)
 
 fun d1ecl_dynload (loc: location, fil: filename): d1ecl
 

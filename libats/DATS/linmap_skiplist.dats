@@ -54,16 +54,25 @@ staload "libats/SATS/linmap_skiplist.sats"
 stadef mytkind = $extkind"atslib_linmap_skiplist"
 
 (* ****** ****** *)
-
-%{^
-typedef long int lint ;
-extern lint time (void*) ; // time.h
-extern void srand48 (lint) ; // stdlib.h
-%}
-implement
-linmap_skiplist_initize () = let
 //
-val seed = $extfcall (lint, "time", 0)
+%{^
+//
+#include <time.h>
+//
+// HX: it is in stdlib.h
+//
+extern void srand48 (time_t);
+//
+%}
+typedef time_t = $extype"time_t"
+//
+(* ****** ****** *)
+
+implement
+linmap_skiplist_initize
+  ((*void*)) = let
+//
+val seed = $extfcall (time_t, "time", 0)
 //
 in
   $extfcall (void, "srand48", seed)
@@ -76,8 +85,9 @@ end // end of [linmap_skiplist_initize]
 (* ****** ****** *)
 
 extern
-fun linmap_random_lgN
-  {n:int | n >= 1} (lgMAX: int (n)): intBtwe (1, n)
+fun
+linmap_random_lgN
+  {n:int | n >= 1} (lgMAX: int(n)): intBtwe(1, n)
 // end of [linmap_random_lgN]
 
 (* ****** ****** *)
@@ -107,6 +117,8 @@ sknode0
   key:t0p
 , itm:vt0p
 ) = [l:addr;n:nat] sknode (key, itm, l, n)
+
+(* ****** ****** *)
 
 typedef
 sknode1
@@ -744,7 +756,7 @@ case+ map of
     ) : void // end of [val]
     val () = sknodelst_insert (nxa, k0, lgN0, nx_new)
     prval () =
-      pridentity (lgN) // for opening the type of [lgN]
+      pridentity_vt (lgN) // for opening the type of [lgN]
     prval () = fold@ (map)
   in
     // nothing
@@ -1027,7 +1039,8 @@ end // end of [linmap_free_ifnil]
 
 local
 //
-staload "libc/SATS/stdlib.sats"
+staload
+"libats/libc/SATS/stdlib.sats"
 //
 staload INT = "prelude/DATS/integer.dats"
 staload FLOAT = "prelude/DATS/float.dats"

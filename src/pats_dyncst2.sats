@@ -37,7 +37,7 @@ staload "./pats_dynexp2.sats"
 
 (* ****** ****** *)
 
-abstype d2cstref_type // boxed type
+abstype d2cstref_type = ptr
 typedef d2cstref = d2cstref_type
 
 (* ****** ****** *)
@@ -59,7 +59,7 @@ fun d2cst_is_sizeof (d2c: d2cst): bool // sizeof-template
 
 (* ****** ****** *)
 
-fun dyncst2_initialize (): void
+fun dyncst2_initialize ((*void*)): void
 
 (* ****** ****** *)
 

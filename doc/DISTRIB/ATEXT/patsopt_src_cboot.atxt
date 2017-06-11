@@ -90,14 +90,16 @@ The ATS/Postiats C-Boostrapping\
 (* ****** ****** *)
 
 #packfilename("Makefile")
-#packfilesynop("\
-")
+#packfilesynop("patsopt_src_cboot")
+
+(* ****** ****** *)
+
+#packfilename("config.h")
 
 (* ****** ****** *)
 
 #packfilename("pats_main_dats.c")
-#packfilesynop("\
-")
+#packfilename("pats_main_none_dats.c")
 
 (* ****** ****** *)
 
@@ -311,7 +313,6 @@ The ATS/Postiats C-Boostrapping\
 
 #packfilename("pats_staexp2_print_dats.c")
 #packfilename("pats_staexp2_pprint_dats.c")
-#packfilename("pats_staexp2_jsonize_dats.c")
 
 (* ****** ****** *)
 
@@ -351,15 +352,31 @@ The ATS/Postiats C-Boostrapping\
 (* ****** ****** *)
 
 #packfilename("pats_dynexp2_print_dats.c")
-#packfilename("pats_dynexp2_jsonize_dats.c")
 
 (* ****** ****** *)
 
 #packfilename("pats_dynexp2_dcst_dats.c")
 #packfilename("pats_dynexp2_dvar_dats.c")
 #packfilename("pats_dynexp2_dmac_dats.c")
-#packfilename("pats_dynexp2_util_sats.c")
 #packfilename("pats_dynexp2_util_dats.c")
+
+(* ****** ****** *)
+
+#packfilename("pats_dynexp2_mapgen_dats.c")
+
+(* ****** ****** *)
+
+#packfilename("pats_codegen2_sats.c")
+#packfilename("pats_codegen2_dats.c")
+#packfilename("pats_codegen2_util_dats.c")
+#packfilename("pats_codegen2_absrec_dats.c")
+#packfilename("pats_codegen2_datype_dats.c")
+#packfilename("pats_codegen2_fprint_dats.c")
+
+(* ****** ****** *)
+
+#packfilename("pats_jsonize_synent2_sats.c")
+#packfilename("pats_jsonize_synent2_dats.c")
 
 (* ****** ****** *)
 
@@ -439,17 +456,20 @@ The ATS/Postiats C-Boostrapping\
 #packfilename("pats_lintprgm_dats.c")
 #packfilename("pats_lintprgm_print_dats.c")
 #packfilename("pats_lintprgm_myint.cats")
-#packfilename("pats_lintprgm_myint_int_dats.c")
-#packfilename("pats_lintprgm_myint_intinf_dats.c")
+#packfilename("pats_lintprgm_myint_dats.c")
 #packfilename("pats_lintprgm_solve_dats.c")
 
 (* ****** ****** *)
 
 #packfilename("pats_constraint3_sats.c")
 #packfilename("pats_constraint3_dats.c")
-#packfilename("pats_constraint3_init_dats.c")
+
 #packfilename("pats_constraint3_print_dats.c")
+
+#packfilename("pats_constraint3_mapgen_dats.c")
 #packfilename("pats_constraint3_jsonize_dats.c")
+
+#packfilename("pats_constraint3_init_dats.c")
 #packfilename("pats_constraint3_simplify_dats.c")
 #packfilename("pats_constraint3_icnstr_dats.c")
 #packfilename("pats_constraint3_solve_dats.c")
@@ -520,6 +540,8 @@ The ATS/Postiats C-Boostrapping\
 #packfilename("ccomp/runtime/ats_prelude_ngc.c")
 #packfilename("ccomp/runtime/ats_prelude_gcats.c")
 #packfilename("ccomp/runtime/ats_prelude_gcbdw.c")
+//
+#packfilename("ccomp/runtime/gcats1_all.cats")
 //
 (* ****** ****** *)
 
@@ -606,6 +628,7 @@ The ATS/Postiats C-Boostrapping\
 #packfilename("libc/DATS_gmp_dats.c")
 
 #packfilename("libc/sys_SATS_stat_sats.c")
+#packfilename("libc/sys_SATS_wait_sats.c")
 #packfilename("libc/sys_SATS_types_sats.c")
 
 #packfilename("libc/CATS/errno.cats")
@@ -620,6 +643,7 @@ The ATS/Postiats C-Boostrapping\
 #packfilename("libc/CATS/gmp.cats")
 
 #packfilename("libc/sys/CATS/stat.cats")
+#packfilename("libc/sys/CATS/wait.cats")
 #packfilename("libc/sys/CATS/types.cats")
 
 (* ****** ****** *)
@@ -655,7 +679,6 @@ The ATS/Postiats C-Boostrapping\
 
 (* ****** ****** *)
 
-#packfilename("gcats1_all.cats")
 #packfilename("ccomp/runtime/GCATS/gcats1.cats")
 #packfilename("ccomp/runtime/GCATS/gcats1_master.hats")
 
@@ -686,11 +709,9 @@ The ATS/Postiats C-Boostrapping\
 (* ****** ****** *)
 
 %{
-
-implement main () = ()
-
+implement main (argc, argv) = ()
 %}
 
 (* ****** ****** *)
 
-(* end of [patsopt.atxt] *)
+(* end of [patsopt_src_cboot.atxt] *)

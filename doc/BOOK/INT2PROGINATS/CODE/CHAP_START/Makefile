@@ -4,7 +4,12 @@
 
 ######
 
-CC=gcc -std=c99
+CC=gcc
+CCOPT=$(CC) -std=c99 -D_XOPEN_SOURCE
+
+######
+
+PATSCC=$(PATSHOME)/bin/patscc
 PATSOPT=$(PATSHOME)/bin/patsopt
 
 ######
@@ -13,7 +18,7 @@ INCLUDES=-I$(PATSHOME) -I$(PATSHOME)/ccomp/runtime
 
 ######
 
-CCFLAGS=-O2
+CFLAGS=-O2
 ATSCCFLAGS=
 
 ######
@@ -24,10 +29,14 @@ all:: queens
 ######
 
 hello: hello_dats.c ; \
-  $(CC) $(INCLUDES) $(CCFLAGS) -o $@ $< || echo $@ ": ERROR!!!"
+  $(CCOPT) $(INCLUDES) $(CFLAGS) -o $@ $< || echo $@ ": ERROR!!!"
+regress:: hello; ./hello
+cleanall:: ; $(RMF) hello
 
 queens: queens_dats.c ; \
-  $(CC) $(INCLUDES) $(CCFLAGS) -o $@ $< || echo $@ ": ERROR!!!"
+  $(CCOPT) $(INCLUDES) $(CFLAGS) -o $@ $< || echo $@ ": ERROR!!!"
+regress:: queens; ./queens
+cleanall:: ; $(RMF) queens
 
 ######
 
@@ -45,8 +54,6 @@ clean:: ; $(RMF) *_?ats.o
 clean:: ; $(RMF) *_?ats.c
 
 cleanall:: clean
-cleanall:: ; $(RMF) hello
-cleanall:: ; $(RMF) queens
 
 ######
 

@@ -82,37 +82,47 @@ overload fprint with fprint_vbindmap
 local
 
 extern
-fun funent_set_flablst_fin
+fun
+funent_set_flablst_fin
 (
-  fent: funent, opt: Option (funlablst)
+  fent: funent, opt: Option(funlablst)
 ) : void = "ext#patsopt_funent_set_flablst_fin"
 
 (*
 fun
 aux_funlab_get_flablst
-  (flab: funlab): funlablst = let
+(
+  flab: funlab
+) : funlablst = let
 //
-val opt = funlab_get_funent (flab)
+val opt =
+  funlab_get_funent(flab)
 //
 in
 //
 case+ opt of
-| Some (fent) => funent_get_flablst (fent)
-| None ((*void*)) => list_nil ()
+| Some(fent) =>
+    funent_get_flablst(fent)
+  // end of [Some]
+| None((*void*)) => list_nil()
 //
 end // end of [aux_funlab_get_flablst]
 *)
 fun
 aux_funlab_get_flablst
-  (flab: funlab): funlablst = let
+(
+  flab: funlab
+) : funlablst = let
 //
-val-Some (fent) = funlab_get_funent (flab)
+val-Some(fent) =
+  funlab_get_funent(flab)
 //
 in
-  funent_get_flablst (fent)
+  funent_get_flablst(fent)
 end // end of [aux_funlab_get_flablst]
 
-fun auxtrclo
+fun
+auxtrclo
 (
   flvl0: int
 , xs: funlablst
@@ -120,7 +130,11 @@ fun auxtrclo
 , res: funlabset_vt
 ) : funlabset_vt = let
 (*
-val () = println! ("auxtrclo: flvl0 = ", flvl0)
+val () =
+println!
+(
+"auxtrclo: flvl0 = ", flvl0
+) (* println! *)
 *)
 in
 //
@@ -131,17 +145,19 @@ case+ xs of
 // HX-2013-04-12:
 // Note that flvl <= flvl0 holds!
 //
-    val flvl = funlab_get_level (x)
+    val
+    flvl = funlab_get_level(x)
   in
     if flvl >= flvl0 then let
-      val ismem = funlabset_vt_ismem (res, x)
+      val
+      ismem = funlabset_vt_ismem(res, x)
     in
       if ismem then
       (
-        auxtrclo (flvl0, xs, xss, res)
+        auxtrclo(flvl0, xs, xss, res)
       ) else let
-        val res = funlabset_vt_add (res, x)
-        val xs_new = aux_funlab_get_flablst (x) 
+        val res = funlabset_vt_add(res, x)
+        val xs_new = aux_funlab_get_flablst(x) 
 //
 (*
         val out = stdout_ref
@@ -150,20 +166,22 @@ case+ xs of
 *)
 //
       in
-        auxtrclo (flvl0, xs_new, list_vt_cons (xs, xss), res)
+        auxtrclo(flvl0, xs_new, list_vt_cons(xs, xss), res)
       end (* end of [if] *)
     end else let // parent
       val res =
-        funlabset_vt_add (res, x) in auxtrclo (flvl0, xs, xss, res)
+        funlabset_vt_add(res, x) in auxtrclo(flvl0, xs, xss, res)
       // end of [val]
     end (* end of [if] *)
   end // end of [list_vt_cons]
-| list_nil () =>
+| list_nil((*void*)) =>
   (
     case+ xss of
+    | ~list_vt_nil
+        ((*void*)) => res
     | ~list_vt_cons
-        (xs, xss) => auxtrclo (flvl0, xs, xss, res)
-    | ~list_vt_nil () => res
+        (xs, xss) => auxtrclo(flvl0, xs, xss, res)
+      // end of [list_vt_cons]
   ) (* end of [list_vt_nil] *)
 //
 end // end of [auxtrclo]
@@ -173,33 +191,51 @@ in (* in of [local] *)
 implement
 funent_eval_flablst
   (fent) = let
+// (*
 (*
-val fl = funent_get_lab (fent)
-val () = println! ("funent_eval_flablst: fent.lab = ", fl)
+val
+fl0 = funent_get_lab (fent)
+val () =
+println!
+(
+"funent_eval_flablst: fent.lab = ", fl0
+) (* println! *)
 *)
 //
-val opt = funent_get_flablst_fin (fent)
+val opt = funent_get_flablst_fin(fent)
 //
 (*
-val () = fprintln! (stdout_ref, "funent_eval_flablst: opt = ", opt)
+val () =
+fprintln!
+(
+  stdout_ref, "funent_eval_flablst: opt = ", opt
+) (* fprintln! *)
 *)
 //
 in
 //
 case+ opt of
-| Some (fls) => fls
-| None () => fls where
+| Some(fls) => fls
+| None((*void*)) => fls where
   {
-    val fl0 = funent_get_lab (fent)
-    val flvl = funent_get_level (fent)
-    val xs = funent_get_flablst (fent)
-    val xss = list_vt_nil () // : funlablst2_vt
-    val res = funlabset_vt_nil ()
-    val res = funlabset_vt_add (res, fl0)
-    val res = auxtrclo (flvl, xs, xss, res)
-    val fls = funlabset_vt_listize_free (res)
+//
+    val fl0 = funent_get_lab(fent)
+    val flvl = funent_get_level(fent)
+//
+    val xs0 = funent_get_flablst(fent)
+    val xss = list_vt_nil() // : funlablst2_vt
+    val res = funlabset_vt_nil()
+    val res = funlabset_vt_add(res, fl0)
+    val res = auxtrclo(flvl, xs0, xss, res)
+    val fls = funlabset_vt_listize_free(res)
     val fls = list_of_list_vt{funlab}(fls)
-    val ((*void*)) = funent_set_flablst_fin (fent, Some (fls))
+    val ((*void*)) = funent_set_flablst_fin(fent, Some(fls))
+//
+(*
+    val ((*void*)) =
+      fprintln!(stdout_ref, "funent_eval_flablst(", fl0, "): fls = ", fls)
+    // end of [val]
+*)
   } (* end of [None] *)
 //
 end // end of [funent_eval_flablst]
@@ -211,7 +247,8 @@ end // end of [local]
 local
 
 extern
-fun funent_set_d2envlst_fin
+fun
+funent_set_d2envlst_fin
 (
   fent: funent, opt: Option (d2envlst)
 ) : void = "ext#patsopt_funent_set_d2envlst_fin"
@@ -250,7 +287,8 @@ case+ d2esopt of
 //
 end // end of [aux_funlab_get_d2envlst]
 
-fun auxd2es
+fun
+auxd2es
 (
   d2es: d2envlst
 , vbmap: vbindmap, res: d2envset_vt
@@ -284,10 +322,11 @@ end // end of [auxd2es]
 
 (* ****** ****** *)
 //
-// HX-2013:-04:
+// HX-2013-04:
 // [vbmap] is not actually used.
 //
-fun auxtrclo
+fun
+auxtrclo
 (
   fls: funlablst
 , vbmap: vbindmap, res: d2envset_vt
@@ -340,22 +379,22 @@ case+ opt of
   {
     val fls0 = funent_eval_flablst (fent)
     val vbmap = funent_get_vbindmap (fent)
-    val d2es(*set*) =
-      auxtrclo (fls0, vbmap, d2envset_vt_nil())
-    // end of [val]
+    val d2es(*set*) = d2envset_vt_nil()
+    val d2es(*set*) = auxtrclo (fls0, vbmap, d2es)
     val d2es(*list*) = d2envset_vt_listize_free (d2es)
-    val d2es = list_of_list_vt{d2env}(d2es)
+    val d2es(*list*) = list_of_list_vt{d2env}(d2es)
     val ((*void*)) = funent_set_d2envlst_fin (fent, Some (d2es))
   } (* end of [None] *)
 //
-end // end of [funent_eval_d2varlst]
+end // end of [funent_eval_d2envlst]
 
 end // end of [local]
 
 (* ****** ****** *)
 
 implement
-funlab_is_envful (flab) = let
+funlab_is_envful
+  (flab) = let
 //
 val opt = funlab_get_funent (flab)
 val d2es =
@@ -371,7 +410,8 @@ end // end of [funlab_is_envful]
 (* ****** ****** *)
 
 implement
-funlab_get_type_fullarg (flab) = let
+funlab_get_type_fullarg
+  (flab) = let
 //
 fun aux
 (
@@ -384,9 +424,9 @@ case+ d2es of
     (d2e, d2es) => let
     val hse = d2env_get_type (d2e)
   in
-    list_cons (hse, aux (d2es, hses))
-  end (* end of [list_cons] *)
-| list_nil () => hses
+    list_cons(hse, aux (d2es, hses))
+  end // end of [list_cons]
+| list_nil((*void*)) => hses
 //
 end (* end of [aux] *)
 //
@@ -394,7 +434,7 @@ val opt = funlab_get_funent (flab)
 val d2es =
 (
 case+ opt of
-| Some (fent) => funent_eval_d2envlst (fent) | None () => list_nil ()
+| Some(fent) => funent_eval_d2envlst(fent) | None() => list_nil()
 ) : d2envlst // end of [val]
 //
 val hses = funlab_get_type_arg (flab)
@@ -409,6 +449,7 @@ local
 
 (*
 fun funent_varbindmap_initize (fent: funent): void
+fun funent_varbindmap_initize2 (fent: funent): void
 fun funent_varbindmap_uninitize (fent: funent): void
 fun the_funent_varbindmap_find (d2v: d2var): Option_vt (primval)
 *)
@@ -426,10 +467,10 @@ in (* in of [local] *)
 
 implement
 funent_varbindmap_initize
-  (fent) = let
+  (fent0) = let
 //
-
-fun auxmap
+fun
+auxmap
 (
   map: &vbindmap_vt, vbs: vbindlst_vt
 ) : void = let
@@ -438,7 +479,10 @@ in
 case+ vbs of
 | ~list_vt_cons
     (vb, vbs) => let
-    val _(*replaced*) = $D2E.d2varmap_vt_insert (map, vb.0, vb.1)
+    val _ =
+    ( // replaced
+      $D2E.d2varmap_vt_insert (map, vb.0, vb.1)
+    ) (* end of [val] *)
   in
     auxmap (map, vbs)
   end (* end of [list_cons] *)
@@ -446,13 +490,16 @@ case+ vbs of
 //
 end // end of [auxmap]
 //
-fun auxenv
+fun
+auxenv
 (
-  map: &vbindmap_vt, loc0: location, i: int, d2es: d2envlst
+  map: &vbindmap_vt, loc0: loc_t, i: int, d2es: d2envlst
 ) : void = let
 in
 //
 case+ d2es of
+| list_nil
+    ((*void*)) => ()
 | list_cons
     (d2e, d2es) => let
     val d2v = d2env_get_var (d2e)
@@ -462,29 +509,76 @@ case+ d2es of
   in
     auxenv (map, loc0, i+1, d2es)
   end (* end of [list_cons] *)
-| list_nil () => ()
 //
 end // end of [auxenv]
 //
-val loc0 = funent_get_loc (fent)
+val loc0 = funent_get_loc (fent0)
 //
-val vbmap = funent_get_vbindmap (fent)
+val vbmap = funent_get_vbindmap (fent0)
 //
 val
 (
   vbox pf | p
 ) = ref_get_view_ptr (the_vbmap)
 //
-val () = $effmask_ref (auxmap (!p, $D2E.d2varmap_listize (vbmap)))
-val () = $effmask_ref (auxenv (!p, loc0, 0, funent_eval_d2envlst (fent)))
+val () = $effmask_ref (auxmap (!p, $D2E.d2varmap_listize(vbmap)))
+val () = $effmask_ref (auxenv (!p, loc0, 0, funent_eval_d2envlst(fent0)))
 //
 in
   (*nothing*)
 end // end of [funent_varbindmap_initize]
 
+(* ****** ****** *)
+
+implement
+funent_varbindmap_initize2
+  (fent0) = let
+//
+fun
+auxlst
+(
+  fls: funlablst
+) : void =
+(
+case+ fls of
+| list_nil () => ()
+| list_cons (fl, fls) => let
+    val opt = funlab_get_funent (fl)
+    val ((*void*)) =
+    (
+      case+ opt of
+      | None () => ()
+      | Some (fent) =>
+          funent_varbindmap_initize (fent)
+        // end of [Some]
+    ) : void // end of [val]
+  in
+    auxlst (fls)
+  end // end of [list_cons]
+)
+//
+val fls0 = funent_get_fnxlablst (fent0)
+//
+(*
+val ((*void*)) =
+(
+  fprintln! (stdout_ref, "funent_varbindmap_initize2: fls0 = ", fls0)
+) (* end of [val] *)
+*)
+//
+in
+//
+case+ fls0 of
+| list_nil () => ()
+| list_cons (_, fls) => auxlst (fls)
+//
+end // end of [funent_varbindmap_initize2]
+
+(* ****** ****** *)
+
 implement
 funent_varbindmap_uninitize
-  (fent) = let
+  (fent0) = let
 //
 val
 (
@@ -496,6 +590,8 @@ val () = !p := $D2E.d2varmap_vt_nil ()
 in
   // nothing
 end // end of [the_funent_varbindmap_uninitize]
+
+(* ****** ****** *)
 
 implement
 the_funent_varbindmap_find

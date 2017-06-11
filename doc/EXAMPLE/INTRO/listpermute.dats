@@ -1,11 +1,15 @@
+(* ****** ****** *)
 //
-// Enumerate the permutations of a list
+// Enumerate all of
+// the permutations of a list
 //
 // Author: Hongwei Xi (February, 2014)
 //
 (* ****** ****** *)
 //
-#include "share/atspre_staload.hats"
+#include
+"share/atspre_staload.hats"
+staload UN = $UNSAFE // aliasing
 //
 (* ****** ****** *)
 
@@ -53,9 +57,9 @@ end // end of [fopr]
 implement(res)
 list_tabulate$fopr<res>
   (i) = let
-  val () = ignoret (xs) // HX: for circumventing a bug
+  val () = ignoret (xs) // HX: bug?
 in
-  $UNSAFE.castvwtp0{res}(fopr($UNSAFE.cast{natLt(n)}(i)))
+  $UN.castvwtp0{res}(fopr($UN.cast{natLt(n)}(i)))
 end // end of [list_tabulate$fopr]
 //
 in

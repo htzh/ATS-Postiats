@@ -34,16 +34,17 @@
 
 (* ****** ****** *)
 //
-#include "share/atspre_define.hats"
 #include "share/atspre_staload.hats"
 //
 (* ****** ****** *)
 
 fun{
 a:t@ype
-} bsearch_arr{n:nat}
+} bsearch_arr
+  {n:nat}
 (
-  A: arrayref (a, n), n: int n, x0: a, cmp: (a, a) -> int
+  A: arrayref (a, n)
+, n: int n, x0: a, cmp: (a, a) -> int
 ) : int = let
 //
 fun loop
@@ -53,13 +54,17 @@ fun loop
   A: arrayref (a, n), l: int i, u: int j
 ) :<cloref1> int =
 (
-  if l <= u then let
+//
+if l <= u
+  then let
     val m = l + half (u - l)
     val x = A[m]
     val sgn = cmp (x0, x)
   in
     if sgn >= 0 then loop (A, m+1, u) else loop (A, l, m-1)
-  end else u // end of [if]
+  end // end of [then]
+  else (u) // end of [else]
+//
 ) (* end of [loop] *)
 //
 in
@@ -68,16 +73,24 @@ end // end of [bsearch_arr]
 
 (* ****** ****** *)
 //
-staload UN = "prelude/SATS/unsafe.sats"
+staload
+UN = "prelude/SATS/unsafe.sats"
 //
-staload STDLIB = "libc/SATS/stdlib.sats"
+staload
+STDLIB = "libats/libc/SATS/stdlib.sats"
 //
 (* ****** ****** *)
 //
-staload
-RG = "{$LIBATSHWXI}/testing/SATS/randgen.sats"
-staload
-_(*RG*) = "{$LIBATSHWXI}/testing/DATS/randgen.dats"
+#define
+ATSCNTRB_sourceloc
+"http://www.ats-lang.org/LIBRARY/contrib"
+#define
+ATSCNTRB_targetloc "../.INT2PROGINATS-atscntrb"
+//
+staload RG =
+"{$ATSCNTRB}/libats-hwxi/testing/SATS/randgen.sats"
+staload _(*RG*) =
+"{$ATSCNTRB}/libats-hwxi/testing/DATS/randgen.dats"
 //
 (* ****** ****** *)
 %{^

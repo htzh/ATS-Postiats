@@ -33,20 +33,8 @@
 //
 (* ****** ****** *)
 
-staload
-GMP = "libc/SATS/gmp.sats"
-vtypedef mpz_vt = $GMP.mpz_vt
-
-(* ****** ****** *)
-
 abstype intinf_type
 typedef intinf = intinf_type
-
-(* ****** ****** *)
-
-castfn intinf_takeout_mpz
-  (x: intinf):<!ref> [l:addr] (mpz_vt @ l, mpz_vt @ l -<lin,prf> void | ptr l)
-// end of [intinf_takeout_mpz]
 
 (* ****** ****** *)
 
@@ -71,7 +59,7 @@ fun
 intinf_make_base_string_ofs
   {n:int} {i:nat | i <= n}
 (
-  base: intBtw(2,36+1), rep: string n, ofs: int i
+  base: intBtwe(2,36), rep: string n, ofs: int i
 ) : intinf // end of [intinf_make_base_string_ofs]
 
 (* ****** ****** *)
@@ -114,42 +102,44 @@ fun compare_intinf_int (x1: intinf, x2: int):<> int
 fun compare_intinf_intinf (x1: intinf, x2: intinf):<> int
 
 (* ****** ****** *)
-
+//
 fun neg_intinf (x: intinf):<> intinf
-overload ~ with neg_intinf
-
+//
 fun add_intinf_int (x1: intinf, x2: int):<> intinf
 fun add_int_intinf (x1: int, x2: intinf):<> intinf
 fun add_intinf_intinf (x1: intinf, x2: intinf):<> intinf
-overload + with add_intinf_int
-overload + with add_int_intinf
-overload + with add_intinf_intinf
-
+//
 fun sub_intinf_intinf (x1: intinf, x2: intinf):<> intinf
-overload - with sub_intinf_intinf
-
+//
 fun mul_intinf_int (x1: intinf, x2: int):<> intinf
 fun mul_int_intinf (x1: int, x2: intinf):<> intinf
 fun mul_intinf_intinf (x1: intinf, x2: intinf):<> intinf
+//
+overload ~ with neg_intinf
+overload + with add_intinf_int
+overload + with add_int_intinf
+overload + with add_intinf_intinf
+overload - with sub_intinf_intinf
 overload * with mul_intinf_int
 overload * with mul_int_intinf
 overload * with mul_intinf_intinf
-
+//
 (* ****** ****** *)
-
+//
 abstype intinfset_type
 typedef intinfset = intinfset_type
-
-fun fprint_intinfset (out: FILEref, xs: intinfset): void
-
+//
+typedef intinflst = List (intinf)
+vtypedef intinflst_vt = List_vt (intinf)
+//
 fun intinfset_sing (x: intinf): intinfset
 fun intinfset_is_member (xs: intinfset, x: intinf): bool
 fun intinfset_add (xs: intinfset, x: intinf): intinfset
-
-typedef intinflst = List (intinf)
-viewtypedef intinflst_vt = List_vt (intinf)
+//
 fun intinfset_listize (xs: intinfset): intinflst_vt
-
+//
+fun fprint_intinfset (out: FILEref, xs: intinfset): void
+//
 (* ****** ****** *)
 
 (* end of [pats_intinf.sats] *)

@@ -1,34 +1,60 @@
+(* ****** ****** *)
 (*
-** Some code
-// used in the book INT2PROGINATS
+**
+** Some code used in
+** the book INT2PROGINATS
+**
 *)
+(* ****** ****** *)
+//
+#include
+"share/atspre_staload.hats"
+//
+(* ****** ****** *)
+
+typedef
+charint = (char, int)
+typedef
+intchar = (int, char)
 
 (* ****** ****** *)
 
-#include "share/atspre_define.hats"
-#include "share/atspre_staload.hats"
-
-(* ****** ****** *)
-
-typedef charint = (char, int)
-typedef intchar = (int, char)
 fun swap_char_int (xy: charint): intchar = (xy.1, xy.0)
 fun swap_int_char (xy: intchar): charint = (xy.1, xy.0)
 
-fun{a,b:t@ype}
-swap (xy: (a, b)): (b, a) = (xy.1, xy.0)
-fun swap_char_int (xy: charint): intchar = swap<char,int> (xy)
-fun swap_int_char (xy: intchar): charint = swap<int,char> (xy)
+(* ****** ****** *)
+//
+fun{
+a,b:t@ype
+} swap (xy: (a, b)): (b, a) = (xy.1, xy.0)
+//
+fun
+swap_char_int (xy: charint): intchar = swap<char,int> (xy)
+fun
+swap_int_char (xy: intchar): charint = swap<int,char> (xy)
+//
+(* ****** ****** *)
 
-fun{a:t@ype}{b:t@ype}
+fun
+{a:t@ype}
+{b:t@ype}
 swap2 (xy: (a, b)): (b, a) = (xy.1, xy.0)
-fun swap_char_int (xy: charint): intchar = swap2<char><int> (xy)
-fun swap_int_char (xy: intchar): charint = swap2<int><char> (xy)
+fun
+swap_char_int (xy: charint): intchar = swap2<char><int> (xy)
+fun
+swap_int_char (xy: intchar): charint = swap2<int><char> (xy)
+
+(* ****** ****** *)
+
+fun
+swap_boxed{a,b:type} (xy: (a, b)): (b, a) = (xy.1, xy.0)
 
 (* ****** ****** *)
 
 typedef
 cfun (t1:t@ype, t2:t@ype) = t1 -<cloref1> t2
+
+(* ****** ****** *)
 
 fun{
 a,b,c:t@ype
@@ -89,17 +115,25 @@ end // end of [list0_last]
 
 (* ****** ****** *)
 
-staload "libc/SATS/stdlib.sats"
+staload "libats/libc/SATS/stdlib.sats"
 
 (* ****** ****** *)
-
-staload "{$LIBATSHWXI}/testing/SATS/randgen.sats"
-staload _(*anon*) = "{$LIBATSHWXI}/testing/DATS/randgen.dats"
-
+//
+#define
+ATSCNTRB_sourceloc
+"http://www.ats-lang.org/LIBRARY/contrib"
+#define
+ATSCNTRB_targetloc "../.INT2PROGINATS-atscntrb"
+//
+staload RG =
+"{$ATSCNTRB}/libats-hwxi/testing/SATS/randgen.sats"
+staload _(*RG*) =
+"{$ATSCNTRB}/libats-hwxi/testing/DATS/randgen.dats"
+//
 (* ****** ****** *)
 
 typedef T = double
-implement randgen_val<T> () = drand48 ()
+implement $RG.randgen_val<T> () = drand48 ()
 
 (* ****** ****** *)
 
@@ -107,11 +141,23 @@ implement
 main0 () =
 {
 //
-  #define N 100
-  val xs = g0ofg1 (randgen_list<T> (N))
-  val ((*void*)) = assertloc (list0_length<T> (xs) = N)
-  val-Some0(last) = list0_last<T> (xs)
-  val ((*void*)) = assertloc (last = list0_head_exn (list0_reverse (xs)))
+val AB = (box("A"), box("B"))
+//
+typedef boxstr = boxed(string)
+val BA1 = swap_boxed{boxstr,boxstr} (AB)
+val BA2 = swap_boxed (AB) // omitting type arguments may be fine
+//
+val () = println! ("BA1.0 = ", unbox(BA1.0))
+val () = println! ("BA1.1 = ", unbox(BA1.1))
+val () = println! ("BA2.0 = ", unbox(BA2.0))
+val () = println! ("BA2.1 = ", unbox(BA2.1))
+//
+#define N 100
+val xs = g0ofg1 ($RG.randgen_list<T> (N))
+val ((*void*)) = assertloc (list0_length<T> (xs) = N)
+//
+val-Some0(xz) = list0_last<T> (xs)
+val ((*void*)) = assertloc (xz = list0_head_exn (list0_reverse (xs)))
 //
 } (* end of [main0] *)
 

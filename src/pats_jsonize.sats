@@ -59,13 +59,17 @@ staload "./pats_label.sats"
 
 datatype
 jsonval =
+//
   | JSONnul of ()
   | JSONint of (int)
   | JSONintinf of (intinf)
   | JSONbool of (bool)
   | JSONfloat of (double)
   | JSONstring of (string)
-  | JSONloc of (location)
+//
+  | JSONlocation of (location)
+  | JSONfilename of (filename)
+//
   | JSONlist of (jsonvalist)
   | JSONlablist of labjsonvalist
   | JSONoption of (jsonvalopt)
@@ -89,7 +93,10 @@ fun jsonval_bool (x: bool): jsonval
 fun jsonval_double (x: double): jsonval
 fun jsonval_string (x: string): jsonval
 //
-fun jsonval_loc (loc: location): jsonval
+(* ****** ****** *)
+//
+fun jsonval_location (loc: location): jsonval
+fun jsonval_filename (fil: filename): jsonval
 //
 (* ****** ****** *)
 //
@@ -124,14 +131,60 @@ jsonval_labval4
 , l4: string, x4: jsonval
 ) : jsonval // end of [jsonval_labval4]
 //
+fun
+jsonval_labval5
+(
+  l1: string, x1: jsonval
+, l2: string, x2: jsonval
+, l3: string, x3: jsonval
+, l4: string, x4: jsonval
+, l5: string, x5: jsonval
+) : jsonval // end of [jsonval_labval5]
+//
+fun
+jsonval_labval6
+(
+  l1: string, x1: jsonval
+, l2: string, x2: jsonval
+, l3: string, x3: jsonval
+, l4: string, x4: jsonval
+, l5: string, x5: jsonval
+, l6: string, x6: jsonval
+) : jsonval // end of [jsonval_labval6]
+//
+fun
+jsonval_labval7
+(
+  l1: string, x1: jsonval
+, l2: string, x2: jsonval
+, l3: string, x3: jsonval
+, l4: string, x4: jsonval
+, l5: string, x5: jsonval
+, l6: string, x6: jsonval
+, l7: string, x7: jsonval
+) : jsonval // end of [jsonval_labval7]
+//
+fun
+jsonval_labval8
+(
+  l1: string, x1: jsonval
+, l2: string, x2: jsonval
+, l3: string, x3: jsonval
+, l4: string, x4: jsonval
+, l5: string, x5: jsonval
+, l6: string, x6: jsonval
+, l7: string, x7: jsonval
+, l8: string, x8: jsonval
+) : jsonval // end of [jsonval_labval8]
+//
 (* ****** ****** *)
-
+//
 fun
 jsonval_conarglst
   (con: string, arglst: jsonvalist): jsonval
-
+//
 (* ****** ****** *)
-
+//
 fun
 jsonval_conarg0 (con: string): jsonval
 fun
@@ -139,6 +192,7 @@ jsonval_conarg1 (con: string, arg: jsonval): jsonval
 fun
 jsonval_conarg2
   (con: string, arg1: jsonval, arg2: jsonval): jsonval
+//
 fun
 jsonval_conarg3
 (
@@ -150,7 +204,7 @@ jsonval_conarg4
   con: string
 , arg1: jsonval, arg2: jsonval, arg3: jsonval, arg4: jsonval
 ) : jsonval // end of [jsonval_conarg4]
-
+//
 (* ****** ****** *)
 //
 fun jsonval_none (): jsonval
@@ -189,9 +243,18 @@ fun jsonize_valkind : jsonize_ftype (valkind)
 
 (* ****** ****** *)
 
+fun jsonize_dcstkind : jsonize_ftype (dcstkind)
+
+(* ****** ****** *)
+
 fun jsonize_stamp : jsonize_ftype (stamp)
 fun jsonize_symbol : jsonize_ftype (symbol)
+fun jsonize_symbolopt : jsonize_ftype (symbolopt)
+
+(* ****** ****** *)
+
 fun jsonize_location : jsonize_ftype (location)
+fun jsonize_filename : jsonize_ftype (filename)
 
 (* ****** ****** *)
 
@@ -199,21 +262,20 @@ fun jsonize_label : jsonize_ftype (label)
 
 (* ****** ****** *)
 
-fun
-jsonize_ignored{a:type} (x: a): jsonval
+fun jsonize_ignored{a:type} (x: a): jsonval
 
 (* ****** ****** *)
-
-fun
-jsonize_list_fun{a:type}
-  (xs: List (a), f: jsonize_ftype (a)): jsonval
+//
+fun{a:t@ype}
+jsonize_list_fun
+  (xs: List0 (a), f: jsonize_ftype (a)): jsonval
 // end of [jsonize_list_fun]
-
-fun
-jsonize_option_fun{a:type}
+//
+fun{a:t@ype}
+jsonize_option_fun
   (xs: Option (a), f: jsonize_ftype (a)): jsonval
 // end of [jsonize_option_fun]
-
+//
 (* ****** ****** *)
 
 (* end of [pats_jsonize.sats] *)

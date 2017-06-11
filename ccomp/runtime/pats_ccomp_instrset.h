@@ -56,52 +56,83 @@
 //
 // HX: for supporting lazy-evaluation
 //
-#define ATStylazy(tyval) \
+#define \
+ATStylazy(tyval) \
   struct{ int flag; union{ void* thunk; tyval saved; } lazy; }
 //
 /* ****** ****** */
 
-#define ATSempty()
+#define ATSif(x) if(x)
+#define ATSthen()
+#define ATSelse() else
 
 /* ****** ****** */
 
-#define ATSif(x) if (x)
-#define ATSifnot(x) if (!(x))
-#define ATSthen()
-#define ATSelse() else
+#define ATSifthen(x) if(x)
+#define ATSifnthen(x) if(!(x))
+
+/* ****** ****** */
+
 #define ATSdo() do
-#define ATSwhile(x) while (x)
+#define ATSwhile(x) while(x)
 #define ATSbreak() break
 #define ATScontinue() continue
-#define ATSgoto(lab) goto lab
-#define ATSreturn(x) return (x)
+
+/* ****** ****** */
+//
+// HX: handling for/while loops
+//
+#define \
+ATSloop_open(init, fini, cont) \
+  do { init:
+#define \
+ATSloop_close(init, fini, cont) \
+  goto init ; fini: break ; } while(0)
+//
+#define ATSbreak2(fini) goto fini
+#define ATScontinue2(cont) goto cont
+//
+/* ****** ****** */
+
+#define ATSreturn(x) return(x)
 #define ATSreturn_void(x) return
 
 /* ****** ****** */
 
-#define ATScaseofbeg() do {
-#define ATScaseofend() } while (0) ;
-#define ATSbranchbeg()
-#define ATSbranchend() break
+#define ATSFCreturn(x) return(x)
+#define ATSFCreturn_void(x) (x); return
+
+/* ****** ****** */
+//
+#define ATSbranch_beg()
+#define ATSbranch_end() break ;
+//
+#define ATScaseof_beg() do {
+#define ATScaseof_end() } while(0) ;
+//
+/* ****** ****** */
+
+#define ATSextcode_beg()
+#define ATSextcode_end()
 
 /* ****** ****** */
 
-#define ATStailcalbeg() do {
-#define ATStailcalend() } while (0) ;
+#define ATSfunbody_beg()
+#define ATSfunbody_end()
 
 /* ****** ****** */
 
 #define ATSPMVint(i) i
-#define ATSPMVintrep(str) str
+#define ATSPMVintrep(rep) (rep)
 
 #define ATSPMVbool_true() atsbool_true
 #define ATSPMVbool_false() atsbool_false
-#define ATSPMVchar(c) c
-#define ATSPMVfloat(rep) rep
-#define ATSPMVstring(str) str
+#define ATSPMVchar(c) (c)
+#define ATSPMVfloat(rep) (rep)
+#define ATSPMVstring(str) (str)
 
-#define ATSPMVi0nt(x) x
-#define ATSPMVf0loat(x) x
+#define ATSPMVi0nt(tok) (tok)
+#define ATSPMVf0loat(tok) (tok)
 
 /* ****** ****** */
 
@@ -109,21 +140,27 @@
 #define ATSCSTSPmyloc(info) info
 
 /* ****** ****** */
-
+//
 #define ATSPMVtop() atserror_top
-#define ATSPMVempty() atserror_empty
-
+//
+#define ATSPMVempty() /*empty*/
+#define ATSPMVextval(name) (name)
+//
 /* ****** ****** */
 
-#define ATSPMVextval(id) (id)
+#define ATSPMVtyrep(tyrep) tyrep
 
 /* ****** ****** */
-
+//
 #define ATSPMVfunlab(flab) (flab)
-
+//
+// HX-2015-07-06: not yet in use:
+//
+#define ATSPMVfunlab2(flab, arity) (flab)
+//
 /* ****** ****** */
 
-#define ATSPMVcfunlab(knd, flab, env) (flab##$closurerize)env
+#define ATSPMVcfunlab(knd, flab, env) (flab##__closurerize)env
 
 /* ****** ****** */
 
@@ -147,17 +184,27 @@
 //
 /* ****** ****** */
 
-#define ATSfcall(fun, args) (fun)args
-#define ATSfunclo_fun(pmv, targs, tres) ((tres(*)targs)(pmv))
-#define ATSfunclo_clo(pmv, targs, tres) ((tres(*)targs)(((ATStyclo()*)pmv)->cfun))
+#define ATSfuncall(fun, funarg) (fun)funarg
 
 /* ****** ****** */
 //
+#define ATSextfcall(fun, funarg) (fun)funarg
+#define ATSextmcall(obj, mtd, funarg) (obj->mtd)funarg
+//
+/* ****** ****** */
+//
+#define \
+ATSfunclo_fun(pmv, targs, tres) ((tres(*)targs)(pmv))
+#define \
+ATSfunclo_clo(pmv, targs, tres) ((tres(*)targs)(((ATStyclo()*)pmv)->cfun))
+//
+/* ****** ****** */
+//
 #define ATStmpdec(tmp, hit) hit tmp
-#define ATStmpdec_void(tmp, hit)
+#define ATStmpdec_void(tmp)
 //
 #define ATSstatmpdec(tmp, hit) static hit tmp
-#define ATSstatmpdec_void(tmp, hit)
+#define ATSstatmpdec_void(tmp)
 //
 /* ****** ****** */
 
@@ -178,41 +225,40 @@
 /* ****** ****** */
 //
 #define ATSCKnot(x) ((x)==0)
+//
 #define ATSCKiseqz(x) ((x)==0)
 #define ATSCKisneqz(x) ((x)!=0)
+//
 #define ATSCKptriscons(x) (0 != (void*)(x))
 #define ATSCKptrisnull(x) (0 == (void*)(x))
 //
 /* ****** ****** */
 //
-// HX: handling for/while loops
-//
-#define ATSbreak2(fini) goto fini
-#define ATScontinue2(cont) goto cont
-#define ATSLOOPopen(init, fini, cont) \
-  do { init:
-#define ATSLOOPclose(init, fini, cont) \
-  goto init ; fini: break ; } while(0)
-//
-/* ****** ****** */
-//
-#define ATSPATCKint(pmv, pat) ((pmv)==pat)
-#define ATSPATCKbool(pmv, pat) ((pmv)==pat)
-#define ATSPATCKchar(pmv, pat) ((pmv)==pat)
-#define ATSPATCKfloat(pmv, pat) ((pmv)==pat)
-#define ATSPATCKstring(pmv, pat) (atspre_string_equal(pmv, pat))
+#define ATSCKpat_int(pmv, pat) ((pmv)==pat)
+#define ATSCKpat_bool(pmv, pat) ((pmv)==pat)
+#define ATSCKpat_char(pmv, pat) ((pmv)==pat)
+#define ATSCKpat_float(pmv, pat) ((pmv)==pat)
+#define ATSCKpat_string(pmv, pat) (atspre_string_equal(pmv, pat))
 //
 /*
 ** a datatype should not contain more than 1024 constructors!
 */
 #define ATS_DATACONMAX 1024
 //
-#define ATSPATCKcon0(pmv, tag) ((pmv)==(void*)tag)
-#define ATSPATCKcon1(pmv, tag) \
+#define ATSCKpat_con0(pmv, tag) ((pmv)==(void*)tag)
+#define ATSCKpat_con1(pmv, tag) \
   ((pmv)>=(void*)ATS_DATACONMAX && ((ATStysum()*)(pmv))->contag==tag)
 //
-#define ATSPATCKexn0(pmv, d2c) ((pmv)==(void*)(&(d2c)))
-#define ATSPATCKexn1(pmv, d2c) (((ATStyexn()*)(pmv))->exntag==(&(d2c))->exntag)
+#define ATSCKpat_exn0(pmv, d2con) ((pmv)==(void*)(&(d2con)))
+#define ATSCKpat_exn1(pmv, d2con) (((ATStyexn()*)(pmv))->exntag==(&(d2con))->exntag)
+//
+/* ****** ****** */
+//
+#define ATSINSlab(lab) lab
+#define ATSINSgoto(lab) goto lab
+//
+#define ATSINSflab(flab) flab
+#define ATSINSfgoto(flab) goto flab
 //
 /* ****** ****** */
 
@@ -237,31 +283,48 @@
 #define ATSINSmove_ptralloc(tmp, hit) (tmp = ATS_MALLOC(sizeof(hit)))
 
 /* ****** ****** */
-
-#define ATSINSmove_con0(tmp, tag) (tmp = ((void*)tag))
-#define ATSINSmove_con1(tmp, tysum) (tmp = ATS_MALLOC(sizeof(tysum)))
-#define ATSINSstore_con_tag(tmp, val) (((ATStysum()*)(tmp))->contag = val)
-#define ATSINSstore_con_ofs(tmp, tysum, lab, val) (((tysum*)(tmp))->lab = val)
-
+//
+#define \
+ATSINSmove_nil(tmp) (tmp = ((void*)0))
+//
+#define \
+ATSINSmove_con0(tmp, tag) (tmp = ((void*)tag))
+//
+#define ATSINSmove_con1_beg()
+#define ATSINSmove_con1_end()
+#define ATSINSmove_con1_new(tmp, tysum) (tmp = ATS_MALLOC(sizeof(tysum)))
+#define ATSINSstore_con1_tag(tmp, val) (((ATStysum()*)(tmp))->contag = val)
+#define ATSINSstore_con1_ofs(tmp, tysum, lab, val) (((tysum*)(tmp))->lab = val)
+//
+/* ****** ****** */
+//
+#define ATSINSmove_exn0(tmp, d2con) (tmp = &(d2con))
+//
+#define ATSINSmove_exn1_beg()
+#define ATSINSmove_exn1_end()
+#define ATSINSmove_exn1_new(tmp, tyexn) (tmp = ATS_MALLOC(sizeof(tyexn)))
+#define ATSINSstore_exn1_tag(tmp, d2con) (((ATStyexn()*)tmp)->exntag = (&(d2con))->exntag)
+#define ATSINSstore_exn1_msg(tmp, d2con) (((ATStyexn()*)tmp)->exnmsg = (&(d2con))->exnmsg)
+//
+/* ****** ****** */
+//
+#define ATStailcal_beg() do {
+#define ATStailcal_end() } while(0) ;
+//
+#define ATSINSmove_tlcal(apy, tmp) (apy = tmp)
+#define ATSINSargmove_tlcal(arg, apy) (arg = apy)
+//
 /* ****** ****** */
 
-#define ATSINSmove_exn0(tmp, d2c) (tmp = &(d2c))
-#define ATSINSmove_exn1(tmp, tyexn) (tmp = ATS_MALLOC(sizeof(tyexn)))
-#define ATSINSstore_exntag(tmp, d2c) (((ATStyexn()*)tmp)->exntag = (&(d2c))->exntag)
-#define ATSINSstore_exnmsg(tmp, d2c) (((ATStyexn()*)tmp)->exnmsg = (&(d2c))->exnmsg)
-
-/* ****** ****** */
-
-#define ATSINSmove_tlcal(argx, tmp) (argx = tmp)
-#define ATSINSargmove_tlcal(arg, argx) (arg = argx)
-
-/* ****** ****** */
-
+#define ATSINSmove_fltrec_beg()
+#define ATSINSmove_fltrec_end()
 #define ATSINSstore_fltrec_ofs(tmp, tyrec, lab, val) ((tmp).lab = val)
 
 /* ****** ****** */
 
-#define ATSINSmove_boxrec(tmp, tyrec) (tmp = ATS_MALLOC(sizeof(tyrec)))
+#define ATSINSmove_boxrec_beg()
+#define ATSINSmove_boxrec_end()
+#define ATSINSmove_boxrec_new(tmp, tyrec) (tmp = ATS_MALLOC(sizeof(tyrec)))
 #define ATSINSstore_boxrec_ofs(tmp, tyrec, lab, val) (((tyrec*)(tmp))->lab = val)
 
 /* ****** ****** */
@@ -290,18 +353,22 @@
 //
 /* ****** ****** */
 
-#define ATSINSclosure_initize(flab, tmpenv) (flab##$closureinit)tmpenv
+#define ATSINSextvar_assign(var, pmv) var = (pmv)
+#define ATSINSdyncst_valbind(d2cst, pmv) d2cst = (pmv)
 
 /* ****** ****** */
 
+#define ATSINSclosure_initize(flab, tmpenv) (flab##__closureinit)tmpenv
+
+/* ****** ****** */
+//
 #define ATSINSraise_exn(tmp, pmv) atsruntime_raise(pmv)
-
+//
+/* ****** ****** */
+//
 #define ATSINScaseof_fail(msg) atsruntime_handle_unmatchedval(msg)
-
-/*
-#define ATSINSfunarg_fail(msg) ...
-*/
-
+#define ATSINSfunarg_fail(msg) atsruntime_handle_unmatchedarg(msg)
+//
 /* ****** ****** */
 
 #define \
@@ -311,7 +378,7 @@ do { \
     ATS_MALLOC(sizeof(ATStylazy(tyval))) ; \
   (*(ATStylazy(tyval)*)tmpret).flag = 0 ; \
   (*(ATStylazy(tyval)*)tmpret).lazy.thunk = pmv_thk ; \
-} while (0) ; /* end of [do ... while ...] */
+} while(0) ; /* end of [do ... while ...] */
 
 #define \
 ATSINSmove_lazyeval(tmpret, tyval, pmv_lazy) \
@@ -321,33 +388,44 @@ do { \
   ) { \
     (*(ATStylazy(tyval)*)pmv_lazy).flag += 1 ; \
     atstype_cloptr __thunk = (*(ATStylazy(tyval)*)pmv_lazy).lazy.thunk ; \
-    tmpret = ATSfcall(ATSfunclo_clo(__thunk, (atstype_cloptr), tyval), (__thunk)) ; \
+    tmpret = ATSfuncall(ATSfunclo_clo(__thunk, (atstype_cloptr), tyval), (__thunk)) ; \
     (*(ATStylazy(tyval)*)pmv_lazy).lazy.saved = tmpret ; \
   } else { \
     tmpret = (*(ATStylazy(tyval)*)pmv_lazy).lazy.saved ; \
   } /* end of [if] */ \
-} while (0) /* end of [do ... while ...] */
+} while(0) /* end of [do ... while ...] */
 
 /* ****** ****** */
 
 #define \
-ATSINSmove_ldelay(tmpret, tyval, pmv_thk) ATSINSmove(tmpret, pmv_thk)
+ATSINSmove_ldelay(tmpret, tyval, __thunk) \
+do { \
+  ATSINSmove(tmpret, __thunk) ; \
+} while(0) /* end of [do ... while ...] */
 
 #define \
 ATSINSmove_llazyeval(tmpret, tyval, __thunk) \
 do { \
- tmpret = \
- ATSfcall(ATSfunclo_clo(__thunk, (atstype_cloptr, atstype_bool), tyval), (__thunk, atsbool_true)) ; \
- ATS_MFREE(__thunk) ; \
-} while (0) /* end of [do ... while ...] */
+  tmpret = \
+  ATSfuncall(ATSfunclo_clo(__thunk, (atstype_cloptr, atstype_bool), tyval), (__thunk, atsbool_true)) ; \
+  ATS_MFREE(__thunk) ; \
+} while(0) /* end of [do ... while ...] */
+
+/* ****** ****** */
 
 #define \
 atspre_lazy_vt_free(__thunk) \
 do { \
-  ATSfcall(ATSfunclo_clo(__thunk, (atstype_cloptr, atstype_bool), void), (__thunk, atsbool_false)) ; \
+  ATSfuncall(ATSfunclo_clo(__thunk, (atstype_cloptr, atstype_bool), void), (__thunk, atsbool_false)) ; \
   ATS_MFREE(__thunk) ; \
-} while (0) /* atspre_lazy_vt_free */
+} while(0) /* atspre_lazy_vt_free */
 
+/* ****** ****** */
+//
+// HX-2014-10:
+//
+#define atspre_lazy2cloref(pmv_lazy) ((*(ATStylazy(atstype_ptr)*)pmv_lazy).lazy.thunk)
+//
 /* ****** ****** */
 
 #endif /* PATS_CCOMP_INSTRSET_H */

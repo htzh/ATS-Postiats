@@ -28,13 +28,13 @@
 (* ****** ****** *)
 
 (* Author: Hongwei Xi *)
-(* Authoremail: gmhwxi AT gmail DOT com *)
+(* Authoremail: gmhwxiATgmailDOTcom *)
 (* Start time: August, 2013 *)
 
 (* ****** ****** *)
 
 #define
-ATS_PACKNAME "ATSLIB.libats.funset_avltree"
+ATS_PACKNAME "ATSLIB.libats.funmap_avltree"
 #define
 ATS_DYNLOADFLAG 0 // no need for dynloading at run-time
 
@@ -51,7 +51,7 @@ staload "libats/SATS/funmap_avltree.sats"
 implement
 {key}
 compare_key_key
-  (k1, k2) = gcompare_val<key> (k1, k2)
+  (k1, k2) = gcompare_val_val<key> (k1, k2)
 // end of [compare_key_key]
 
 (* ****** ****** *)
@@ -88,16 +88,19 @@ datatype avltree
 
 (* ****** ****** *)
 
-typedef avltree
+typedef
+avltree
   (key:t0p, itm:t0p) = [h:nat] avltree (key, itm, h)
 // end of [avltree]
 
-typedef avltree_inc
+typedef
+avltree_inc
   (key:t0p, itm:t0p, h:int) =
   [h1:nat | h <= h1; h1 <= h+1] avltree (key, itm, h1)
 // end of [avltree_inc]
 
-typedef avltree_dec
+typedef
+avltree_dec
   (key:t0p, itm:t0p, h:int) =
   [h1:nat | h1 <= h; h <= h1+1] avltree (key, itm, h1)
 // end of [avltree_dec]
@@ -583,7 +586,7 @@ case+ t0 of
         // end of [if]
       end // end of [sgn > 0]
     | _ (* sgn = 0 *) => let
-        val () = res := true // fould
+        val () = res := true // found
         val () = res2 := x
         prval () = opt_some{itm}(res2)
       in
@@ -660,8 +663,43 @@ end // end of [funmap_foreach_env]
 
 implement
 {key,itm}
-funmap_avltree_height (map) = avlht (map)
+funmap_streamize
+  (map) = let
+//
+typedef ki = @(key, itm)
+//
+fun
+auxmain{h:nat}
+(
+t0: avltree(key, itm, h)
+) : stream_vt(@(key, itm)) =
+(
+//
+case+ t0 of
+//
+| E () =>
+  stream_vt_make_nil()
+//
+| B (
+    _, k, x, tl, tr
+  ) => stream_vt_append
+  (
+    auxmain(tl)
+  , $ldelay(stream_vt_cons{ki}((k, x), auxmain(tr)))
+  ) (* stream_vt_append *)
+//
+) (* end of [auxmain] *)
+//
+in
+  $effmask_all(auxmain(map))
+end // end of [funmap_streamize]
 
+(* ****** ****** *)
+//
+implement
+{key,itm}
+funmap_avltree_height (map) = avlht (map)
+//
 (* ****** ****** *)
 
 (* end of [funmap_avltree.dats] *)

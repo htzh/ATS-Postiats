@@ -58,17 +58,20 @@ staload "libats/ML/SATS/strarr.sats"
 
 (* ****** ****** *)
 
-implement{}
+implement
+{}(*tmp*)
 strarr_get_ref (str) =
   array0_get_ref (strarr2array (str))
 // end of [strarr_get_ref]
 
-implement{}
+implement
+{}(*tmp*)
 strarr_get_size (str) =
   array0_get_size (strarr2array (str))
 // end of [strarr_get_size]
 
-implement{}
+implement
+{}(*tmp*)
 strarr_get_refsize (str) =
   array0_get_refsize (strarr2array (str))
 // end of [strarr_get_refsize]
@@ -127,21 +130,25 @@ end // end of [strarr_imake_string]
 
 (* ****** ****** *)
 
-implement{}
+implement
+{}(*tmp*)
 strarr_is_empty (str) = strarr_get_size (str) = 0
-implement{}
+implement
+{}(*tmp*)
 strarr_isnot_empty (str) = strarr_get_size (str) > 0
 
 (* ****** ****** *)
 
-implement{tk}
+implement
+{tk}(*tmp*)
 strarr_get_at_gint
   (str, i) = let
   val str = strarr2array (str) in
   $effmask_ref (array0_get_at_gint<char> (str, i))
 end // end of [strarr_get_at_gint]
 
-implement{tk}
+implement
+{tk}(*tmp*)
 strarr_get_at_guint
   (str, i) = let
   val str = strarr2array (str) in
@@ -274,17 +281,15 @@ end // end of [strarr_compare]
 
 (* ****** ****** *)
 
-implement{}
+implement
 strarr_length (str) = strarr_get_size (str)
 
 (* ****** ****** *)
 //
 implement
-print_strarr
-  (str) = fprint_strarr (stdout_ref, str)
+print_strarr (x) = fprint_strarr (stdout_ref, x)
 implement
-prerr_strarr
-  (str) = fprint_strarr (stderr_ref, str)
+prerr_strarr (x) = fprint_strarr (stderr_ref, x)
 //
 (* ****** ****** *)
 
@@ -354,99 +359,145 @@ end // end of [strarr_copy]
 implement
 strarr_append
   (str1, str2) = let
-  val str1 = strarr2array (str1)
-  val str2 = strarr2array (str2)
-  val str12 = $effmask_ref (array0_append<char> (str1, str2))
+//
+val str1 = strarr2array (str1)
+val str2 = strarr2array (str2)
+//
+val
+str12 =
+$effmask_ref
+  (array0_append<char> (str1, str2))
+//
 in
   array2strarr (str12)
 end // end of [strarr_append]
 
 (* ****** ****** *)
-
+//
 implement
-strarr_tabulate (n, f) = array2strarr (array0_tabulate (n, f))
-
+strarr_tabulate
+  (n, fopr) =
+(
+array2strarr(array0_tabulate<char>(n, fopr))
+)
+//
 (* ****** ****** *)
 
 implement
 strarr_foreach
-  (str, f) = let
+  (str, fwork) = let
 //
-fun loop
+fun
+loop
 (
-  p: ptr, n: size_t, f: cfun (char, void)
+  p: ptr, n: size_t
+, fwork: cfun(char, void)
 ) : void = let
 in
 //
-if n > 0 then let
-  val () = f ($UN.ptr0_get<char> (p))
+if
+(n > 0)
+then let
+//
+val () =
+  fwork($UN.ptr0_get<char>(p))
+//
 in
-  loop (ptr0_succ<char> (p), pred (n), f)
-end else () // end of [if]
+  loop(ptr0_succ<char>(p), pred(n), fwork)
+end // end of [then]
+else () // end of [else]
 //
 end // end of [loop]
 //
-val p0 = strarr_get_ref (str)
-val n0 = strarr_get_size (str)
+val p0 = strarr_get_ref(str)
+val n0 = strarr_get_size(str)
 //
 in
-  loop (p0, n0, f)
+  loop(p0, n0, fwork)
 end // end of [strarr_foreach]
 
 (* ****** ****** *)
 
 implement
 strarr_iforeach
-  (str, f) = let
+  (str, fwork) = let
 //
 fun loop
 (
-  p: ptr, n: size_t
-, i: size_t, f: cfun (size_t, char, void)
+  p: ptr
+, n: size_t, i: size_t
+, fwork: cfun (size_t, char, void)
 ) : void = let
 in
 //
-if n > i then let
-  val () = f (i, $UN.ptr0_get<char> (p))
+if
+(n > i)
+then let
+val () =
+  fwork(i, $UN.ptr0_get<char>(p))
+//
 in
-  loop (ptr0_succ<char> (p), n, succ (i), f)
-end else () // end of [if]
+  loop(ptr0_succ<char>(p), n, succ(i), fwork)
+end // end of [then]
+else () // end of [else]
 //
 end // end of [loop]
 //
-val p0 = strarr_get_ref (str)
-val n0 = strarr_get_size (str)
+val p0 = strarr_get_ref(str)
+val n0 = strarr_get_size(str)
 //
 in
-  loop (p0, n0, i2sz(0), f)
+  loop(p0, n0, i2sz(0), fwork)
 end // end of [strarr_iforeach]
 
 (* ****** ****** *)
 
 implement
 strarr_rforeach
-  (str, f) = let
+  (str, fwork) = let
 //
-fun loop
+fun
+loop
 (
-  p: ptr, n: size_t, f: cfun (char, void)
+  p: ptr, n: size_t
+, fwork: cfun(char, void)
 ) : void = let
 in
 //
-if n > 0 then let
-  val p1 = ptr0_pred<char> (p)
-  val () = f ($UN.ptr0_get<char> (p1)) in loop (p1, pred (n), f)
-end else () // end of [if]
+if
+(n > 0)
+then let
+//
+val p1 =
+  ptr0_pred<char>(p)
+val () =
+  fwork($UN.ptr0_get<char>(p1))
+//
+in
+  loop(p1, pred(n), fwork)
+end // end of [then]
+else () // end of [else]
 //
 end // end of [loop]
 //
-val p0 = strarr_get_ref (str)
-val n0 = strarr_get_size (str)
+val p0 = strarr_get_ref(str)
+val n0 = strarr_get_size(str)
 //
 in
-  loop (ptr0_add_guint<char> (p0, n0), n0, f)
+//
+loop
+(
+  ptr0_add_guint<char>(p0, n0), n0, fwork
+) (* end of [loop] *)
+//
 end // end of [strarr_rforeach]
 
+(* ****** ****** *)
+//
+implement
+fprint_val<strarr>
+  (out, str) = fprint_strarr(out, str)
+//
 (* ****** ****** *)
 
 (* end of [strarr.dats] *)

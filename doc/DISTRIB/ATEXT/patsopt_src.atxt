@@ -31,8 +31,8 @@ val () = fprint_string (out, "\
 # This script is automatically generated.\n\
 #\n\
 \n\
-SOURCE=../../src/\n\
-TARGET=ATS-Postiats/src/\n\
+SOURCE=../../src\n\
+TARGET=ATS-Postiats/src\n\
 \n\
 srcget ()\n\
 {\n\
@@ -96,12 +96,14 @@ The ATS/Postiats (ATS2) Compiler\
 (* ****** ****** *)
 
 #packfilename("pats_main.dats")
-#packfilesynop("\
-")
 
 (* ****** ****** *)
 
 #packfilename("pats_params.hats")
+
+(* ****** ****** *)
+
+#packfilename("pats_atspre.dats")
 
 (* ****** ****** *)
 
@@ -112,6 +114,8 @@ The ATS/Postiats (ATS2) Compiler\
 
 #packfilename("pats_intinf.sats")
 #packfilename("pats_intinf.dats")
+#packfilename("pats_intinf_int.hats")
+#packfilename("pats_intinf_gmp.hats")
 
 (* ****** ****** *)
 
@@ -318,7 +322,6 @@ The ATS/Postiats (ATS2) Compiler\
 
 #packfilename("pats_staexp2_print.dats")
 #packfilename("pats_staexp2_pprint.dats")
-#packfilename("pats_staexp2_jsonize.dats")
 
 (* ****** ****** *)
 
@@ -358,7 +361,6 @@ The ATS/Postiats (ATS2) Compiler\
 (* ****** ****** *)
 
 #packfilename("pats_dynexp2_print.dats")
-#packfilename("pats_dynexp2_jsonize.dats")
 
 (* ****** ****** *)
 
@@ -366,6 +368,29 @@ The ATS/Postiats (ATS2) Compiler\
 #packfilename("pats_dynexp2_dvar.dats")
 #packfilename("pats_dynexp2_dmac.dats")
 #packfilename("pats_dynexp2_util.dats")
+
+(* ****** ****** *)
+
+#packfilename("pats_staexp2_appenv.hats")
+#packfilename("pats_dynexp2_appenv.hats")
+
+(* ****** ****** *)
+
+#packfilename("pats_dynexp2_mapgen.dats")
+
+(* ****** ****** *)
+
+#packfilename("pats_codegen2.sats")
+#packfilename("pats_codegen2.dats")
+#packfilename("pats_codegen2_util.dats")
+#packfilename("pats_codegen2_absrec.dats")
+#packfilename("pats_codegen2_datype.dats")
+#packfilename("pats_codegen2_fprint.dats")
+
+(* ****** ****** *)
+
+#packfilename("pats_jsonize_synent2.sats")
+#packfilename("pats_jsonize_synent2.dats")
 
 (* ****** ****** *)
 
@@ -445,17 +470,23 @@ The ATS/Postiats (ATS2) Compiler\
 #packfilename("pats_lintprgm.dats")
 #packfilename("pats_lintprgm_myint.cats")
 #packfilename("pats_lintprgm_print.dats")
+#packfilename("pats_lintprgm_myint.dats")
 #packfilename("pats_lintprgm_myint_int.dats")
-#packfilename("pats_lintprgm_myint_intinf.dats")
+#packfilename("pats_lintprgm_myint_gmp.dats")
 #packfilename("pats_lintprgm_solve.dats")
 
 (* ****** ****** *)
 
 #packfilename("pats_constraint3.sats")
 #packfilename("pats_constraint3.dats")
-#packfilename("pats_constraint3_init.dats")
+
 #packfilename("pats_constraint3_print.dats")
+
+#packfilename("pats_constraint3_appenv.hats")
+#packfilename("pats_constraint3_mapgen.dats")
 #packfilename("pats_constraint3_jsonize.dats")
+
+#packfilename("pats_constraint3_init.dats")
 #packfilename("pats_constraint3_simplify.dats")
 #packfilename("pats_constraint3_icnstr.dats")
 #packfilename("pats_constraint3_solve.dats")
@@ -521,11 +552,9 @@ The ATS/Postiats (ATS2) Compiler\
 (* ****** ****** *)
 
 %{
-
-implement main () = ()
-
+implement main (argc, argv) = ()
 %}
 
 (* ****** ****** *)
 
-(* end of [patsopt.atxt] *)
+(* end of [patsopt_src.atxt] *)

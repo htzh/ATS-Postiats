@@ -41,8 +41,8 @@
 
 (* ****** ****** *)
 //
-#include "share/atspre_define.hats"
-#include "share/atspre_staload.hats"
+#include
+"share/atspre_staload.hats"
 //
 (* ****** ****** *)
 
@@ -156,18 +156,27 @@ in
 end (* end of [list2bt] *)
 
 (* ****** ****** *)
-
-staload "libc/SATS/stdlib.sats"
-
+//
+staload
+"libats/libc/SATS/stdlib.sats"
+//
 (* ****** ****** *)
-
-staload "{$LIBATSHWXI}/testing/SATS/randgen.sats"
-staload _(*anon*) = "{$LIBATSHWXI}/testing/DATS/randgen.dats"
-
+//
+#define
+ATSCNTRB_sourceloc
+"http://www.ats-lang.org/LIBRARY/contrib"
+#define
+ATSCNTRB_targetloc "../.INT2PROGINATS-atscntrb"
+//
+staload RG =
+"{$ATSCNTRB}/libats-hwxi/testing/SATS/randgen.sats"
+staload _(*RG*) =
+"{$ATSCNTRB}/libats-hwxi/testing/DATS/randgen.dats"
+//
 (* ****** ****** *)
 
 typedef T = double
-implement randgen_val<T> () = drand48 ()
+implement $RG.randgen_val<T> () = drand48 ()
 
 (* ****** ****** *)
 
@@ -176,14 +185,12 @@ main0 () =
 {
 //
 #define N1 57
-val xs = randgen_list<T> (N1)
-val xs = list_of_list_vt (xs)
+val xs = $RG.randgen_list<T> (N1)
 val bt = list2bt<T> (g0ofg1(xs))
 val () = assertloc (brauntest0 (bt))
 //
 #define N2 1000
-val xs = randgen_list<T> (N2)
-val xs = list_of_list_vt (xs)
+val xs = $RG.randgen_list<T> (N2)
 val bt = list2bt<T> (g0ofg1(xs))
 val () = assertloc (brauntest0 (bt))
 //

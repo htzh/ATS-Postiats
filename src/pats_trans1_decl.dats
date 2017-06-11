@@ -37,6 +37,11 @@ staload
 ATSPRE = "./pats_atspre.dats"
 //
 (* ****** ****** *)
+//
+staload
+UN = "prelude/SATS/unsafe.sats"
+//
+(* ****** ****** *)
 
 staload UT = "./pats_utils.sats"
 
@@ -47,7 +52,8 @@ staload GLOB = "./pats_global.sats"
 
 (* ****** ****** *)
 //
-staload SYM = "./pats_symbol.sats"
+staload
+SYM = "./pats_symbol.sats"
 //
 overload = with $SYM.eq_symbol_symbol
 //
@@ -60,13 +66,20 @@ macdef SUB = $SYM.symbol_SUB
 //
 macdef ATS_PACKNAME = $SYM.symbol_ATS_PACKNAME
 //
+(*
 macdef ATS_STALOADFLAG = $SYM.symbol_ATS_STALOADFLAG
+*)
 macdef ATS_DYNLOADFLAG = $SYM.symbol_ATS_DYNLOADFLAG
+macdef ATS_DYNLOADNAME = $SYM.symbol_ATS_DYNLOADNAME
+//
+macdef ATS_STATIC_PREFIX = $SYM.symbol_ATS_STATIC_PREFIX
+//
 macdef ATS_MAINATSFLAG = $SYM.symbol_ATS_MAINATSFLAG
 //
 (* ****** ****** *)
 
-staload FIL = "./pats_filename.sats"
+staload
+FIL = "./pats_filename.sats"
 
 (* ****** ****** *)
 
@@ -108,30 +121,38 @@ staload "./pats_e1xpval.sats"
 
 local
 
-fn prec_make_err () = prec_make_int (0)
+fn
+prec_make_err
+  ((*void*)) = prec_make_int(0)
 
-fn prec_tr_errmsg_fxty
+fn
+prec_tr_errmsg_fxty
   (opr: i0de): void = let
-  val () = prerr_error1_loc (opr.i0de_loc)
+  val () =
+  prerr_error1_loc(opr.i0de_loc)
   val () = prerrln! (": the operator [", opr.i0de_sym, "] is given no fixity")
   val () = the_trans1errlst_add (T1E_prec_tr (opr))
 in
   // nothing
 end // end of [prec_tr_errmsg_fxty]
 
-fn prec_tr_errmsg_adj
+fn
+prec_tr_errmsg_adj
   (opr: i0de): void = let
-  val () = prerr_error1_loc (opr.i0de_loc)
+  val () =
+  prerr_error1_loc(opr.i0de_loc)
   val () = prerrln! ": the operator for adjusting precedence can only be [+] or [-]."
   val () = the_trans1errlst_add (T1E_prec_tr (opr))
 in
   // nothing
 end // end of [prec_tr_errmsg_adj]
 
-fn p0rec_tr
+fn
+p0rec_tr
   (p0: p0rec): prec = let
 //
-  fun precfnd .<>.
+  fun
+  precfnd .<>.
     (id: i0de): prec = let
     val fxtyopt = the_fxtyenv_find id.i0de_sym
   in
@@ -244,21 +265,32 @@ end // end of [local]
 (* ****** ****** *)
 
 implement
-s0tacst_tr (d) = let
-  val arg = a0msrtlst_tr (d.s0tacst_arg)
-  val res: s1rt = s0rt_tr (d.s0tacst_res)
+s0tacst_tr
+  (d0c) = let
+  val loc = d0c.s0tacst_loc
+  val sym = d0c.s0tacst_sym
+  val fil = $FIL.filename_get_current()
+  val arg = a0msrtlst_tr(d0c.s0tacst_arg)
+  val res: s1rt = s0rt_tr(d0c.s0tacst_res)
+  val extdef =
+    scstextdef_tr(d0c, sym, d0c.s0tacst_extopt)
+  // end of [val]
 in
-  s1tacst_make (d.s0tacst_loc, d.s0tacst_sym, arg, res)
+//
+s1tacst_make
+  (loc, fil, d0c.s0tacst_sym, arg, res, extdef)
+//
 end // end of [s0tacst_tr]
 
 (* ****** ****** *)
 
 implement
 s0tacon_tr (d) = let
+  val fil = $FIL.filename_get_current ()
   val arg = a0msrtlst_tr (d.s0tacon_arg)
   val def: s1expopt = s0expopt_tr (d.s0tacon_def)
 in
-  s1tacon_make (d.s0tacon_loc, d.s0tacon_sym, arg, def)
+  s1tacon_make (d.s0tacon_loc, fil, d.s0tacon_sym, arg, def)
 end // end of [s0tacon_tr]
 
 (* ****** ****** *)
@@ -377,20 +409,28 @@ case+
   tok.token_node of
 | T_FUN (fk) => (
   case+ fk of
+//
   | FK_fn () => DCKfun ()
-  | FK_fnx () => DCKfun ()
   | FK_fun () => DCKfun ()
+  | FK_fnx () => DCKfun ()
+//
   | FK_prfn () => DCKprfun ()
   | FK_prfun () => DCKprfun ()
   | FK_praxi () => DCKpraxi ()
+//
   | FK_castfn () => DCKcastfn ()
+//
   ) // end of [T_FUN]
 | T_VAL (vk) => (
   case+ vk of
+//
   | VK_val () => DCKval ()
+//
+  | VK_prval () => DCKprval ()
+//
   | VK_val_pos () => DCKval ()
   | VK_val_neg () => DCKval ()
-  | VK_prval () => DCKprval ()
+//
   ) // end of [T_VAL]
 | _ => let
     val () = assertloc (false) in DCKfun ()
@@ -428,61 +468,81 @@ end // end of [v0aldec_tr]
 
 (* ****** ****** *)
 
-fn f0undec_tr (
+fn f0undec_tr
+(
   isprf: bool, isrec: bool, d: f0undec
- ) : f1undec = let
-  val loc = d.f0undec_loc
-  val effopt = d.f0undec_eff
-  val (fcopt, efcopt) =
-  (
-    case+ effopt of
-    | Some eff => (fcopt, Some efc) where {
-        val (fcopt, lin, prf, efc) = e0fftaglst_tr (eff)
-      } // end of [Some]
-    | None () => (None(*fcopt*), Some efc) where {
-        val efc = (
-          if isprf then EFFCSTnil () else EFFCSTall ()
-        ) : effcst // end of [val]
-      } // end of [None]
-  ) : @(fcopt, effcstopt)
+) : f1undec = let
 //
-  val d1e_def =
-    d0exp_tr_lams_dyn (
-      LAMKINDifix
-    , None (*locopt*)
-    , fcopt, 0 (*lin*)
-    , d.f0undec_arg, d.f0undec_res, efcopt
-    , d.f0undec_def
-    ) // end of [d0exp_lams_dyn_tr]
-  // end of [val]
+val loc = d.f0undec_loc
 //
-  val () = if isrec then
-    termination_metric_check (loc, d1exp_is_metric d1e_def, efcopt)
-  // end of [if] // end of [val]
+val effopt = d.f0undec_eff
+val (
+  fcopt, efcopt
+) = (
+  case+ effopt of
+  | Some eff =>
+    (
+      fcopt, Some efc
+    ) where {
+      val (fcopt, lin, prf, efc) = e0fftaglst_tr (eff)
+    } (* end of [where] *) // end of [Some]
+  | None ((*void*)) =>
+    (
+      None(*fcopt*), Some efc
+    ) where {
+      val efc = (
+        if isprf then EFFCSTnil () else EFFCSTall ()
+      ) : effcst // end of [val]
+    } (* end of [where] *) // end of [None]
+) : @(fcopt, effcstopt)
 //
-  val ann = witht0ype_tr (d.f0undec_ann)
+val d1e_def =
+d0exp_tr_lams_dyn
+(
+  LAMKINDifix
+, None (*locopt*)
+, fcopt, 0 (*lin*)
+, d.f0undec_arg, d.f0undec_res, efcopt
+, d.f0undec_def
+) (* end of [d0exp_lams_dyn_tr] *) // end of [val]
+//
+val () =
+if isrec then
+  termet_check (loc, d1exp_is_metric d1e_def, efcopt)
+// end of [if] // end of [val]
+//
+val ann = witht0ype_tr (d.f0undec_ann)
 //
 in
   f1undec_make (loc, d.f0undec_sym, d.f0undec_sym_loc, d1e_def, ann)
 end // end of [f0undec_tr]
 
-fun f0undeclst_tr (
+(* ****** ****** *)
+
+fun
+f0undeclst_tr
+(
   fk: funkind, ds: f0undeclst
 ) : f1undeclst = let
   val isprf = funkind_is_proof fk
   and isrec = funkind_is_recursive fk
 in
-  case+ ds of
-  | d :: ds => begin
-      f0undec_tr (isprf, isrec, d) :: f0undeclst_tr (fk, ds)
-    end (* end of [::] *)
-  | nil () => nil ()
+//
+case+ ds of
+| nil () => nil ()
+| cons (d, ds) => (
+    f0undec_tr (isprf, isrec, d) :: f0undeclst_tr (fk, ds)
+  ) (* end of [cons] *)
+//
 end // end of [f0undeclst_tr]
 
 (* ****** ****** *)
 
-fn v0ardec_tr
-  (d: v0ardec): v1ardec = let
+fn
+v0ardec_tr
+(
+  d: v0ardec
+) : v1ardec = let
   val loc = d.v0ardec_loc
   val knd = d.v0ardec_knd
   val pfat = d.v0ardec_pfat // i0deopt
@@ -499,8 +559,11 @@ end // end of [v0ardec_tr]
 
 (* ****** ****** *)
 
-fn i0mpdec_tr
-  (d: i0mpdec): i1mpdec = let
+fn
+i0mpdec_tr
+(
+  d: i0mpdec
+) : i1mpdec = let
   val loc = d.i0mpdec_loc
   val qid = d.i0mpdec_qid
   val tmparg = l2l (list_map_fun (qid.impqi0de_arg, t0mpmarg_tr))
@@ -517,46 +580,98 @@ in
 end // end of [i0mpdec_tr]
 
 (* ****** ****** *)
+//
+fun
+the_ATSRELOC_set_decl
+  (d0c0: d0ecl): void =
+  $GLOB.the_ATSRELOC_set_decl($UN.cast{ptr}(d0c0))
+//
+fun
+the_ATSRELOC_set_decl_if
+  (d0c0: d0ecl): void = () where
+{
+//
+val srcloc = $GLOB.the_ATSRELOC_get()
+val () = if srcloc > 0 then the_ATSRELOC_set_decl(d0c0)
+//
+} (* end of [the_ATSRELOC_set_decl_if] *)
+//
+(* ****** ****** *)
 
 extern
-fun i0nclude_tr
+fun
+i0nclude_tr
 (
-  d0c0: d0ecl, stadyn: int, given: string
+  d0c0: d0ecl
+, stadyn: int, given: string
 ) : d1eclist // endfun
 
 implement
 i0nclude_tr
-  (d0c0, stadyn, given) = d1cs where
+(
+  d0c0, stadyn, given
+) = d1cs where
 {
 //
-val loc0 = d0c0.d0ecl_loc
-val filopt = $FIL.filenameopt_make_relative (given)
+val
+loc0 = d0c0.d0ecl_loc
+//
+val
+((*void*)) =
+the_ATSRELOC_set_decl_if(d0c0)
+//
+var
+given2: string (* uninitized *)
+//
+val opt =
+  $FIL.filenameopt_make_relative(given, given2)
 //
 val fil =
 (
-case+ filopt of
+case+ opt of
 | ~Some_vt (fil) => fil
 | ~None_vt ((*void*)) => let
-    val (
-    ) = prerr_error1_loc (loc0)
-    val (
-    ) = prerrln! (": the file [", given, "] is not available for inclusion.")
-    val (
-    ) = the_trans1errlst_add (T1E_i0nclude_tr (d0c0))
-    val () = $ERR.abort ((*void*))
+    val srcloc = 
+      $GLOB.the_ATSRELOC_get ()
+    val () =
+    if (
+    srcloc = 0
+    ) then {
+//
+      val () =
+      prerr_error1_loc (loc0)
+//
+(*
+      val () =
+      prerrln! (": the file [", given, "] is not available for inclusion.")
+*)
+      val () =
+      prerrln! (": the file [", given2, "] is not available for inclusion.")
+//
+      val () = the_trans1errlst_add(T1E_i0nclude_tr(d0c0))
+//
+(*
+      val () = $ERR.abort{void}((*reachable*)) // HX: it is meaningful to continue
+*)
+    } (* end of [if] *) // end of [val]
   in
     $FIL.filename_dummy
   end // end of [None_vt]
 ) : filename // end of [val]
 //
-val d0cs = $PAR.parse_from_filename_toplevel (stadyn, fil)
+val
+d0cs =
+$PAR.parse_from_filename_toplevel2
+  (stadyn, fil)
 //
-val (
-  pfpush | isexi
-) = $FIL.the_filenamelst_push_check (fil)
-val (
-) = if isexi then let
-  val () = $LOC.prerr_location (loc0)
+val
+(pfpush | isexi) =
+$FIL.the_filenamelst_push_check(fil)
+val () =
+if isexi then let
+  val () =
+    $LOC.prerr_location(loc0)
+  // end of [val]
   val () = prerr (": error(0)")
   val () = prerr (": including the file [");
   val () = $FIL.prerr_filename_full (fil)
@@ -564,9 +679,9 @@ val (
   val () = $FIL.fprint_the_filenamelst (stderr_ref)
   val () = the_trans1errlst_add (T1E_i0nclude_tr (d0c0))
 in
-  $ERR.abort ((*void*))
+  $ERR.abort{void}((*reachable*))
 end // end of [if] // end of [val]
-val () = $FIL.the_filenamelst_pop (pfpush | (*none*))
+val () = $FIL.the_filenamelst_pop(pfpush | (*none*))
 //  
 (*
 val () = println! ("Including [", fil, "] starts.")
@@ -581,25 +696,80 @@ val () = println! ("Including [", fil, "] finishes.")
 (* ****** ****** *)
 
 fun
+ats_filename_get
+  ((*void*)): string = let
+//
+val fil = $FIL.filename_get_current ()
+val fname = $FIL.filename_get_fullname (fil)
+//
+in
+  $SYM.symbol_get_name (fname)
+end // end of [ats_filename_get]
+
+(* ****** ****** *)
+
+fun
 ats_packname_get
-  (): Stropt = let
-  val opt = the_e1xpenv_find (ATS_PACKNAME)
+  ((*void*)): Stropt = let
+//
+val opt = the_e1xpenv_find (ATS_PACKNAME)
+//
 in
 //
 case+ opt of
-| ~Some_vt (e) => (
-  case+ e.e1xp_node of
+| ~Some_vt (exp) => (
+  case+ exp.e1xp_node of
   | E1XPstring (ns) => stropt_some (ns)
   | _ => let
-      val () = prerr_warning1_loc (e.e1xp_loc)
+      val () = prerr_warning1_loc (exp.e1xp_loc)
       val () = prerrln! ": a string definition is required for [ATS_PACKNAME]."
     in
       stropt_none (*void*)
     end // end of [_]
   ) // end of [Some_vt]
-| ~None_vt () => stropt_none (*void*)
+| ~None_vt ((*void*)) => stropt_none (*void*)
 //
 end // end of [ats_packname_get]
+
+(* ****** ****** *)
+
+fun
+ats_packname_get2
+(
+  opt: Stropt, nspace: symbol
+) : Stropt = let
+//
+val opt2 = ats_packname_get ()
+val issome = stropt_is_some (opt2)
+//
+in
+//
+if issome
+  then opt2
+  else let
+    val issome = stropt_is_some (opt)
+  in
+    if issome
+      then let
+        val name = stropt_unsome (opt)
+        val nspace = $SYM.symbol_get_name (nspace)
+        val name = sprintf ("%s%s", @(name, nspace))
+        val name = string_of_strptr (name)
+      in
+        stropt_some (name)
+      end // end of [then]
+      else let
+        val name = ats_filename_get ()
+        val nspace = $SYM.symbol_get_name (nspace)
+        val name = sprintf ("%s%s", @(name, nspace))
+        val name = string_of_strptr (name)
+      in
+        stropt_some (name)
+      end // end of [else]
+    // end of [if]
+  end // end of [else]
+//
+end // end of [ats_packname_get2]
 
 (* ****** ****** *)
 
@@ -624,91 +794,149 @@ extern fun string_suffix_is_dats
 (* ****** ****** *)
 
 extern
-fun s0taload_tr
+fun
+s0taload_tr
 (
   d0c0: d0ecl
 , idopt: symbolopt, given: string
-, loadflag: &int? >> int
+, ldflag: &int? >> int
 , filref: &filename? >> filename
 ) : d1eclist // end of [s0taload_tr]
+
+(* ****** ****** *)
 
 local
 
 fun auxload
 (
-  fil: filename, loadflag: &int >> int
+  fil: filename, ldflag: &int >> int
 ) : d1eclist = let
 //
-val pname = $FIL.filename_get_partname (fil)
+val
+pname =
+  $FIL.filename_get_partname(fil)
 //
-val isdats = string_suffix_is_dats (pname)
-val flag = (if isdats then 1(*dyn*) else 0(*sta*)): int
-val d0cs = $PAR.parse_from_filename_toplevel (flag, fil)
+val
+isdats = string_suffix_is_dats(pname)
 //
-val (pfsave | ()) = the_trans1_env_save ()
+val
+flag =
+(
+  if isdats then 1(*dyn*) else 0(*sta*)
+) : int // end of [val]
 //
-val (pfpush | ()) = $FIL.the_filenamelst_push (fil)
-val d1cs = d0eclist_tr (d0cs) // HX: it is done in [fil]
-val ((*void*)) = $FIL.the_filenamelst_pop (pfpush | (*none*))
+val
+d0cs =
+$PAR.parse_from_filename_toplevel2
+  (flag, fil)
 //
-val packname = ats_packname_get ()
-val d1c_pack = d1ecl_packname (packname)
+val (pfsave | ()) = the_trans1_env_save()
+//
+val (pfpush | ()) = $FIL.the_filenamelst_push(fil)
+//
+val d1cs = d0eclist_tr(d0cs) // HX: it is done in [fil]
+//
+val ((*void*)) = $FIL.the_filenamelst_pop(pfpush | (*none*))
+//
+val pack = ats_packname_get()
+//
+val
+d1c_pack = d1ecl_packname(pack)
+//
 val d1cs = list_cons{d1ecl}(d1c_pack, d1cs)
 //
-val ans = the_e1xpenv_find (ATS_STALOADFLAG)
+(*
 //
+// HX-2014-06-06:
+// ATS_STALOADFLAG is no longer in use
+//
+val ans = the_e1xpenv_find (ATS_STALOADFLAG)
 val () = (
   case+ ans of
   | ~Some_vt e1xp => let
-      val v1al = e1xp_valize (e1xp) in if v1al_is_false v1al then loadflag := 0
+      val v1al = e1xp_valize (e1xp) in if v1al_is_false v1al then ldflag := 0
     end // end of [Some_vt]
   | ~None_vt () => () // the default value
 ) : void // end of [val]
+*)
 //
-val (
-) = the_trans1_env_restore (pfsave | (*none*))
+val () = the_trans1_env_restore(pfsave | (*none*))
 //
-val () = staload_file_insert (fil, loadflag, d1cs)
+val ((*void*)) = staload_file_insert(fil, ldflag, d1cs)
 //
 in
   d1cs
-end // end of [s0taload_tr_load]
+end // end of [auxload]
 
 in (* in of [local] *)
 
-implement s0taload_tr
+implement
+s0taload_tr
 (
-  d0c0, idopt, given, loadflag, filref
+  d0c0, idopt, given, ldflag, filref
 ) = let
 //
-val loc0 = d0c0.d0ecl_loc
+val
+loc0 = d0c0.d0ecl_loc
 //
-val () = loadflag := 1 // HX: for ATS_STALOADFLAG
+// HX-2014-06-06:
+// [ldflag] is no longer in use for
+val () = (ldflag := 0) // ATS_STALOADFLAG
 //
-val filopt = $FIL.filenameopt_make_relative (given)
+val
+((*void*)) =
+the_ATSRELOC_set_decl_if(d0c0)
+//
+var
+given2: string (* uninitized *)
+//
+val opt =
+  $FIL.filenameopt_make_relative(given, given2)
 //
 val fil =
 (
-case+ filopt of
-| ~Some_vt (fil) => fil
-| ~None_vt ((*void*)) => let
-    val (
-    ) = prerr_error1_loc (loc0)
-    val (
-    ) = prerrln! (": the file [", given, "] is not available for static loading.")
-    val (
-    ) = the_trans1errlst_add (T1E_s0taload_tr (d0c0))
-    val () = $ERR.abort ((*void*))
+case+ opt of
+| ~Some_vt(fil) => fil
+| ~None_vt((*void*)) => let
+//
+    val
+    srcloc =
+    $GLOB.the_ATSRELOC_get()
+//
+    val () =
+    if
+    (srcloc = 0)
+    then {
+//
+      val () =
+      prerr_error1_loc(loc0)
+//
+(*
+      val () =
+      prerrln! (": the file [", given, "] is not available for staloading.")
+*)
+      val () =
+      prerrln! (": the file [", given2, "] is not available for staloading.")
+//
+      val () = the_trans1errlst_add(T1E_s0taload_tr(d0c0))
+//
+(*
+      val () = $ERR.abort{void}((*reachable*)) // HX: it is meaningful to continue
+*)
+    } (* end of [if] *) // end of [val]
   in
     $FIL.filename_dummy
   end // end of [None_vt]
 ) : filename // end of [val]
 //
-val (
-  pfpush | isexi
-) = $FIL.the_filenamelst_push_check (fil)
-val (
-) = if isexi then {
+val
+(pfpush | isexi) =
+$FIL.the_filenamelst_push_check(fil)
+//
+val
+((*void*)) =
+if isexi then
+{
   val () = $LOC.prerr_location (loc0)
   val () = prerr (": error(0)")
   val () = prerr (": staloading the file [");
@@ -716,26 +944,31 @@ val (
   val () = prerr ("] generates the following looping trace:\n")
   val () = $FIL.fprint_the_filenamelst (stderr_ref)
   val () = the_trans1errlst_add (T1E_s0taload_tr (d0c0))
-  val () = $ERR.abort ((*void*))
-} // end of [if] // end of [val]
-val () = $FIL.the_filenamelst_pop (pfpush | (*none*))
+  val () = $ERR.abort{void}((*reachable*))
+} (* end of [if] *) // end of [val]
+//
+val
+((*void*)) =
+$FIL.the_filenamelst_pop(pfpush | (*none*))
 //
 val () = filref := fil
 //
-val opt = staload_file_search (fil)
+val opt = staload_file_search(fil)
 //
 in
 //
 case+ opt of
 | ~Some_vt
-    (flagd1cs) => flagd1cs.1 where
+  (
+    flagd1cs
+  ) => flagd1cs.1 where
   {
-    val () = loadflag := flagd1cs.0
+    val () = ldflag := flagd1cs.0
 (*
     val () = println! ("The file [", fil, " is already loaded.")
 *)
-  } // end of [Some_vt]
-| ~None_vt ((*void*)) => auxload (fil, loadflag)
+  } (* end of [Some_vt] *)
+| ~None_vt() => auxload (fil, ldflag)
 //
 end // end of [s0taload_tr]
 
@@ -744,41 +977,134 @@ end // end of [local]
 (* ****** ****** *)
 
 extern
-fun  d0ynload_tr
+fun r0equire_tr
+  (d0c0: d0ecl, given: string): filename
+// end of [r0equire_tr]
+extern
+fun r0equire_tr_if
+  (d0c0: d0ecl, given: string): filename
+// end of [r0equire_tr_if]
+
+implement
+r0equire_tr
+  (d0c0, given) = let
+//
+val srcloc = $GLOB.the_ATSRELOC_get ()
+//
+in
+//
+if srcloc > 0
+  then r0equire_tr_if(d0c0, given) else $FIL.filename_dummy
+//
+end // end of [r0equire_tr]
+
+implement
+r0equire_tr_if
+  (d0c0, given) = let
+//
+val
+loc0 = d0c0.d0ecl_loc
+//
+val
+((*void*)) =
+the_ATSRELOC_set_decl(d0c0)
+//
+var
+given2: string (* uninitized *)
+//
+val
+filopt =
+$FIL.filenameopt_make_relative(given, given2)
+//
+val
+dbgflag = $GLOB.the_DEBUGATS_dbgflag_get((*void*))
+val
+((*void*)) =
+(
+//
+// HX: generating debugging information
+//
+if
+(dbgflag > 0)
+then
+(
+prerr_error1_loc(loc0);
+prerrln! (": the file [", given2, "] is required.")
+) (* end of [if] *)
+//
+) (* end of [val] *)
+//
+in
+//
+case+ filopt of
+| ~Some_vt(fil) => fil
+| ~None_vt((*void*)) => $FIL.filename_dummy(*void*)
+//
+end // end of [r0equire_tr_if]
+
+(* ****** ****** *)
+
+extern
+fun d0ynload_tr
   (d0c0: d0ecl, given: string): filename
 // end of [d0ynload_tr]
 
 implement
 d0ynload_tr
-  (d0c0, given) = fil where
-{
+  (d0c0, given) = let
 //
-val loc0 = d0c0.d0ecl_loc
-val filopt = $FIL.filenameopt_make_relative (given)
-val fil =
-(
-case+ filopt of
+val
+loc0 = d0c0.d0ecl_loc
+//
+val
+((*void*)) =
+the_ATSRELOC_set_decl_if(d0c0)
+//
+var
+given2: string (* uninitized *)
+//
+val opt =
+  $FIL.filenameopt_make_relative(given, given2)
+//
+in
+//
+case+ opt of
 | ~Some_vt (fil) => fil
 | ~None_vt ((*void*)) => let
-    val (
-    ) = prerr_error1_loc (loc0)
-    val (
-    ) = prerrln! (": the file [", given, "] is not available for dynamic loading")
-    val (
-    ) = the_trans1errlst_add (T1E_d0ynload_tr (d0c0))
+//
+    val
+    srcloc =
+    $GLOB.the_ATSRELOC_get ()
+//
+    val () =
+    if srcloc = 0 then {
+//
+      val () =
+      prerr_error1_loc (loc0)
+//
 (*
-    val () = $ERR.abort ((*void*)) // HX: it is still meaningful to continue
+      val () =
+      prerrln! (": the file [", given, "] is not available for dynloading")
 *)
+      val () =
+      prerrln! (": the file [", given2, "] is not available for dynloading")
+//
+      val () = the_trans1errlst_add(T1E_d0ynload_tr(d0c0))
+//
+(*
+      val () = $ERR.abort{void}((*reachable*)) // HX: it is meaningful to continue
+*)
+    } (* end of [if] *) // end of [val]
   in
     $FIL.filename_dummy
   end // end of [None_vt]
-) : filename // end of [val]
 //
-} // end of [d0ynload_tr]
+end // end of [d0ynload_tr]
 
 (* ****** ****** *)
 
-fn guad0ecl_tr
+fun
+guad0ecl_tr
 (
   knd: srpifkind, gd: guad0ecl
 ) : d1eclist = let
@@ -817,28 +1143,38 @@ end // end of [guad0ecl_tr]
 
 implement
 d0ecl_tr (d0c0) = let
-  val loc0 = d0c0.d0ecl_loc
+//
+val loc0 = d0c0.d0ecl_loc
 (*
-  val () = begin
-    print "d0ecl_tr: loc0 = "; $LOC.print_location (loc0); print_newline ()
-  end // end of [val]
+val () =
+(
+  print "d0ecl_tr: loc0 = ";
+  $LOC.print_location (loc0); print_newline ()
+) (* end of [val] *)
 *)
 in
 //
 case+ d0c0.d0ecl_node of
-| D0Cfixity (f0xty, ids) => (
+//
+| D0Cfixity
+    (f0xty, ids) => (
     d0ecl_fixity_tr (f0xty, ids); d1ecl_none (loc0)
   ) // end of [D0Cfixity]
-| D0Cnonfix ids => let
+| D0Cnonfix (ids) => let
     val () = d0ecl_nonfix_tr (ids) in d1ecl_none (loc0)
   end // end of [D0Cnonfix]
 //
 | D0Csymintr (ids) => d1ecl_symintr (loc0, ids)
 | D0Csymelim (ids) => d1ecl_symelim (loc0, ids)
-| D0Coverload (id, qid, pval) => d1ecl_overload (loc0, id, qid, pval)
 //
-| D0Ce0xpdef (id, def) => let
-    val def = (case+ def of
+| D0Coverload
+    (id, qid, pval) => d1ecl_overload (loc0, id, qid, pval)
+  // end of [D0Coverload]
+//
+| D0Ce0xpdef
+    (id, def) => let
+    val def = (
+      case+ def of
       | Some e0xp => e0xp_tr e0xp | None () => e1xp_none (loc0)
     ) : e1xp // end of [val]
     val () = the_e1xpenv_add (id, def)
@@ -849,78 +1185,114 @@ case+ d0c0.d0ecl_node of
   end // end of [D0Ce0xpdef]
 | D0Ce0xpundef (id) => let
     val def = e1xp_undef (loc0)
-    val () = the_e1xpenv_add (id, def)
+    val ((*void*)) = the_e1xpenv_add (id, def)
   in
     d1ecl_e1xpundef (loc0, id, def)
   end // end of [D0Ce0xpundef]
 //
-| D0Ce0xpact (knd, e0xp) => let
+| D0Ce0xpact
+    (knd, e0xp) => let
     val e1xp = e0xp_tr (e0xp)
 (*
     val () =
-      println! ("d0ecl_tr: D0Ce0xpact: e1xp = ", e1xp)
+    println!
+      ("d0ecl_tr: D0Ce0xpact: e1xp = ", e1xp)
     // end of [val]
 *)
     val v1al = e1xp_valize (e1xp)
-    val () = (case+ knd of
-      | E0XPACTassert () =>
+    val () =
+    ( case+ knd of
+      | E0XPACTerror() =>
+          do_e0xpact_error(e0xp.e0xp_loc, v1al)
+        // end of [E0XPACTerror]
+      | E0XPACTprerr() => do_e0xpact_prerr(v1al)
+      | E0XPACTprint() => do_e0xpact_print(v1al)
+      | E0XPACTassert() =>
           do_e0xpact_assert (e0xp.e0xp_loc, v1al)
-      | E0XPACTerror () => do_e0xpact_error (e0xp.e0xp_loc, v1al)
-      | E0XPACTprint () => do_e0xpact_prerr (v1al)
+        // end of [E0XPACTassert]
     ) : void // end of [val]
   in
     d1ecl_none (loc0)
   end // end of [D0Ce0xpact]
 //
-| D0Cdatsrts (d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, d0atsrtdec_tr))
+| D0Cpragma
+    (e0xps) => let
+    val
+    e1xps =
+    e0xplst_tr(e0xps)
   in
-    d1ecl_datsrts (loc0, d1cs)
+    d1ecl_pragma(loc0, e1xps)
+  end // end of [D0Cpragma]
+| D0Ccodegen
+    (knd, e0xps) => let
+    val
+    e1xps = e0xplst_tr(e0xps)
+  in
+    d1ecl_codegen(loc0, knd, e1xps)
+  end // end of [D0Ccodegen]
+//
+| D0Cdatsrts (d0cs) => let
+    val d1cs =
+    list_map_fun
+      (d0cs, d0atsrtdec_tr)
+    // end of [val]
+  in
+    d1ecl_datsrts (loc0, l2l(d1cs))
   end // end of [D0Cdatsrts]
 | D0Csrtdefs (d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, s0rtdef_tr))
+    val d1cs =
+    list_map_fun(d0cs, s0rtdef_tr)
   in
-    d1ecl_srtdefs (loc0, d1cs)
-  end
+    d1ecl_srtdefs (loc0, l2l(d1cs))
+  end // end of [D0Csrtdefs]
 //
 | D0Cstacsts (d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, s0tacst_tr))
+    val d1cs =
+    list_map_fun(d0cs, s0tacst_tr)
   in
-    d1ecl_stacsts (loc0, d1cs)
+    d1ecl_stacsts (loc0, l2l(d1cs))
   end // end of [D0Cstacsts]
 | D0Cstacons (knd, d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, s0tacon_tr))
+    val d1cs =
+    list_map_fun(d0cs, s0tacon_tr)
   in
-    d1ecl_stacons (loc0, knd, d1cs)
+    d1ecl_stacons (loc0, knd, l2l(d1cs))
   end // end of [D0Cstacons]
 (*
 | D0Cstavars (d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, s0tavar_tr))
+    val d1cs =
+    list_map_fun(d0cs, s0tavar_tr)
   in
-    d1ecl_stavars (loc0, d1cs)
+    d1ecl_stavars (loc0, l2l(d1cs))
   end // end of [D0Cstavars]
 *)
 //
 | D0Ctkindef (d0c) =>
     d1ecl_tkindef (loc0, t0kindef_tr d0c)
 | D0Csexpdefs (knd, d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, s0expdef_tr))
+    val d1cs =
+    list_map_fun(d0cs, s0expdef_tr)
   in
-    d1ecl_sexpdefs (loc0, knd, d1cs)
+    d1ecl_sexpdefs (loc0, knd, l2l(d1cs))
   end // end of [D0Csexpdefs]
-| D0Csaspdec (d0c) =>
-    d1ecl_saspdec (loc0, s0aspdec_tr (d0c))
 //
-| D0Cexndecs (d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, e0xndec_tr))
+| D0Csaspdec(d0c) =>
+    d1ecl_saspdec(loc0, s0aspdec_tr (d0c))
+  // end of [D0Csaspdec]
+//
+| D0Creassume(qid) => d1ecl_reassume(loc0, qid)
+//
+| D0Cexndecs(d0cs) => let
+    val d1cs =
+    list_map_fun(d0cs, e0xndec_tr)
   in
-    d1ecl_exndecs (loc0, d1cs)
+    d1ecl_exndecs(loc0, l2l(d1cs))
   end // end of [D0Cexndecs]
-| D0Cdatdecs (knd, d0cs1, d0cs2) => let
-    val d1cs1 = l2l (list_map_fun (d0cs1, d0atdec_tr))
-    val d1cs2 = l2l (list_map_fun (d0cs2, s0expdef_tr))
+| D0Cdatdecs(knd, d0cs1, d0cs2) => let
+    val d1cs1 = list_map_fun(d0cs1, d0atdec_tr)
+    val d1cs2 = list_map_fun(d0cs2, s0expdef_tr)
   in
-    d1ecl_datdecs (loc0, knd, d1cs1, d1cs2)
+    d1ecl_datdecs(loc0, knd, l2l(d1cs1), l2l(d1cs2))
   end // end of [D0Cdatdecs]
 //
 | D0Cclassdec (id, sup) => let
@@ -929,13 +1301,13 @@ case+ d0c0.d0ecl_node of
 //
 | D0Cextype (name, def) => let
     val def = s0exp_tr (def) in d1ecl_extype (loc0, name, def)
-  end
+  end // end of [D0Cextype]
 | D0Cextype (knd, name, def) => let
     val def = s0exp_tr (def) in d1ecl_extype2 (loc0, knd, name, def)
-  end
-| D0Cextval (name, def) => let
-    val def = d0exp_tr (def) in d1ecl_extval (loc0, name, def)
-  end
+  end // end of [D0Cextype]
+| D0Cextvar (name, def) => let
+    val def = d0exp_tr (def) in d1ecl_extvar (loc0, name, def)
+  end // end of [D0Cextvar]
 | D0Cextcode (knd, pos, code) => d1ecl_extcode (loc0, knd, pos, code)
 //
 | D0Cdcstdecs
@@ -954,9 +1326,10 @@ case+ d0c0.d0ecl_node of
 | D0Cmacdefs
     (knd, isrec, d0cs) => let
     // knd: 0/1 => short/long
-    val d1cs = l2l (list_map_fun (d0cs, m0acdef_tr))
+    val d1cs =
+    list_map_fun (d0cs, m0acdef_tr)
   in
-    d1ecl_macdefs (loc0, knd, isrec, d1cs)
+    d1ecl_macdefs (loc0, knd, isrec, l2l(d1cs))
   end // end of [D0Cmacdefs]
 //
 | D0Cfundecs (knd, qarg, d0cs) => let
@@ -966,63 +1339,128 @@ case+ d0c0.d0ecl_node of
     d1ecl_fundecs (loc0, knd, qarg, d1cs)
   end // end of [D0Cfundecs]
 | D0Cvaldecs (knd, isrec, d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, v0aldec_tr))
+    val d1cs = list_map_fun (d0cs, v0aldec_tr)
   in
-    d1ecl_valdecs (loc0, knd, isrec, d1cs)
+    d1ecl_valdecs (loc0, knd, isrec, l2l(d1cs))
   end // end of [D0Cvaldecs]
 | D0Cvardecs (knd, d0cs) => let
-    val d1cs = l2l (list_map_fun (d0cs, v0ardec_tr))
+    val d1cs =
+    list_map_fun (d0cs, v0ardec_tr)
   in
-    d1ecl_vardecs (loc0, knd, d1cs)
+    d1ecl_vardecs (loc0, knd, l2l(d1cs))
   end // end of [D0Cvardecs]
 //
-| D0Cimpdec (knd, i0mparg, d0c) => let
+| D0Cimpdec
+    (knd, i0mparg, d0c) => let
     val i1mparg = i0mparg_tr (i0mparg) in
     d1ecl_impdec (loc0, knd, i1mparg, i0mpdec_tr d0c)
-  end // end of [D0Cimpdec]
+  end (* end of [D0Cimpdec] *)
 //
 | D0Cinclude
     (pfil, stadyn, given) => let
-    val (
-      pfpush | ()
-    ) = $FIL.the_filenamelst_push (pfil)
-    val d1cs = i0nclude_tr (d0c0, stadyn, given)
-    val () = $FIL.the_filenamelst_pop (pfpush | (*none*))
+//
+    val
+    (pfpush | ()) =
+    $FIL.the_filenamelst_push(pfil)
+//
+    val d1cs = i0nclude_tr(d0c0, stadyn, given)
+//
+    val ((*void*)) =
+      $FIL.the_filenamelst_pop(pfpush | (*none*))
+    // end of [val]
+//
   in
-    d1ecl_include (loc0, d1cs)
+    d1ecl_include(loc0, stadyn, d1cs)
   end // end of [D0Cinclude]
+//
 | D0Cstaload
-    (pfil, idopt, given) => let
-    var loadflag: int // unitialized
+  (
+    pfil, idopt, given
+  ) => let
+//
+    var ldflag: int // unitialized
     var fil: filename // unitialized
 //
-    val (
-      pfpush | ()
-    ) = $FIL.the_filenamelst_push (pfil)
-    val d1cs = s0taload_tr (d0c0, idopt, given, loadflag, fil)
-    val () = $FIL.the_filenamelst_pop (pfpush | (*none*))
+    val
+    (pfpush | ()) =
+    $FIL.the_filenamelst_push(pfil)
+//
+    val
+    d1cs =
+    s0taload_tr(d0c0, idopt, given, ldflag, fil)
+//
+    val ((*void*)) =
+      $FIL.the_filenamelst_pop(pfpush | (*none*))
+    // end of [val]
 //
   in
-    d1ecl_staload (loc0, idopt, fil, loadflag, d1cs)
+    d1ecl_staload(loc0, idopt, fil, ldflag, d1cs)
   end // end of [D0Cstaload]
-| D0Cdynload (pfil, given) => let
-    val (
-      pfpush | ()
-    ) = $FIL.the_filenamelst_push (pfil)
-    val cfil = d0ynload_tr (d0c0, given)
-    val () = $FIL.the_filenamelst_pop (pfpush | (*none*))
+//
+| D0Cstaloadnm
+    (pfil, name, nspace) =>
+    d1ecl_staloadnm(loc0, name(*=alias*), nspace)
+  // end of [D0Cstaloadnm]
+//
+| D0Cstaloadloc
+  (
+    pfil, nspace, d0cs
+  ) => let
+//
+    val opt = ats_packname_get()
+//
+    val
+    (pfsave | ()) =
+    the_trans1_env_save((*void*))
+//
+    val d1cs = d0eclist_tr(d0cs) // HX: done in [pfil]
+//
+    val pack =
+      ats_packname_get2(opt, nspace)
+    // end of [val]
+//
+// HX: [d1c_pack]: treated as a special decl
+//
+    val d1c_pack = d1ecl_packname(pack)
+    val d1cs_new = list_cons(d1c_pack, d1cs)
+//
+    val ((*void*)) =
+      the_trans1_env_restore(pfsave | (*none*))
+    // end of [val]
   in
-    d1ecl_dynload (loc0, cfil)
-  end // end of [D0Cdynload]
+    d1ecl_staloadloc(loc0, pfil, nspace, d1cs_new)
+  end // end of [D0Cstaloadloc]
+//
+| D0Crequire
+    (pfil, given) => let
+    val cfil =
+      r0equire_tr(d0c0, given) in d1ecl_none(loc0)
+    // end of [val]
+  end // end of [D0Crequire]
+//
+| D0Cdynload
+    (pfil, given) =>
+    d1ecl_dynload(loc0, cfil) where
+  {
+//
+    val
+    (pfpush | ()) =
+    $FIL.the_filenamelst_push(pfil)
+//
+    val cfil = d0ynload_tr (d0c0, given)
+//
+    val ((*void*)) =
+      $FIL.the_filenamelst_pop(pfpush | (*none*))
+    // end of [val]
+//
+  } (* end of [D0Cdynload] *)
 //
 | D0Clocal
   (
     d0cs_head, d0cs_body
   ) => let
     val (pfenv1 | ()) = the_trans1_env_push ()
-    val (pflvl0 | ()) = the_trans1_level_inc ()
     val d1cs_head = d0eclist_tr (d0cs_head)
-    val () = the_trans1_level_dec (pflvl0 | (*none*))
     val (pfenv2 | ()) = the_trans1_env_push ((*none*))
     val d1cs_body = d0eclist_tr (d0cs_body)
     val () = the_trans1_env_localjoin (pfenv1, pfenv2 | (*none*))
@@ -1068,14 +1506,19 @@ val d1cs =
 // HX-2013-06:
 // for [PACKNAME] to be set externally
 //
-if isnone then d1cs else let
-  val d1c_packname = d1ecl_packname (opt)
-in
-  list_cons (d1c_packname, d1cs)
-end // end of [if]
+if isnone
+  then d1cs
+  else let
+    val d1c_pack =
+      d1ecl_packname (opt)
+    // end of [val]
+  in
+    list_cons (d1c_pack, d1cs)
+  end // end of [else]
+// end of [if]
 ) : d1eclist // end of [val]
 //
-val () = the_trans1errlst_finalize ()
+val () = the_trans1errlst_finalize()
 //
 } // end of [d0eclist_tr_errck]
 
@@ -1083,62 +1526,156 @@ val () = the_trans1errlst_finalize ()
 
 local
 
-fn intrep2int
+fun
+intrep2int
   (rep: string): int = let
-  val x = $UT.llint_make_string (rep) in int_of_llint (x)
+//
+val x =
+$UT.llint_make_string(rep) in int_of_llint(x)
+//
 end // end of [intrep2int]
 
-fun aux_dynloadflag (): void = let
-  val opt = the_e1xpenv_find (ATS_DYNLOADFLAG)
+fun
+aux_dynloadflag(): void = let
+  val opt = the_e1xpenv_find( ATS_DYNLOADFLAG )
 in
 //
 case+ opt of
-| ~Some_vt (e) => (
+| ~Some_vt(e) =>
+  (
   case+ e.e1xp_node of
-  | E1XPint (x) => $GLOB.the_DYNLOADFLAG_set (x)
-  | E1XPintrep (rep) => $GLOB.the_DYNLOADFLAG_set (intrep2int(rep))
-  | _ => let
-      val () = prerr_error1_loc (e.e1xp_loc)
-      val () = prerr ": only integer definition for [ATS_DYNLOADFLAG]."
-      val () = prerr_newline ()
+  | E1XPint(x) =>
+      $GLOB.the_DYNLOADFLAG_set(x)
+  | E1XPintrep(rep) =>
+      $GLOB.the_DYNLOADFLAG_set(intrep2int(rep))
+  | _ (*rest-of-e1xp*) => let
+      val () =
+      prerr_error1_loc(e.e1xp_loc)
+      val () =
+      prerrln! (": non-integer definition for [ATS_DYNLOADFLAG].")
     in
-       $ERR.abort {void} ()
+      $ERR.abort{void}((*reachable*)) // HX: is it meaningful to continue?
     end // end of [_]
-  ) // end of [Some_vt]
-| ~None_vt () => () // HX: the [ATS_DYNLOADFLAG] is set to 1 by default
+  ) (* end of [Some_vt] *)
+//
+// HX: [ATS_DYNLOADFLAG] is set to 1 by default
+//
+| ~None_vt((*void*)) => ()
 //
 end // end of [aux_dynloadflag]
 
-fun aux_mainatsflag (): void = let
-  val opt = the_e1xpenv_find (ATS_MAINATSFLAG)
+fun
+aux_dynloadname
+(
+) : void = let
+//
+val opt =
+the_e1xpenv_find(ATS_DYNLOADNAME)
+//
 in
 //
 case+ opt of
-| ~Some_vt (e) => (
+| ~Some_vt(e) =>
+  (
   case+ e.e1xp_node of
-  | E1XPint (x) => $GLOB.the_MAINATSFLAG_set (x)
-  | E1XPintrep (rep) => $GLOB.the_MAINATSFLAG_set (intrep2int(rep))
-  | _ => let
-      val () = prerr_error1_loc (e.e1xp_loc)
-      val () = prerr ": only integer definition for [ATS_MAINATSFLAG]."
-      val () = prerr_newline ()
+  | E1XPstring(x) =>
+    $GLOB.the_DYNLOADNAME_set_name(x)
+  | _ (*non-E1XPstring*) => let
+      val () =
+        prerr_error1_loc( e.e1xp_loc )
+      val () =
+        prerrln!(": non-string definition for [ATS_DYNLOADNAME].")
     in
-       $ERR.abort {void} ()
+       $ERR.abort{void}((*reachable*)) // HX: is it meaningful to continue?
     end // end of [_]
-  ) // end of [Some_vt]
-| ~None_vt () => () // HX: the [ATS_MAINATSFLAG] is set to 0 by default
+  ) (* end of [Some_vt] *)
+//
+// HX: the [ATS_DYNLOADNAME] is set to stropt_none
+//
+| ~None_vt((*void*)) => ()
+//
+end // end of [aux_dynloadname]
+
+fun
+aux_mainatsflag
+(
+// argless
+) : void = let
+//
+val opt =
+  the_e1xpenv_find(ATS_MAINATSFLAG)
+//
+in
+//
+case+ opt of
+| ~Some_vt(e) =>
+  (
+  case+ e.e1xp_node of
+  | E1XPint(x) =>
+      $GLOB.the_MAINATSFLAG_set (x)
+  | E1XPintrep(rep) =>
+      $GLOB.the_MAINATSFLAG_set (intrep2int(rep))
+  | _ (* rest-of-e1xp *)=> let
+      val () =
+      prerr_error1_loc(e.e1xp_loc)
+      val () =
+      prerrln! (": non-integer definition for [ATS_MAINATSFLAG].")
+    in
+       $ERR.abort{void}((*reachable*)) // HX: is it meaningful to continue?
+    end // end of [_]
+  ) (* end of [Some_vt] *)
+//
+// HX: the [ATS_MAINATSFLAG] is set to 0 by default
+//
+| ~None_vt ((*void*)) => ()
 //
 end // end of [aux_mainatsflag]
+
+fun
+aux_static_prefix
+(
+// argless
+) : void = let
+  val opt =
+  the_e1xpenv_find(ATS_STATIC_PREFIX)
+in
+//
+case+ opt of
+| ~Some_vt(e) =>
+  (
+  case+ e.e1xp_node of
+  | E1XPstring(x) =>
+    $GLOB.the_STATIC_PREFIX_set_name(x)
+  | _ (* non-E1XPstring *) => let
+      val () =
+        prerr_error1_loc( e.e1xp_loc )
+      val () =
+        prerrln!(": non-string definition for [ATS_STATIC_PREFIX].")
+    in
+       $ERR.abort{void}((*reachable*)) // HX: is it meaningful to continue?
+    end // end of [_]
+  ) (* end of [Some_vt] *)
+//
+// HX: the [ATS_STATIC_PREFIX] is set to stropt_none
+//
+| ~None_vt((*void*)) => ()
+//
+end // end of [aux_static_prefix]
 
 in (* in of [local] *)
 
 implement
-trans1_finalize () = let
-  val () = aux_dynloadflag ()
-  val () = aux_mainatsflag ()
-in
-  (*nothing*)
-end // end of [trans1_finalize]
+trans1_finalize() =
+{
+//
+  val () = aux_dynloadflag()
+  val () = aux_dynloadname()
+  val () = aux_mainatsflag()
+  val () = aux_static_prefix()
+//
+  val () = $FIL.the_filenamelst_ppop((*void*))
+//
+} (* end of [trans1_finalize] *)
 
 end // end of [local]
 
@@ -1147,16 +1684,15 @@ end // end of [local]
 %{$
 
 ats_bool_type
-patsopt_extnam_ismac (
+patsopt_extnam_ismac
+(
   ats_ptr_type ext, ats_ptr_type ext_new
 ) {
   int sgn ;
   char* p ; int len ; 
-/*
-  sgn = strncmp ((char*)ext, "#", 1) ;
-  if (sgn) sgn = strncmp ((char*)ext, "mac#", 4) ;
-*/
-  sgn = strncmp ((char*)ext, "mac#", 4) ;
+//
+  sgn =
+  strncmp((char*)ext, "mac#", 4) ;
 //
   if (sgn == 0) {
     p = strchr ((char*)ext, '#') ;
@@ -1168,12 +1704,14 @@ patsopt_extnam_ismac (
 } // end of [patsopt_extnam_ismac]
 
 ats_bool_type
-patsopt_extnam_issta (
+patsopt_extnam_issta
+(
   ats_ptr_type ext, ats_ptr_type ext_new
 ) {
   int sgn ;
   char* p ; int len ; 
-  sgn = strncmp ((char*)ext, "sta#", 4) ;
+  sgn =
+  strncmp((char*)ext, "sta#", 4) ;
   if (sgn == 0) {
     p = strchr ((char*)ext, '#') ;
     len = strlen (p) ;
@@ -1184,12 +1722,14 @@ patsopt_extnam_issta (
 } // end of [patsopt_extnam_issta]
 
 ats_bool_type
-patsopt_extnam_isext (
+patsopt_extnam_isext
+(
   ats_ptr_type ext, ats_ptr_type ext_new
 ) {
   int sgn ;
   char* p ; int len ; 
-  sgn = strncmp ((char*)ext, "ext#", 4) ;
+  sgn =
+  strncmp((char*)ext, "ext#", 4) ;
   if (sgn == 0) {
     p = strchr ((char*)ext, '#') ;
     len = strlen (p) ;

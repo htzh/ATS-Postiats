@@ -43,8 +43,8 @@ val () = fprint_string (out, "\
 # This script is automatically generated.\n\
 #\n\
 \n\
-SOURCE=../../doc/EXAMPLE/MISC/\n\
-TARGET=ATS-Postiats/doc/EXAMPLE/MISC/\n\
+SOURCE=../../doc/EXAMPLE/MISC\n\
+TARGET=ATS-Postiats/doc/EXAMPLE/MISC\n\
 \n\
 srcget ()\n\
 {\n\
@@ -105,7 +105,7 @@ The ATSHOME/doc/EXAMPLE/MISC\
 
 (* ****** ****** *)
 
-#packfilename("autodiff.dats")
+#packfilename("arith_overflow.dats")
 
 (* ****** ****** *)
 
@@ -122,6 +122,14 @@ The ATSHOME/doc/EXAMPLE/MISC\
 
 (* ****** ****** *)
 
+#packfilename("autodiff.dats")
+
+(* ****** ****** *)
+
+#packfilename("fib_memo.dats")
+
+(* ****** ****** *)
+
 #packfilename("fourslot.dats")
 
 (* ****** ****** *)
@@ -130,12 +138,34 @@ The ATSHOME/doc/EXAMPLE/MISC\
 
 (* ****** ****** *)
 
-#packfilename("isqrt.dats")
+#packfilename("intsqrt_cps.dats")
+#packfilename("intsqrt_prf.dats")
 
 (* ****** ****** *)
 
+#packfilename("matrixops.dats")
+
+(* ****** ****** *)
+
+#packfilename("memoization.dats")
+
+(* ****** ****** *)
+
+#packfilename("morse_enum.dats")
+
+(* ****** ****** *)
+
+#packfilename("monad_list.dats")
 #packfilename("monad_maybe.dats")
 #packfilename("monad_state.dats")
+
+(* ****** ****** *)
+
+#packfilename("myfixptcomb.dats")
+
+(* ****** ****** *)
+
+#packfilename("mysendmailist.dats")
 
 (* ****** ****** *)
 
@@ -143,7 +173,14 @@ The ATSHOME/doc/EXAMPLE/MISC\
 
 (* ****** ****** *)
 
+#packfilename("queens_lazy.dats")
 #packfilename("queens_loop.dats")
+#packfilename("queens_comb.dats")
+#packfilename("queens_lincomb.dats")
+
+(* ****** ****** *)
+
+#packfilename("randerlin.dats")
 
 (* ****** ****** *)
 
@@ -171,14 +208,16 @@ The ATSHOME/doc/EXAMPLE/MISC\
 
 (* ****** ****** *)
 
+#packfilename("word-chain.dats")
+
+(* ****** ****** *)
+
 #packpostamble()
 
 (* ****** ****** *)
 
 %{
-
-implement main () = ()
-
+implement main (argc, argv) = ()
 %}
 
 (* ****** ****** *)

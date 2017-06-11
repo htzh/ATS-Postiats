@@ -4,6 +4,11 @@
 
 (* ****** ****** *)
 
+#define
+ATS_PACKNAME "SDL2_Hello"
+
+(* ****** ****** *)
+
 #include
 "share/atspre_define.hats"
 #include
@@ -20,14 +25,66 @@ staload "./../Game/Game.dats"
 
 (* ****** ****** *)
 
-staload Window = "./Hello_Window.dats"
-staload Renderer = "./Hello_Renderer.dats"
-staload isRunning = "./Hello_isRunning.dats"
+staload Window =
+{
+//
+#include
+"share/atspre_define.hats"
+#include
+"share/atspre_staload.hats"
+//
+staload "{$SDL2}/SATS/SDL.sats"
+//
+vtypedef
+objptr(l:addr) = SDL_Window_ptr(l)
+//
+#include "{$HX_GLOBALS}/HATS/gobjptr.hats"
+//
+} (* end of [Window] *)
 
 (* ****** ****** *)
 
-implement{
-} Game_init () =
+staload Renderer =
+{
+//
+#include
+"share/atspre_define.hats"
+#include
+"share/atspre_staload.hats"
+//
+staload "{$SDL2}/SATS/SDL.sats"
+//
+vtypedef
+objptr(l:addr) = SDL_Renderer_ptr(l)
+//
+#include "{$HX_GLOBALS}/HATS/gobjptr.hats"
+//
+} (* end of [Renderer] *)
+
+(* ****** ****** *)
+
+staload isRunning =
+{
+//
+#include
+"share/atspre_define.hats"
+#include
+"share/atspre_staload.hats"
+//
+typedef T = bool
+//
+fun
+initize (x: &T? >> T): void = x := false
+//
+#include "{$HX_GLOBALS}/HATS/globvar.hats"
+//
+} (* end of [isRunning] *)
+
+(* ****** ****** *)
+
+implement
+{}(*tmp*)
+Game_init () =
 {
 val err =
   SDL_Init (SDL_INIT_EVERYTHING)
